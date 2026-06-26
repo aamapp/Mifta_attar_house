@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Serif+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Kohinoor Bangla';
+  src: url('https://cdn.jsdelivr.net/gh/manthib/Typhaine@master/Site/maheer/assets/font/KohinoorBangla-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Kohinoor Bangla", "Hind Siliguri", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif Bengali", "Cinzel", "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --color-gold-50: #faf7eb;
+  --color-gold-100: #f2ebd0;
+  --color-gold-200: #e4d3a0;
+  --color-gold-300: #d4b868;
+  --color-gold-400: #c69d41;
+  --color-gold-500: #D4AF37;
+  --color-gold-600: #aa8524;
+  --color-gold-700: #85611c;
+  --color-gold-800: #6a4c1b;
+  --color-gold-900: #583f1a;
+  --color-gold-950: #32210d;
+}
+
+html, body {
+  font-family: "Kohinoor Bangla", "Hind Siliguri", "Inter", sans-serif !important;
+  background-color: #FAF8F5;
+  color: #1A1A1A;
+}
+
+/* Islamic Subtle Radial Pattern Overlay for light theme */
+.islamic-pattern {
+  background-image: radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.08) 1.5px, transparent 0);
+  background-size: 40px 40px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+

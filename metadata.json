@@ -1,0 +1,6 @@
+{
+  "name": "Mifta Attar House",
+  "description": "Premium Islamic Attar & Fragrance Store with modern luxury design, bilingual support, live search, and full admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
