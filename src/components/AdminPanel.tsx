@@ -23,9 +23,15 @@ import {
   Percent,
   RefreshCw,
   Bell,
-  ShieldAlert
+  ShieldAlert,
+  Database,
+  Server,
+  CheckCircle,
+  AlertTriangle,
+  Copy
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { SUPABASE_SQL_CREATION_QUERY } from '../lib/supabase';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -46,10 +52,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     language,
     addToast,
     websiteSettings,
-    updateWebsiteSettings
+    updateWebsiteSettings,
+    supabaseStatus,
+    syncingWithSupabase,
+    syncAllToSupabase,
+    refetchFromSupabase
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'settings' | 'supabase'>('dashboard');
 
   // Secure Lock System PIN code states
   const [pin, setPin] = useState('');
@@ -324,7 +334,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 { id: 'products', label: `Store Catalog (${products.length})`, icon: <Package className="w-4 h-4" /> },
                 { id: 'coupons', label: `Coupons System (${coupons.length})`, icon: <Tags className="w-4 h-4" /> },
                 { id: 'reviews', label: `Moderation (${reviews.length})`, icon: <MessageSquare className="w-4 h-4" /> },
-                { id: 'settings', label: `Website Contents`, icon: <RefreshCw className="w-4 h-4 animate-spin-slow" /> }
+                { id: 'settings', label: `Website Contents`, icon: <RefreshCw className="w-4 h-4 animate-spin-slow" /> },
+                { id: 'supabase', label: `Supabase Integration`, icon: <Database className="w-4 h-4" /> }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1015,6 +1026,114 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   </button>
                 </div>
               </form>
+            )}
+
+            {/* Tab 7: Supabase Integration Panel */}
+            {activeTab === 'supabase' && (
+              <div className="space-y-6 text-stone-900 text-left">
+                {/* Connection Status Card */}
+                <div className="p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4">
+                  <div className="text-xs font-bold text-gold-600 uppercase tracking-widest flex items-center gap-1.5 border-b border-stone-200 pb-2">
+                    <Database className="w-4 h-4" />
+                    <span>Supabase Integration Status</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div className="space-y-1">
+                      <div className="text-xs text-stone-500 font-sans font-bold">DATABASE CONNECTION</div>
+                      <div className="flex items-center gap-2">
+                        {supabaseStatus.connected ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Connected & Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-600 border border-red-500/20">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            Offline Fallback (Using LocalStorage)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={refetchFromSupabase}
+                        disabled={syncingWithSupabase}
+                        className="px-4 py-2 bg-stone-800 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${syncingWithSupabase ? 'animate-spin' : ''}`} />
+                        <span>{syncingWithSupabase ? 'Syncing...' : 'Fetch from Supabase'}</span>
+                      </button>
+
+                      <button
+                        onClick={syncAllToSupabase}
+                        disabled={syncingWithSupabase}
+                        className="px-4 py-2 bg-gold-500 hover:brightness-110 text-black text-xs font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                      >
+                        <Server className="w-3.5 h-3.5" />
+                        <span>Push Local to Supabase</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Individual Tables Status */}
+                  <div className="pt-3">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 mb-2">Table Sync Verification Checks</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {Object.entries(supabaseStatus.tables).map(([tableName, exists]) => (
+                        <div key={tableName} className="p-2.5 rounded-sm border border-stone-200 bg-white flex flex-col justify-between space-y-1 text-center">
+                          <span className="text-[10px] font-mono text-stone-600 font-bold break-all">{tableName}</span>
+                          <span className={`inline-block mx-auto text-[9px] font-bold uppercase tracking-wider ${
+                            exists ? 'text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-sm' : 'text-stone-450 bg-stone-100 px-1.5 py-0.5 rounded-sm'
+                          }`}>
+                            {exists ? 'Synced' : 'Not Found'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SQL Schema Setup Guide */}
+                <div className="p-5 rounded-sm border border-stone-200 bg-white space-y-4">
+                  <div className="flex items-center justify-between border-b border-stone-150 pb-2">
+                    <div className="text-xs font-bold text-stone-800 uppercase tracking-widest flex items-center gap-1.5">
+                      <Server className="w-4 h-4 text-gold-600" />
+                      <span>Supabase SQL Schema Setup</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(SUPABASE_SQL_CREATION_QUERY);
+                        addToast(
+                          { en: 'SQL Schema copied to clipboard successfully!', bn: 'SQL স্কিমা সফলভাবে ক্লিপবোর্ডে কপি করা হয়েছে!' },
+                          'success'
+                        );
+                      }}
+                      className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-[10px] font-bold uppercase tracking-wider rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>Copy SQL Code</span>
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-stone-500 leading-relaxed font-sans">
+                    {language === 'en'
+                      ? 'To fully connect Supabase, you must run the following SQL script inside your Supabase project\'s SQL Editor to create all required database tables, enable Row Level Security (RLS) policies, and grant public permissions.'
+                      : 'সুপাবেস কানেকশন সফল করতে হলে আপনার Supabase ড্যাশবোর্ডের SQL Editor-এ গিয়ে নিচের কোডটি রান করতে হবে। এটি প্রয়োজনীয় টেবিল, RLS সিকিউরিটি পলিসি এবং পাবলিক পারমিশন তৈরি করবে।'}
+                  </p>
+
+                  <div className="relative">
+                    <pre className="p-4 bg-stone-900 text-stone-200 font-mono text-[10px] rounded-sm overflow-x-auto overflow-y-auto max-h-60 leading-relaxed scrollbar-thin scrollbar-thumb-stone-700">
+                      <code>{SUPABASE_SQL_CREATION_QUERY}</code>
+                    </pre>
+                  </div>
+
+                  <div className="p-3 bg-gold-500/5 border border-gold-500/20 rounded-sm text-xs text-gold-800/95 font-medium leading-relaxed font-sans">
+                    💡 <strong>Pro Tip:</strong> After running the SQL setup, click <strong>"Push Local to Supabase"</strong> above to seed your online database with all the default products, coupons, settings, reviews and orders instantly!
+                  </div>
+                </div>
+              </div>
             )}
 
           </div>

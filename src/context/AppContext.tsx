@@ -3,9 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review } from '../types';
 import { PRODUCTS, CATEGORIES, INITIAL_COUPONS } from '../data';
+import {
+  supabase,
+  getSupabaseWebsiteSettings,
+  saveSupabaseWebsiteSettings,
+  getSupabaseProducts,
+  saveSupabaseProduct,
+  deleteSupabaseProduct,
+  getSupabaseOrders,
+  saveSupabaseOrder,
+  getSupabaseReviews,
+  saveSupabaseReview,
+  deleteSupabaseReview,
+  getSupabaseCoupons,
+  saveSupabaseCoupon,
+  checkSupabaseConnection
+} from '../lib/supabase';
 
 interface AppContextType {
   language: Language;
@@ -75,6 +91,12 @@ interface AppContextType {
     announcementEn: string;
     announcementBn: string;
   }>) => void;
+
+  // Supabase Integration Fields
+  supabaseStatus: { connected: boolean; tables: { [key: string]: boolean } };
+  syncingWithSupabase: boolean;
+  syncAllToSupabase: () => Promise<boolean>;
+  refetchFromSupabase: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -87,6 +109,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     return (localStorage.getItem('mifta_theme') as Theme) || 'dark';
   });
+
+  // Supabase State & connection
+  const [supabaseStatus, setSupabaseStatus] = useState<{ connected: boolean; tables: { [key: string]: boolean } }>({
+    connected: false,
+    tables: {
+      mifta_website_settings: false,
+      mifta_products: false,
+      mifta_orders: false,
+      mifta_reviews: false,
+      mifta_coupons: false,
+    }
+  });
+  const [syncingWithSupabase, setSyncingWithSupabase] = useState(false);
 
   // Website custom content state
   const [websiteSettings, setWebsiteSettings] = useState(() => {
@@ -108,6 +143,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setWebsiteSettings((prev: any) => {
       const updated = { ...prev, ...newSettings };
       localStorage.setItem('mifta_website_settings', JSON.stringify(updated));
+      
+      // Sync to Supabase in background
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_website_settings) {
+        saveSupabaseWebsiteSettings(updated).catch((err) =>
+          console.error('Error background syncing website settings:', err)
+        );
+      }
       return updated;
     });
     addToast(
@@ -116,11 +158,191 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const refetchFromSupabase = async () => {
+    setSyncingWithSupabase(true);
+    try {
+      const status = await checkSupabaseConnection();
+      setSupabaseStatus(status);
+
+      if (status.connected) {
+        // Load Website Settings
+        if (status.tables.mifta_website_settings) {
+          const settings = await getSupabaseWebsiteSettings();
+          if (settings) {
+            setWebsiteSettings(settings);
+            localStorage.setItem('mifta_website_settings', JSON.stringify(settings));
+          }
+        }
+
+        // Load Products
+        if (status.tables.mifta_products) {
+          const dbProducts = await getSupabaseProducts();
+          if (dbProducts && dbProducts.length > 0) {
+            setRawProducts(dbProducts);
+            localStorage.setItem('mifta_products', JSON.stringify(dbProducts));
+          }
+        }
+
+        // Load Coupons
+        if (status.tables.mifta_coupons) {
+          const dbCoupons = await getSupabaseCoupons();
+          if (dbCoupons && dbCoupons.length > 0) {
+            setRawCoupons(dbCoupons);
+            localStorage.setItem('mifta_coupons', JSON.stringify(dbCoupons));
+          }
+        }
+
+        // Load Reviews
+        if (status.tables.mifta_reviews) {
+          const dbReviews = await getSupabaseReviews();
+          if (dbReviews && dbReviews.length > 0) {
+            setReviews(dbReviews);
+            localStorage.setItem('mifta_reviews', JSON.stringify(dbReviews));
+          }
+        }
+
+        // Load Orders
+        if (status.tables.mifta_orders) {
+          const dbOrders = await getSupabaseOrders();
+          if (dbOrders && dbOrders.length > 0) {
+            setOrders(dbOrders);
+            localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to refetch data from Supabase:', err);
+    } finally {
+      setSyncingWithSupabase(false);
+    }
+  };
+
+  const syncAllToSupabase = async (): Promise<boolean> => {
+    setSyncingWithSupabase(true);
+    try {
+      const status = await checkSupabaseConnection();
+      setSupabaseStatus(status);
+
+      if (!status.connected) {
+        addToast(
+          { en: 'Supabase connection failed or tables do not exist yet. Please run the SQL setup script first!', bn: 'সুপাবেস কানেকশন ব্যর্থ হয়েছে অথবা টেবিলসমূহ এখনও তৈরি করা হয়নি। দয়া করে প্রথমে SQL রান করুন!' },
+          'error'
+        );
+        return false;
+      }
+
+      let successCount = 0;
+      let totalSteps = 0;
+
+      // 1. Sync Website Settings
+      if (status.tables.mifta_website_settings) {
+        totalSteps++;
+        const ok = await saveSupabaseWebsiteSettings(websiteSettings);
+        if (ok) successCount++;
+      }
+
+      // 2. Sync Products
+      if (status.tables.mifta_products) {
+        totalSteps++;
+        let ok = true;
+        for (const p of products) {
+          const res = await saveSupabaseProduct(p);
+          if (!res) ok = false;
+        }
+        if (ok) successCount++;
+      }
+
+      // 3. Sync Coupons
+      if (status.tables.mifta_coupons) {
+        totalSteps++;
+        let ok = true;
+        for (const c of coupons) {
+          const res = await saveSupabaseCoupon(c);
+          if (!res) ok = false;
+        }
+        if (ok) successCount++;
+      }
+
+      // 4. Sync Reviews
+      if (status.tables.mifta_reviews) {
+        totalSteps++;
+        let ok = true;
+        for (const r of reviews) {
+          const res = await saveSupabaseReview(r);
+          if (!res) ok = false;
+        }
+        if (ok) successCount++;
+      }
+
+      // 5. Sync Orders
+      if (status.tables.mifta_orders) {
+        totalSteps++;
+        let ok = true;
+        for (const o of orders) {
+          const res = await saveSupabaseOrder(o);
+          if (!res) ok = false;
+        }
+        if (ok) successCount++;
+      }
+
+      if (successCount === totalSteps && totalSteps > 0) {
+        addToast(
+          { en: 'Alhamdulillah! Successfully migrated all local store data to Supabase!', bn: 'আলহামদুলিল্লাহ! সকল লোকাল ডাটা সফলভাবে সুপাবেসে মাইগ্রেট করা হয়েছে!' },
+          'success'
+        );
+        return true;
+      } else {
+        addToast(
+          { en: `Migration partially succeeded (${successCount}/${totalSteps} tables synced).`, bn: `মাইগ্রেশন আংশিক সফল হয়েছে (${successCount}/${totalSteps} টেবিল সিঙ্ক হয়েছে)।` },
+          'info'
+        );
+        return false;
+      }
+    } catch (err) {
+      console.error('Migration failed:', err);
+      addToast(
+        { en: 'Migration failed due to server error.', bn: 'সার্ভার ত্রুটির কারণে মাইগ্রেশন ব্যর্থ হয়েছে।' },
+        'error'
+      );
+      return false;
+    } finally {
+      setSyncingWithSupabase(false);
+    }
+  };
+
+  // Run connection check and initial fetch on mount
+  useEffect(() => {
+    refetchFromSupabase();
+  }, []);
+
+
   // State
-  const [products, setProducts] = useState<Product[]>(() => {
+  const [products, setRawProducts] = useState<Product[]>(() => {
     const local = localStorage.getItem('mifta_products');
     return local ? JSON.parse(local) : PRODUCTS;
   });
+
+  const setProducts: React.Dispatch<React.SetStateAction<Product[]>> = (action) => {
+    setRawProducts((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      
+      // Sync to Supabase in background
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_products) {
+        // Find deleted products
+        const deleted = prev.filter(p => !next.some(n => n.id === p.id));
+        deleted.forEach(p => {
+          deleteSupabaseProduct(p.id).catch(e => console.error("Error background deleting product:", e));
+        });
+        
+        // Find added or updated products
+        next.forEach(p => {
+          saveSupabaseProduct(p).catch(e => console.error("Error background saving product:", e));
+        });
+      }
+      return next;
+    });
+  };
+
   const [cart, setCart] = useState<CartItem[]>(() => {
     const local = localStorage.getItem('mifta_cart');
     return local ? JSON.parse(local) : [];
@@ -133,10 +355,32 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const local = localStorage.getItem('mifta_recently_viewed');
     return local ? JSON.parse(local) : [];
   });
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+
+  const [coupons, setRawCoupons] = useState<Coupon[]>(() => {
     const local = localStorage.getItem('mifta_coupons');
     return local ? JSON.parse(local) : INITIAL_COUPONS;
   });
+
+  const setCoupons: React.Dispatch<React.SetStateAction<Coupon[]>> = (action) => {
+    setRawCoupons((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      
+      // Sync to Supabase in background
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_coupons) {
+        // Find deleted coupons
+        const deleted = prev.filter(c => !next.some(n => n.code === c.code));
+        deleted.forEach(c => {
+          supabase.from('mifta_coupons').delete().eq('code', c.code).catch(e => console.error(e));
+        });
+        
+        // Find added/updated coupons
+        next.forEach(c => {
+          saveSupabaseCoupon(c).catch(e => console.error(e));
+        });
+      }
+      return next;
+    });
+  };
   const [activeCoupon, setActiveCoupon] = useState<Coupon | null>(() => {
     const local = localStorage.getItem('mifta_active_coupon');
     return local ? JSON.parse(local) : null;
@@ -560,6 +804,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
+
+    // Background sync to Supabase
+    if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+      saveSupabaseOrder(newOrder).catch((err) =>
+        console.error('Error background syncing placed order:', err)
+      );
+    }
     
     addToast(
       {
@@ -573,8 +824,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateOrderStatus = (orderId: string, status: Order['orderStatus']) => {
-    setOrders((prev) =>
-      prev.map((ord) =>
+    setOrders((prev) => {
+      const next = prev.map((ord) =>
         ord.id === orderId
           ? {
               ...ord,
@@ -583,8 +834,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               trackingNumber: status === 'shipped' && !ord.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : ord.trackingNumber
             }
           : ord
-      )
-    );
+      );
+
+      // Background sync to Supabase
+      const updatedOrder = next.find((o) => o.id === orderId);
+      if (updatedOrder && supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+        saveSupabaseOrder(updatedOrder).catch((err) =>
+          console.error('Error background syncing order status:', err)
+        );
+      }
+
+      return next;
+    });
+
     addToast(
       {
         en: `Order ${orderId} status updated to: ${status}`,
@@ -595,7 +857,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteOrder = (orderId: string) => {
-    setOrders((prev) => prev.filter((ord) => ord.id !== orderId));
+    setOrders((prev) => {
+      const next = prev.filter((ord) => ord.id !== orderId);
+
+      // Background sync to Supabase
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+        supabase
+          .from('mifta_orders')
+          .delete()
+          .eq('id', orderId)
+          .catch((err) => console.error('Error background deleting order from Supabase:', err));
+      }
+
+      return next;
+    });
+
     addToast(
       { en: `Order ${orderId} has been deleted.`, bn: `অর্ডার ${orderId} মুছে ফেলা হয়েছে।` },
       'info'
@@ -610,6 +886,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       date: new Date().toISOString().split('T')[0],
     };
     setReviews((prev) => [newReview, ...prev]);
+
+    // Background sync to Supabase
+    if (supabaseStatus.connected && supabaseStatus.tables.mifta_reviews) {
+      saveSupabaseReview(newReview).catch((err) =>
+        console.error('Error background syncing review:', err)
+      );
+    }
+
     addToast(
       {
         en: 'Jazakallah Khair for your beautiful review! Moderation complete.',
@@ -620,7 +904,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteReview = (reviewId: string) => {
-    setReviews((prev) => prev.filter((rev) => rev.id !== reviewId));
+    setReviews((prev) => {
+      const next = prev.filter((rev) => rev.id !== reviewId);
+
+      // Background sync to Supabase
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_reviews) {
+        deleteSupabaseReview(reviewId).catch((err) =>
+          console.error('Error background deleting review from Supabase:', err)
+        );
+      }
+
+      return next;
+    });
+
     addToast(
       { en: 'Review deleted.', bn: 'পর্যালোচনা মুছে ফেলা হয়েছে।' },
       'info'
@@ -666,7 +962,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addToast,
         removeToast,
         websiteSettings,
-        updateWebsiteSettings
+        updateWebsiteSettings,
+        supabaseStatus,
+        syncingWithSupabase,
+        syncAllToSupabase,
+        refetchFromSupabase
       }}
     >
       {children}
