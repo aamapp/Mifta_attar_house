@@ -240,13 +240,13 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
               <div className="flex items-center justify-between p-2.5 rounded-sm border border-emerald-200 bg-emerald-50 text-xs">
                 <div className="flex items-center gap-2 text-emerald-850 font-bold">
                   <Gift className="w-4 h-4 text-emerald-600" />
-                  <span>{activeCoupon.code} Applied</span>
+                  <span>{activeCoupon.code} {language === 'en' ? 'Applied' : 'প্রয়োগ করা হয়েছে'}</span>
                 </div>
                 <button
                   onClick={removeCoupon}
                   className="text-stone-500 hover:text-red-600 text-[10px] uppercase font-bold cursor-pointer"
                 >
-                  Remove
+                  {language === 'en' ? 'Remove' : 'বাদ দিন'}
                 </button>
               </div>
             )}
@@ -265,7 +265,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
               )}
               <div className="flex justify-between text-stone-600">
                 <span>{language === 'en' ? 'Estimated Delivery' : 'ডেলিভারি চার্জ'}</span>
-                <span className="font-mono">{shipping === 0 ? 'FREE' : `৳${shipping}`}</span>
+                <span className="font-mono">{shipping === 0 ? (language === 'en' ? 'FREE' : 'ফ্রি') : `৳${shipping}`}</span>
               </div>
               <div className="h-px bg-stone-200 my-2" />
               <div className="flex justify-between text-sm font-bold text-stone-900">

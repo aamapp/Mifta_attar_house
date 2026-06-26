@@ -209,18 +209,24 @@ export default function App() {
               </div>
 
               {/* Reset Category Quick trigger */}
-              <div className="md:col-span-3 flex gap-2">
-                {['all', 'oud', 'arabic', 'floral', 'natural'].map((cat) => (
+              <div className="md:col-span-3 flex gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
+                {[
+                  { id: 'all', en: 'All', bn: 'সব আতর' },
+                  { id: 'oud', en: 'Oud', bn: 'উদ' },
+                  { id: 'arabic', en: 'Arabic', bn: 'অ্যারাবিক' },
+                  { id: 'floral', en: 'Floral', bn: 'ফ্লোরাল' },
+                  { id: 'natural', en: 'Natural', bn: 'ন্যাচারাল' }
+                ].map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`flex-1 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase transition-all cursor-pointer ${
-                      selectedCategory === cat
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex-1 min-w-[64px] md:min-w-0 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase transition-all cursor-pointer ${
+                      selectedCategory === cat.id
                         ? 'bg-gold-500 text-black font-extrabold shadow-sm'
                         : 'border border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50'
                     }`}
                   >
-                    {cat}
+                    {language === 'en' ? cat.en : cat.bn}
                   </button>
                 ))}
               </div>

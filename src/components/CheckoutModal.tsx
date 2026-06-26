@@ -237,8 +237,17 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                         onChange={handleInputChange}
                         className="w-full h-11 px-3 rounded-sm bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:border-gold-500"
                       >
-                        {['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh'].map((div) => (
-                          <option key={div} value={div}>{div}</option>
+                        {[
+                          { val: 'Dhaka', en: 'Dhaka', bn: 'ঢাকা' },
+                          { val: 'Chattogram', en: 'Chattogram', bn: 'চট্টগ্রাম' },
+                          { val: 'Sylhet', en: 'Sylhet', bn: 'সিলেট' },
+                          { val: 'Rajshahi', en: 'Rajshahi', bn: 'রাজশাহী' },
+                          { val: 'Khulna', en: 'Khulna', bn: 'খুলনা' },
+                          { val: 'Barishal', en: 'Barishal', bn: 'বরিশাল' },
+                          { val: 'Rangpur', en: 'Rangpur', bn: 'রংপুর' },
+                          { val: 'Mymensingh', en: 'Mymensingh', bn: 'ময়মনসিংহ' }
+                        ].map((div) => (
+                          <option key={div.val} value={div.val}>{language === 'en' ? div.en : div.bn}</option>
                         ))}
                       </select>
                     </div>
@@ -248,7 +257,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                     {/* Delivery Options */}
                     <div className="space-y-2">
                       <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider">
-                        {language === 'en' ? 'Delivery Speed' : 'ডেলিভারি মোড'}
+                        {language === 'en' ? 'Delivery Speed' : 'ডেলিভারি এরিয়া'}
                       </label>
                       <div className="flex flex-col gap-2">
                         <label className={`flex items-center gap-3 p-3 rounded-sm border cursor-pointer transition-colors ${formData.deliveryOption === 'dhaka' ? 'border-gold-500 bg-gold-500/5' : 'border-stone-200 hover:border-stone-400 bg-stone-50'}`}>
@@ -261,8 +270,8 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                             className="text-gold-500 focus:ring-0"
                           />
                           <div className="text-xs">
-                            <span className="font-bold block text-stone-900">Dhaka (৳60)</span>
-                            <span className="text-stone-500">1-2 Days Delivery</span>
+                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Dhaka (৳60)' : 'ঢাকার ভিতরে (৳৬০)'}</span>
+                            <span className="text-stone-500">{language === 'en' ? '1-2 Days Delivery' : '১-২ দিনে ডেলিভারি'}</span>
                           </div>
                         </label>
                         <label className={`flex items-center gap-3 p-3 rounded-sm border cursor-pointer transition-colors ${formData.deliveryOption === 'outside' ? 'border-gold-500 bg-gold-500/5' : 'border-stone-200 hover:border-stone-400 bg-stone-50'}`}>
@@ -275,8 +284,8 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                             className="text-gold-500 focus:ring-0"
                           />
                           <div className="text-xs">
-                            <span className="font-bold block text-stone-900">Outside Dhaka (৳120)</span>
-                            <span className="text-stone-500">3-5 Days Delivery</span>
+                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Outside Dhaka (৳120)' : 'ঢাকার বাইরে (৳১২০)'}</span>
+                            <span className="text-stone-500">{language === 'en' ? '3-5 Days Delivery' : '৩-৫ দিনে ডেলিভারি'}</span>
                           </div>
                         </label>
                       </div>
@@ -289,10 +298,10 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { id: 'cod', label: 'Cash on Delivery', icon: <DollarSign className="w-4 h-4 text-emerald-500" /> },
-                          { id: 'bkash', label: 'bKash Wallet', icon: <div className="font-bold text-pink-500 text-xs">bKash</div> },
-                          { id: 'nagad', label: 'Nagad Pay', icon: <div className="font-bold text-orange-500 text-xs">Nagad</div> },
-                          { id: 'rocket', label: 'Rocket', icon: <div className="font-bold text-purple-500 text-xs">Rocket</div> }
+                          { id: 'cod', label: language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি', icon: <DollarSign className="w-4 h-4 text-emerald-500" /> },
+                          { id: 'bkash', label: language === 'en' ? 'bKash Wallet' : 'বিকাশ পেমেন্ট', icon: <div className="font-bold text-pink-500 text-xs">bKash</div> },
+                          { id: 'nagad', label: language === 'en' ? 'Nagad Pay' : 'নগদ পেমেন্ট', icon: <div className="font-bold text-orange-500 text-xs">Nagad</div> },
+                          { id: 'rocket', label: language === 'en' ? 'Rocket' : 'রকেট পেমেন্ট', icon: <div className="font-bold text-purple-500 text-xs">Rocket</div> }
                         ].map((pay) => (
                           <label
                             key={pay.id}
@@ -329,7 +338,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-stone-900 truncate font-sans">{item.product.name[language]}</div>
                         <div className="text-stone-500 text-[10px] mt-0.5">
-                          Qty: {item.quantity} {item.selectedSize ? `| Size: ${item.selectedSize}` : ''}
+                          {language === 'en' ? 'Qty' : 'পরিমাণ'}: {item.quantity} {item.selectedSize ? `| ${language === 'en' ? 'Size' : 'আকার'}: ${item.selectedSize}` : ''}
                         </div>
                       </div>
                       <span className="font-bold font-mono text-gold-600">৳{item.product.price * item.quantity}</span>
@@ -340,23 +349,23 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                 {/* Pricing Summary */}
                 <div className="space-y-2 text-xs border-b border-stone-200 pb-3">
                   <div className="flex justify-between text-stone-500">
-                    <span>Subtotal</span>
+                    <span>{language === 'en' ? 'Subtotal' : 'উপমোট'}</span>
                     <span className="font-mono">৳{subtotal}</span>
                   </div>
                   {activeCoupon && (
                     <div className="flex justify-between text-emerald-600 font-medium">
-                      <span>Coupon Discount</span>
+                      <span>{language === 'en' ? 'Coupon Discount' : 'কুপন ছাড়'}</span>
                       <span className="font-mono">-৳{discount}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-stone-500">
-                    <span>Delivery Shipping</span>
+                    <span>{language === 'en' ? 'Delivery Shipping' : 'ডেলিভারি চার্জ'}</span>
                     <span className="font-mono">৳{shipping}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between text-base font-bold text-stone-900">
-                  <span>Total Amount</span>
+                  <span>{language === 'en' ? 'Total Amount' : 'সর্বমোট মূল্য'}</span>
                   <span className="text-gold-600 font-mono text-lg font-bold">৳{total}</span>
                 </div>
 
@@ -421,7 +430,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
               {paymentSubstep === 'otp' && (
                 <div className="space-y-3">
                   <label className="block text-xs font-bold text-stone-700">
-                    Enter the 6-digit OTP verification code:
+                    {language === 'en' ? 'Enter the 6-digit OTP verification code:' : '৬-ডিজিটের ওটিপি ভেরিফিকেশন কোড লিখুন:'}
                   </label>
                   <input
                     type="text"
@@ -438,7 +447,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
               {paymentSubstep === 'pin' && (
                 <div className="space-y-3">
                   <label className="block text-xs font-bold text-stone-700">
-                    Enter your account PIN:
+                    {language === 'en' ? 'Enter your account PIN:' : 'আপনার অ্যাকাউন্টের পিন লিখুন:'}
                   </label>
                   <input
                     type="password"
@@ -457,14 +466,16 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   onClick={() => setStep('info')}
                   className="flex-1 py-3 border border-stone-200 bg-white rounded-sm hover:bg-stone-100 text-stone-500 font-bold text-xs cursor-pointer"
                 >
-                  CANCEL
+                  {language === 'en' ? 'CANCEL' : 'বাতিল করুন'}
                 </button>
                 <button
                   type="button"
                   onClick={handleSimulateMfsSubmit}
                   className="flex-1 py-3 bg-gold-500 hover:brightness-110 text-black rounded-sm font-bold text-xs tracking-wider cursor-pointer"
                 >
-                  {paymentSubstep === 'pin' ? 'CONFIRM & AUTHORIZE' : 'SUBMIT'}
+                  {paymentSubstep === 'pin' 
+                    ? (language === 'en' ? 'CONFIRM & AUTHORIZE' : 'পেমেন্ট নিশ্চিত করুন') 
+                    : (language === 'en' ? 'SUBMIT' : 'জমা দিন')}
                 </button>
               </div>
             </div>
@@ -490,7 +501,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
             {/* Receipt Summary details */}
             <div className="p-6 rounded-sm border border-stone-200 bg-stone-50 space-y-3.5 text-left text-stone-850">
               <div className="flex justify-between items-center text-xs pb-2 border-b border-stone-200">
-                <span className="text-stone-500 uppercase font-bold tracking-wider">ORDER ID:</span>
+                <span className="text-stone-500 uppercase font-bold tracking-wider">{language === 'en' ? 'ORDER ID' : 'অর্ডার আইডি'}:</span>
                 <button onClick={copyOrderTracking} className="flex items-center gap-1 text-gold-600 font-mono font-extrabold hover:underline cursor-pointer">
                   <span>{completedOrder.id}</span>
                   <Copy className="w-3.5 h-3.5" />
@@ -499,33 +510,33 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
               <div className="space-y-1.5 text-xs text-stone-700">
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Recipient Name:</span>
+                  <span className="text-stone-500">{language === 'en' ? 'Recipient Name' : 'গ্রহীতার নাম'}:</span>
                   <span className="font-bold text-stone-900">{completedOrder.customerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Recipient Phone:</span>
+                  <span className="text-stone-500">{language === 'en' ? 'Recipient Phone' : 'মোবাইল নম্বর'}:</span>
                   <span className="font-bold text-stone-900">{completedOrder.phone}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Shipping Address:</span>
+                  <span className="text-stone-500">{language === 'en' ? 'Shipping Address' : 'ডেলিভারি ঠিকানা'}:</span>
                   <span className="font-bold text-stone-900 text-right">{completedOrder.address}, {completedOrder.district}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Payment Status:</span>
+                  <span className="text-stone-500">{language === 'en' ? 'Payment Status' : 'পেমেন্ট স্ট্যাটাস'}:</span>
                   <span className="px-2 py-0.5 rounded-sm bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold uppercase text-[9px] tracking-wider">
-                    {completedOrder.paymentStatus}
+                    {completedOrder.paymentStatus === 'Pending (COD)' ? (language === 'en' ? 'Pending (COD)' : 'বাকি (ক্যাশ অন ডেলিভারি)') : (language === 'en' ? completedOrder.paymentStatus : 'পরিশোধিত')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Estimated Delivery:</span>
-                  <span className="font-bold text-emerald-600">{formData.deliveryOption === 'dhaka' ? '1-2 Days' : '3-5 Days'}</span>
+                  <span className="text-stone-500">{language === 'en' ? 'Estimated Delivery' : 'সম্ভাব্য ডেলিভারি'}:</span>
+                  <span className="font-bold text-emerald-600">{formData.deliveryOption === 'dhaka' ? (language === 'en' ? '1-2 Days' : '১-২ দিন') : (language === 'en' ? '3-5 Days' : '৩-৫ দিন')}</span>
                 </div>
               </div>
 
               <div className="h-px bg-stone-200 my-2" />
 
               <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-stone-500">TOTAL PAID:</span>
+                <span className="text-stone-500">{language === 'en' ? 'TOTAL PAID' : 'মোট পরিশোধিত'}:</span>
                 <span className="text-gold-600 font-mono text-lg font-bold">৳{completedOrder.total}</span>
               </div>
             </div>

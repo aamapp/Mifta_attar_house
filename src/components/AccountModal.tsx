@@ -119,13 +119,19 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
             {authMode === 'login' && (
               <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
                 <div className="text-center">
-                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">MEMBER ACCESS</h2>
-                  <p className="text-xs text-stone-500 mt-1 font-sans">Login to explore your premium orders history</p>
+                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">
+                    {language === 'en' ? 'MEMBER ACCESS' : 'সদস্য লগইন'}
+                  </h2>
+                  <p className="text-xs text-stone-500 mt-1 font-sans">
+                    {language === 'en' ? 'Login to explore your premium orders history' : 'আপনার প্রিমিয়াম অর্ডার হিস্ট্রি দেখতে লগইন করুন'}
+                  </p>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">Email Address</label>
+                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">
+                      {language === 'en' ? 'Email Address' : 'ইমেইল অ্যাড্রেস'}
+                    </label>
                     <div className="relative">
                       <input
                         type="email"
@@ -139,7 +145,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   </div>
 
                   <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">Password</label>
+                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">
+                      {language === 'en' ? 'Password' : 'পাসওয়ার্ড'}
+                    </label>
                     <div className="relative">
                       <input
                         type="password"
@@ -157,12 +165,16 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   type="submit"
                   className="w-full py-3 bg-gold-500 hover:brightness-110 text-black rounded-sm font-bold text-xs tracking-widest uppercase cursor-pointer"
                 >
-                  SECURE SIGN IN
+                  {language === 'en' ? 'SECURE SIGN IN' : 'নিরাপদ লগইন'}
                 </button>
 
                 <div className="flex justify-between text-xs text-stone-500 pt-1 font-sans">
-                  <button type="button" onClick={() => setAuthMode('forgot')} className="hover:text-gold-600 cursor-pointer">Forgot Password?</button>
-                  <button type="button" onClick={() => setAuthMode('signup')} className="hover:text-gold-600 font-bold cursor-pointer">Create Account</button>
+                  <button type="button" onClick={() => setAuthMode('forgot')} className="hover:text-gold-600 cursor-pointer">
+                    {language === 'en' ? 'Forgot Password?' : 'পাসওয়ার্ড ভুলে গেছেন?'}
+                  </button>
+                  <button type="button" onClick={() => setAuthMode('signup')} className="hover:text-gold-600 font-bold cursor-pointer">
+                    {language === 'en' ? 'Create Account' : 'নতুন অ্যাকাউন্ট তৈরি করুন'}
+                  </button>
                 </div>
               </form>
             )}
@@ -170,13 +182,19 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
             {authMode === 'signup' && (
               <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
                 <div className="text-center">
-                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">REGISTRATION</h2>
-                  <p className="text-xs text-stone-500 mt-1">Join the Mifta Fragrance Club for royal benefits</p>
+                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">
+                    {language === 'en' ? 'REGISTRATION' : 'নিবন্ধন করুন'}
+                  </h2>
+                  <p className="text-xs text-stone-500 mt-1">
+                    {language === 'en' ? 'Join the Mifta Fragrance Club for royal benefits' : 'রয়েল বেনিফিটের জন্য মিফতাহ ফ্র্যাগ্রেন্স ক্লাবে যোগ দিন'}
+                  </p>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">Full Name</label>
+                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">
+                      {language === 'en' ? 'Full Name' : 'পূর্ণ নাম'}
+                    </label>
                     <input
                       type="text"
                       required
@@ -187,7 +205,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   </div>
 
                   <div>
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">Email Address</label>
+                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">
+                      {language === 'en' ? 'Email Address' : 'ইমেইল অ্যাড্রেস'}
+                    </label>
                     <input
                       type="email"
                       required
@@ -202,11 +222,11 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   type="submit"
                   className="w-full py-3 bg-gold-500 hover:brightness-110 text-black rounded-sm font-bold text-xs tracking-widest uppercase cursor-pointer"
                 >
-                  REGISTER ACCOUNT
+                  {language === 'en' ? 'REGISTER ACCOUNT' : 'অ্যাকাউন্ট নিবন্ধন করুন'}
                 </button>
 
                 <button type="button" onClick={() => setAuthMode('login')} className="block w-full text-center text-xs text-stone-500 hover:text-gold-600 font-bold mt-2 cursor-pointer">
-                  Already have an account? Sign In
+                  {language === 'en' ? 'Already have an account? Sign In' : 'ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন'}
                 </button>
               </form>
             )}
@@ -214,12 +234,18 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
             {authMode === 'forgot' && (
               <div className="space-y-4 text-left">
                 <div className="text-center">
-                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">RESET PASSWORD</h2>
-                  <p className="text-xs text-stone-500 mt-1">Enter your email and we will send a password recovery token</p>
+                  <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-widest">
+                    {language === 'en' ? 'RESET PASSWORD' : 'পাসওয়ার্ড রিসেট'}
+                  </h2>
+                  <p className="text-xs text-stone-500 mt-1">
+                    {language === 'en' ? 'Enter your email and we will send a password recovery token' : 'আপনার ইমেইল দিন, আমরা একটি পাসওয়ার্ড পুনরুদ্ধারের লিঙ্ক পাঠাব'}
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">Email Address</label>
+                  <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-500 mb-1">
+                    {language === 'en' ? 'Email Address' : 'ইমেইল অ্যাড্রেস'}
+                  </label>
                   <input
                     type="email"
                     required
@@ -235,11 +261,11 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   }}
                   className="w-full py-3 bg-gold-500 hover:brightness-110 text-black rounded-sm font-bold text-xs tracking-widest uppercase cursor-pointer"
                 >
-                  SEND RESET LINK
+                  {language === 'en' ? 'SEND RESET LINK' : 'রিসেট লিঙ্ক পাঠান'}
                 </button>
 
                 <button type="button" onClick={() => setAuthMode('login')} className="block w-full text-center text-xs text-stone-500 hover:text-gold-600 font-bold mt-2 cursor-pointer">
-                  Return to Sign In
+                  {language === 'en' ? 'Return to Sign In' : 'লগইন-এ ফিরে যান'}
                 </button>
               </div>
             )}
@@ -301,21 +327,33 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   {!isEditingProfile ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-sm border border-stone-200 bg-stone-50">
                       <div className="space-y-1">
-                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">Contact Name</span>
+                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
+                          {language === 'en' ? 'Contact Name' : 'যোগাযোগের নাম'}
+                        </span>
                         <span className="font-sans font-medium text-stone-800">{user.name}</span>
                       </div>
                       <div className="space-y-1">
-                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">Mobile Phone</span>
-                        <span className="font-sans font-medium text-stone-800">{user.phone || 'Not provided'}</span>
+                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
+                          {language === 'en' ? 'Mobile Phone' : 'মোবাইল নম্বর'}
+                        </span>
+                        <span className="font-sans font-medium text-stone-800">
+                          {user.phone || (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
+                        </span>
                       </div>
                       <div className="space-y-1 md:col-span-2">
-                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">Default Delivery Address</span>
-                        <span className="font-sans font-medium text-stone-800">{user.address || 'Not provided'}</span>
+                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
+                          {language === 'en' ? 'Default Delivery Address' : 'ডিফল্ট ডেলিভারি ঠিকানা'}
+                        </span>
+                        <span className="font-sans font-medium text-stone-800">
+                          {user.address || (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
+                        </span>
                       </div>
                       <div className="space-y-1">
-                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">District / Division</span>
+                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
+                          {language === 'en' ? 'District / Division' : 'জেলা / বিভাগ'}
+                        </span>
                         <span className="font-sans font-medium text-stone-800">
-                          {user.district ? `${user.district}, ${user.division}` : 'Not provided'}
+                          {user.district ? `${user.district}, ${user.division}` : (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
                         </span>
                       </div>
 
@@ -324,7 +362,7 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           onClick={() => setIsEditingProfile(true)}
                           className="px-5 py-2.5 rounded-sm border border-gold-500 text-gold-600 text-xs font-bold hover:bg-gold-500/5 transition-colors cursor-pointer tracking-wider"
                         >
-                          EDIT SHIPPING INFO
+                          {language === 'en' ? 'EDIT SHIPPING INFO' : 'ডেলিভারি তথ্য পরিবর্তন করুন'}
                         </button>
                       </div>
                     </div>
@@ -332,7 +370,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                     <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-xl">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold text-stone-500 mb-1">Name</label>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">
+                            {language === 'en' ? 'Name' : 'নাম'}
+                          </label>
                           <input
                             type="text"
                             required
@@ -342,7 +382,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-stone-500 mb-1">Phone</label>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">
+                            {language === 'en' ? 'Phone' : 'মোবাইল'}
+                          </label>
                           <input
                             type="text"
                             required
@@ -352,7 +394,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-bold text-stone-500 mb-1">Address</label>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">
+                            {language === 'en' ? 'Address' : 'ঠিকানা'}
+                          </label>
                           <input
                             type="text"
                             required
@@ -369,13 +413,13 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           onClick={() => setIsEditingProfile(false)}
                           className="px-5 py-2.5 border border-stone-200 bg-white rounded-sm text-stone-500 text-xs font-bold cursor-pointer"
                         >
-                          CANCEL
+                          {language === 'en' ? 'CANCEL' : 'বাতিল করুন'}
                         </button>
                         <button
                           type="submit"
                           className="px-5 py-2.5 bg-gold-500 text-black rounded-sm text-xs font-bold cursor-pointer"
                         >
-                          SAVE CHANGES
+                          {language === 'en' ? 'SAVE CHANGES' : 'পরিবর্তন সংরক্ষণ করুন'}
                         </button>
                       </div>
                     </form>
@@ -389,7 +433,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   {orders.length === 0 ? (
                     <div className="text-center py-10 space-y-2">
                       <ShoppingBag className="w-10 h-10 text-stone-300 mx-auto" />
-                      <p className="text-xs text-stone-400">No purchase records found yet.</p>
+                      <p className="text-xs text-stone-400">
+                        {language === 'en' ? 'No purchase records found yet.' : 'এখনো কোনো অর্ডার রেকর্ড পাওয়া যায়নি।'}
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
@@ -407,18 +453,23 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                                 ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border border-red-200' :
                                 'bg-gold-50 text-gold-600 border border-gold-200'
                               }`}>
-                                {ord.orderStatus}
+                                {ord.orderStatus === 'delivered' ? (language === 'en' ? 'delivered' : 'ডেলিভারড') :
+                                 ord.orderStatus === 'shipped' ? (language === 'en' ? 'shipped' : 'পাঠানো হয়েছে') :
+                                 ord.orderStatus === 'cancelled' ? (language === 'en' ? 'cancelled' : 'বাতিল হয়েছে') :
+                                 (language === 'en' ? 'processing' : 'প্রসেসিং হচ্ছে')}
                               </span>
                               <span className={`px-2 py-0.5 rounded-sm text-[8px] font-bold uppercase ${
                                 ord.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'
                               }`}>
-                                {ord.paymentStatus}
+                                {ord.paymentStatus === 'paid' ? (language === 'en' ? 'paid' : 'পরিশোধিত') : (language === 'en' ? 'pending' : 'বাকি (COD)')}
                               </span>
                             </div>
                           </div>
 
                           <div className="space-y-1.5">
-                            <span className="block text-[9px] uppercase font-bold text-stone-500 tracking-wider">Items Purchased:</span>
+                            <span className="block text-[9px] uppercase font-bold text-stone-500 tracking-wider">
+                              {language === 'en' ? 'Items Purchased:' : 'ক্রয়কৃত প্রোডাক্টসমূহ:'}
+                            </span>
                             <div className="space-y-1 pl-1">
                               {ord.items.map((item, idx) => (
                                 <div key={idx} className="flex justify-between font-sans text-stone-700">
@@ -431,13 +482,17 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
 
                           {ord.trackingNumber && (
                             <div className="p-2.5 bg-stone-100 rounded-sm border border-stone-200 flex items-center justify-between text-stone-700">
-                              <span className="text-stone-500">Tracking Code:</span>
+                              <span className="text-stone-500">
+                                {language === 'en' ? 'Tracking Code:' : 'ট্র্যাকিং কোড:'}
+                              </span>
                               <span className="font-mono font-bold text-emerald-600">{ord.trackingNumber}</span>
                             </div>
                           )}
 
                           <div className="flex justify-between items-center pt-2 border-t border-stone-200">
-                            <span className="text-stone-500 uppercase tracking-widest font-bold text-[9px]">Grand Total Paid:</span>
+                            <span className="text-stone-500 uppercase tracking-widest font-bold text-[9px]">
+                              {language === 'en' ? 'Grand Total Paid:' : 'সর্বমোট পরিশোধিত:'}
+                            </span>
                             <span className="font-mono font-bold text-gold-600 text-sm">৳{ord.total}</span>
                           </div>
                         </div>
@@ -453,7 +508,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   {wishlistedProducts.length === 0 ? (
                     <div className="text-center py-10 space-y-2">
                       <Heart className="w-10 h-10 text-stone-300 mx-auto" />
-                      <p className="text-xs text-stone-400">Your wishlist folder is currently empty.</p>
+                      <p className="text-xs text-stone-400">
+                        {language === 'en' ? 'Your wishlist folder is currently empty.' : 'আপনার পছন্দের তালিকাটি (উইশলিস্ট) এখন খালি আছে।'}
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-1">

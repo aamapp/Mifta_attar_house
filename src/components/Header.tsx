@@ -138,7 +138,7 @@ export default function Header({
               onClick={() => onScrollToSection('catalog')}
               className="hover:text-gold-600 transition-colors py-2 cursor-pointer font-sans"
             >
-              {language === 'en' ? 'Arabic Attar' : 'অর্গানিক ফুড'}
+              {language === 'en' ? 'Arabic Attar' : 'অ্যারাবিক আতর'}
             </button>
             <button
               onClick={() => onScrollToSection('catalog')}
@@ -221,7 +221,7 @@ export default function Header({
             {/* Language Switch */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-stone-200 hover:border-gold-500/30 text-xs font-bold text-gold-600 bg-stone-50 hover:bg-stone-100 transition-all font-sans cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-stone-200 hover:border-gold-500/30 text-xs font-bold text-gold-600 bg-stone-50 hover:bg-stone-100 transition-all font-sans cursor-pointer"
               title={language === 'en' ? 'বাংলা সংস্করণ' : 'English Version'}
             >
               <Globe className="w-3.5 h-3.5 text-gold-600 animate-spin-slow" />
@@ -231,7 +231,7 @@ export default function Header({
             {/* Dark/Light Switch */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
+              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-gold-550" /> : <Moon className="w-4 h-4 text-stone-700" />}
             </button>
@@ -240,7 +240,7 @@ export default function Header({
             {isAdmin && (
               <button
                 onClick={onOpenAdmin}
-                className="p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
+                className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
                 title={language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
               >
                 <Settings className="w-4.5 h-4.5" />
@@ -251,7 +251,7 @@ export default function Header({
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
-              className="p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
+              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
             >
               <Heart className="w-4.5 h-4.5" />
               {wishlist.length > 0 && (
@@ -264,7 +264,7 @@ export default function Header({
             {/* Account Panel */}
             <button
               onClick={onOpenAccount}
-              className="p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
+              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
             >
               <User className="w-4.5 h-4.5" />
             </button>
@@ -272,7 +272,7 @@ export default function Header({
             {/* Shopping Cart Drawer */}
             <button
               onClick={onOpenCart}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-sm bg-gold-500 text-black font-bold hover:brightness-110 transition-all shadow-md shadow-gold-500/10 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-sm bg-gold-500 text-black font-bold hover:brightness-110 transition-all shadow-md shadow-gold-500/10 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4 shrink-0" />
               <span className="text-xs font-bold leading-none font-sans">{totalCartItems}</span>
@@ -332,7 +332,7 @@ export default function Header({
               }}
               className="text-left text-stone-600 hover:text-gold-600 py-1 font-bold"
             >
-              {language === 'en' ? 'Natural Health' : 'অর্গানিক ফুড'}
+              {language === 'en' ? 'Natural Health' : 'ন্যাচারাল হেলথ'}
             </button>
             <button
               onClick={() => {
@@ -352,6 +352,78 @@ export default function Header({
             >
               {language === 'en' ? 'Our Story' : 'আমাদের ঐতিহ্য'}
             </button>
+          </div>
+
+          <div className="h-px bg-stone-200 my-3" />
+
+          {/* Quick Actions for Mobile */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {/* Language Switch */}
+            <button
+              onClick={() => {
+                setLanguage(language === 'en' ? 'bn' : 'en');
+              }}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-gold-600 font-sans cursor-pointer"
+            >
+              <Globe className="w-4 h-4 text-gold-600" />
+              <span>{language === 'en' ? 'বাংলা' : 'English'}</span>
+            </button>
+
+            {/* Dark/Light Switch */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-4 h-4 text-gold-550" />
+                  <span>{language === 'en' ? 'Light Mode' : 'লাইট মোড'}</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 text-stone-750" />
+                  <span>{language === 'en' ? 'Dark Mode' : 'ডার্ক মোড'}</span>
+                </>
+              )}
+            </button>
+
+            {/* Wishlist */}
+            <button
+              onClick={() => {
+                onOpenWishlist();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
+            >
+              <Heart className="w-4 h-4 text-rose-500" />
+              <span>{language === 'en' ? `Wishlist (${wishlist.length})` : `পছন্দের তালিকা (${wishlist.length})`}</span>
+            </button>
+
+            {/* Account */}
+            <button
+              onClick={() => {
+                onOpenAccount();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
+            >
+              <User className="w-4 h-4" />
+              <span>{language === 'en' ? 'Account' : 'আমার অ্যাকাউন্ট'}</span>
+            </button>
+
+            {/* Admin Dashboard */}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-sm border border-gold-500 bg-gold-500/10 font-bold text-gold-600 cursor-pointer"
+              >
+                <Settings className="w-4 h-4 text-gold-600" />
+                <span>{language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}</span>
+              </button>
+            )}
           </div>
         </div>
       )}

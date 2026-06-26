@@ -370,7 +370,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Find deleted coupons
         const deleted = prev.filter(c => !next.some(n => n.code === c.code));
         deleted.forEach(c => {
-          supabase.from('mifta_coupons').delete().eq('code', c.code).catch(e => console.error(e));
+          supabase.from('mifta_coupons').delete().eq('code', c.code).then(({ error }) => { if (error) console.error(error); });
         });
         
         // Find added/updated coupons
@@ -866,7 +866,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           .from('mifta_orders')
           .delete()
           .eq('id', orderId)
-          .catch((err) => console.error('Error background deleting order from Supabase:', err));
+          .then(({ error }) => { if (error) console.error('Error background deleting order from Supabase:', error); });
       }
 
       return next;

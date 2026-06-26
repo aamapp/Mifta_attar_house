@@ -50,7 +50,7 @@ export default function FloatingButtons() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 sm:right-6 sm:left-auto z-40 flex flex-col gap-3 pointer-events-none">
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 pointer-events-none">
       
       {/* 1. Back to Top Button */}
       <AnimatePresence>

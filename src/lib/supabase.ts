@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { Product, Order, Review, Coupon } from '../types';
 
 // Read values from Vite environment or fall back to the provided values directly
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODEwODksImV4cCI6MjA5ODA1NzA4OX0.DAgyGWRrzksDY13wfwOuBkcp1q6nPHU8C2ShfclFYY0';
+const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
+const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODEwODksImV4cCI6MjA5ODA1NzA4OX0.DAgyGWRrzksDY13wfwOuBkcp1q6nPHU8C2ShfclFYY0';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

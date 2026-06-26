@@ -120,7 +120,7 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
                 onClick={onFlashSale}
                 className="w-full sm:w-auto px-10 py-4 border border-stone-250 text-stone-800 text-[12px] font-bold uppercase tracking-widest rounded-sm bg-stone-50 hover:bg-stone-100 transition-all cursor-pointer font-sans"
               >
-                {language === 'en' ? 'Our Story' : 'বিশেষ ছাড় অফার'}
+                {language === 'en' ? 'Flash Sale' : 'বিশেষ ছাড় অফার'}
               </button>
             </motion.div>
 
