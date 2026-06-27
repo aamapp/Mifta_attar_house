@@ -169,7 +169,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6 bg-stone-900/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-4xl bg-white text-stone-900 shadow-2xl p-5 sm:p-8 overflow-y-auto sm:rounded-xl border-t sm:border border-stone-200">
+      <div className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-4xl bg-white text-stone-900 shadow-2xl p-5 sm:p-8 pb-24 sm:pb-8 overflow-y-auto sm:rounded-xl border-t sm:border border-stone-200">
         
         {/* Close button */}
         {step !== 'success' && (

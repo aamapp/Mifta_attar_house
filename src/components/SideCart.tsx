@@ -206,7 +206,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
 
         {/* Footer Billing Summary */}
         {cart.length > 0 && (
-          <div className="p-5 border-t border-stone-200 bg-stone-50 space-y-4">
+          <div className="p-5 border-t border-stone-200 bg-stone-50 space-y-4 pb-24 md:pb-5">
             
             {/* Coupon Application Box */}
             {!activeCoupon ? (

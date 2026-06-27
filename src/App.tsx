@@ -138,6 +138,8 @@ export default function App() {
         onOpenAdmin={() => setAdminOpen(true)}
         onSelectProduct={(p) => setQuickViewProduct(p)}
         onScrollToSection={(sectionId) => {
+          setCartOpen(false);
+          setAccountOpen(false);
           if (sectionId === 'hero') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
@@ -145,7 +147,10 @@ export default function App() {
             el?.scrollIntoView({ behavior: 'smooth' });
           }
         }}
-        onOpenWishlist={() => setAccountOpen(true)}
+        onOpenWishlist={() => {
+          setCartOpen(false);
+          setAccountOpen(true);
+        }}
       />
 
       {/* 2. Premium Hero Banner */}
@@ -304,9 +309,17 @@ export default function App() {
 
       {/* 9. Mobile Bottom Navigation */}
       <BottomNavigation
-        onOpenCart={() => setCartOpen(true)}
-        onOpenAccount={() => setAccountOpen(true)}
+        onOpenCart={() => {
+          setAccountOpen(false);
+          setCartOpen(true);
+        }}
+        onOpenAccount={() => {
+          setCartOpen(false);
+          setAccountOpen(true);
+        }}
         onScrollToSection={(sectionId) => {
+          setCartOpen(false);
+          setAccountOpen(false);
           if (sectionId === 'hero') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {

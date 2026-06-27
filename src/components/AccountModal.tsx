@@ -135,17 +135,9 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
   const wishlistedProducts = products.filter((p) => wishlist.includes(p.id));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md overflow-y-auto">
-      <div className="relative max-w-5xl w-full rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-white text-stone-900 overflow-y-auto pb-safe">
+      <div className="relative min-h-screen w-full max-w-7xl mx-auto p-6 sm:p-12 pb-32 sm:pb-32">
         
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-sm border border-stone-200 bg-stone-50 text-stone-500 hover:text-black cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         {/* AUTHENTICATION SHIELD GATE (IF LOGGED OUT) */}
         {!user ? (
           <div className="max-w-md mx-auto py-6 space-y-6 text-center">
@@ -312,27 +304,6 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
           /* FULL CUSTOMER LOGGED IN PROFILE INTERFACE */
           <div className="space-y-6 text-left">
             
-            {/* Header / User greeting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-5">
-              <div className="flex items-center gap-3.5">
-                <div className="h-12 w-12 rounded-sm border border-gold-500 bg-gold-500/5 flex items-center justify-center">
-                  <User className="w-6 h-6 text-gold-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-stone-900 font-sans">{user?.name}</h2>
-                  <span className="text-xs text-stone-500 font-mono">{user?.email}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-all cursor-pointer font-sans"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>{language === 'en' ? 'Log Out' : 'লগআউট'}</span>
-              </button>
-            </div>
-
             {/* Tab Selectors */}
             <div className="flex border-b border-stone-200 gap-1 sm:gap-4 overflow-x-auto">
               {[
@@ -401,11 +372,22 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                       </label>
                     </div>
 
-                    <div className="text-center mt-8 space-y-1">
-                      <h3 className="text-2xl font-bold text-stone-900 font-serif tracking-tight">{user?.name}</h3>
-                      <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">
-                        {language === 'en' ? 'Mifta Gold Member' : 'মিফতা গোল্ড মেম্বার'}
-                      </p>
+                    <div className="text-center mt-8 space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="text-2xl font-bold text-stone-900 font-serif tracking-tight">{user?.name}</h3>
+                        <p className="text-xs text-stone-500 font-mono mb-2 opacity-60">{user?.email}</p>
+                        <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">
+                          {language === 'en' ? 'Mifta Gold Member' : 'মিফতা গোল্ড মেম্বার'}
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="mx-auto flex items-center gap-2 px-6 py-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>{language === 'en' ? 'Log Out' : 'লগআউট'}</span>
+                      </button>
                     </div>
                   </div>
 
