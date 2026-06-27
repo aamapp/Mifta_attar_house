@@ -14,28 +14,28 @@ interface HeroProps {
 
 const images = [
   {
-    url: "/src/assets/images/luxury_attar_hero_1782537027698.jpg",
+    url: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&q=80&w=1200",
     titleEn: "Premium Attar Collection",
     titleBn: "প্রিমিয়াম আতর কালেকশন",
     subtitleEn: "Pure & Long Lasting",
     subtitleBn: "শতভাগ খাঁটি ও দীর্ঘস্থায়ী"
   },
   {
-    url: "/src/assets/images/perfume_banner_wide_1782537825797.jpg",
+    url: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=1200",
     titleEn: "Luxury Fragrances",
     titleBn: "বিলাসবহুল সুগন্ধি",
     subtitleEn: "Imported from Dubai",
     subtitleBn: "দুবাই থেকে আমদানিকৃত"
   },
   {
-    url: "/src/assets/images/floral_collection_category_1782537092479.jpg",
+    url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1200",
     titleEn: "Floral Extracts",
     titleBn: "ফ্লোরাল নির্যাস",
     subtitleEn: "Essence of Nature",
     subtitleBn: "প্রকৃতির সতেজ সুবাস"
   },
   {
-    url: "/src/assets/images/oud_collection_category_1782537041918.jpg",
+    url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1200",
     titleEn: "Royal Oud Collection",
     titleBn: "রয়্যাল উদ কালেকশন",
     subtitleEn: "The King of Fragrances",
