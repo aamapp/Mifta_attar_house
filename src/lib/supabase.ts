@@ -327,6 +327,33 @@ export async function checkSupabaseConnection(): Promise<{
   return { connected, tables };
 }
 
+// 7. STORAGE HELPERS
+export async function uploadProductImage(file: File): Promise<string | null> {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (err) {
+    console.error('Error uploading image:', err);
+    return null;
+  }
+}
+
 // SQL helper query to copy-paste into Supabase SQL Editor
 export const SUPABASE_SQL_CREATION_QUERY = `-- ==========================================
 -- MIFTA ATTAR HOUSE: SUPABASE SCHEMA SETUP
@@ -429,4 +456,15 @@ CREATE TABLE IF NOT EXISTS public.mifta_coupons (
 ALTER TABLE public.mifta_coupons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read coupons" ON public.mifta_coupons FOR SELECT USING (true);
 CREATE POLICY "Allow public write coupons" ON public.mifta_coupons FOR ALL USING (true);
+
+-- 6. Storage Bucket Setup
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('product-images', 'product-images', true) 
+ON CONFLICT (id) DO NOTHING;
+
+-- Set up access policies for the bucket
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'product-images' );
+CREATE POLICY "Allow Public Upload" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'product-images' );
+CREATE POLICY "Allow Public Delete" ON storage.objects FOR DELETE USING ( bucket_id = 'product-images' );
+CREATE POLICY "Allow Public Update" ON storage.objects FOR UPDATE USING ( bucket_id = 'product-images' );
 `;

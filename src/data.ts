@@ -10,21 +10,21 @@ export const CATEGORIES: Category[] = [
     id: 'oud',
     name: { en: 'Oud Collection', bn: 'উদ কালেকশন' },
     icon: 'Crown',
-    image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&q=80&w=600',
+    image: '/src/assets/images/oud_collection_category_1782537041918.jpg',
     description: { en: 'Royal, deep and long-lasting oriental agarwood fragrances.', bn: 'রাজকীয়, দীর্ঘস্থায়ী এবং গভীর সুবাসযুক্ত আগরউড সুগন্ধি।' }
   },
   {
     id: 'arabic',
     name: { en: 'Arabic Attar', bn: 'আরবি আতর' },
     icon: 'Compass',
-    image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&q=80&w=600',
+    image: '/src/assets/images/arabic_attar_category_1782537059066.jpg',
     description: { en: 'Traditional Middle Eastern non-alcoholic concentrated perfumes.', bn: 'ঐতিহ্যবাহী মধ্যপ্রাচ্যের অ্যালকোহল মুক্ত ঘন আতর সুগন্ধি।' }
   },
   {
     id: 'floral',
     name: { en: 'Floral Collection', bn: 'ফ্লোরাল কালেকশন' },
     icon: 'Flower',
-    image: 'https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&q=80&w=600',
+    image: '/src/assets/images/floral_collection_category_1782537092479.jpg',
     description: { en: 'Nectarous extracts of Rose, Jasmine, and Rajanigandha.', bn: 'গোলাপ, জেসমিন এবং রজনীগন্ধার প্রাকৃতিক নির্যাসের চমৎকার সুবাস।' }
   },
   {

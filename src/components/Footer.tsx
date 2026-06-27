@@ -126,13 +126,18 @@ export default function Footer({ onAdminToggle }: FooterProps) {
                 <MapPin className="w-4 h-4 text-gold-600 shrink-0" />
                 <span>
                   {language === 'en' 
-                    ? 'Shop 24, Level 3, Mifta Plaza, Chawkbazar, Dhaka-1211, Bangladesh'
-                    : 'দোকান ২৪, লেভেল ৩, মিফতাহ প্লাজা, চকবাজার, ঢাকা-১২১১, বাংলাদেশ'}
+                    ? 'Chatmohar, Pabna, Bangladesh'
+                    : 'চাটমোহর, পাবনা জেলা, বাংলাদেশ'}
                 </span>
               </div>
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-start">
                 <Phone className="w-4 h-4 text-gold-600 shrink-0" />
-                <a href="tel:+8801712345678" className="hover:text-gold-500 transition-colors">+880 1712-345678</a>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 mb-0.5">
+                    {language === 'en' ? 'WhatsApp / bKash / Nagad' : 'হোয়াটসঅ্যাপ / বিকাশ / নগদ'}
+                  </span>
+                  <a href="tel:01773915779" className="hover:text-gold-500 transition-colors text-sm font-bold">01773915779</a>
+                </div>
               </div>
             </div>
           </div>

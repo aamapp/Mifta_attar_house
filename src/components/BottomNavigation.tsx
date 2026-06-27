@@ -38,9 +38,11 @@ export default function BottomNavigation({
       icon: (
         <div className="relative">
           <ShoppingBag className="w-5 h-5" />
-          <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-            {totalCartItems}
-          </span>
+          {totalCartItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+              {totalCartItems}
+            </span>
+          )}
         </div>
       ),
       action: onOpenCart

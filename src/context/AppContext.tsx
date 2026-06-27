@@ -4,8 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review } from '../types';
-import { PRODUCTS, CATEGORIES, INITIAL_COUPONS } from '../data';
+import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote } from '../types';
+import { PRODUCTS, CATEGORIES, INITIAL_COUPONS, ISLAMIC_QUOTES } from '../data';
 import {
   supabase,
   getSupabaseWebsiteSettings,
@@ -61,9 +61,14 @@ interface AppContextType {
   }) => Order;
   updateOrderStatus: (orderId: string, status: Order['orderStatus']) => void;
   deleteOrder: (orderId: string) => void;
+  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   reviews: Review[];
   addReview: (review: Omit<Review, 'id' | 'date'>) => void;
   deleteReview: (reviewId: string) => void;
+  
+  // Islamic Quotes
+  islamicQuotes: IslamicQuote[];
+  setIslamicQuotes: React.Dispatch<React.SetStateAction<IslamicQuote[]>>;
   
   // Toast Notifications
   toasts: { id: string; message: { en: string; bn: string }; type: 'success' | 'error' | 'info' }[];
@@ -389,12 +394,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const local = localStorage.getItem('mifta_user');
     return local ? JSON.parse(local) : {
       uid: 'mifta-guest-user',
-      name: 'Mamun Chowdhury',
-      email: 'mamun15yr@gmail.com',
-      phone: '01712345678',
-      address: 'House 42, Road 11, Banani',
-      district: 'Dhaka',
-      division: 'Dhaka',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      district: '',
+      division: '',
       wishlist: [],
       recentlyViewed: []
     };
@@ -451,6 +456,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     ];
     return initialOrders;
   });
+
+  const [islamicQuotes, setIslamicQuotesState] = useState<IslamicQuote[]>(() => {
+    const local = localStorage.getItem('mifta_islamic_quotes');
+    return local ? JSON.parse(local) : ISLAMIC_QUOTES;
+  });
+
+  const setIslamicQuotes: React.Dispatch<React.SetStateAction<IslamicQuote[]>> = (action) => {
+    setIslamicQuotesState((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      localStorage.setItem('mifta_islamic_quotes', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const [reviews, setReviews] = useState<Review[]>(() => {
     const local = localStorage.getItem('mifta_reviews');
@@ -758,6 +776,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     address: string;
     district: string;
     division: string;
+    upazila?: string;
     deliveryOption: string;
     paymentOption: string;
   }) => {
@@ -785,6 +804,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       address: shippingDetails.address,
       district: shippingDetails.district,
       division: shippingDetails.division,
+      upazila: shippingDetails.upazila,
       items: cart.map((item) => ({
         productId: item.product.id,
         name: item.product.name[language],
@@ -955,9 +975,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         placeOrder,
         updateOrderStatus,
         deleteOrder,
+        setOrders,
         reviews,
         addReview,
         deleteReview,
+        islamicQuotes,
+        setIslamicQuotes,
         toasts,
         addToast,
         removeToast,

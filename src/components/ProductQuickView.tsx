@@ -43,7 +43,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
   const [selectedSize, setSelectedSize] = useState('6ml');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'benefits' | 'usage' | 'reviews'>('desc');
-  const [zoomStyle, setZoomStyle] = useState({ transform: 'scale(1)' });
+  const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({ transform: 'scale(1)' });
 
   // Reviews for this product
   const productReviews = reviews.filter((r) => r.productId === product.id);
@@ -113,17 +113,17 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6 bg-stone-900/80 backdrop-blur-md overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative max-w-5xl w-full rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
+        className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-5xl bg-white text-stone-900 shadow-2xl p-5 sm:p-8 overflow-y-auto sm:rounded-2xl border-t sm:border border-stone-200"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-sm border border-stone-200 bg-stone-50 text-stone-500 hover:text-gold-600 hover:border-gold-500/30 transition-colors z-10 cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-900 transition-all z-20"
         >
           <X className="w-5 h-5" />
         </button>

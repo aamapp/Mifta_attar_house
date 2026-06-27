@@ -10,17 +10,20 @@ import { useApp } from '../context/AppContext';
 import { HeartHandshake } from 'lucide-react';
 
 export default function IslamicQuoteSection() {
-  const { language } = useApp();
+  const { language, islamicQuotes } = useApp();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (islamicQuotes.length === 0) return;
     const timer = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % ISLAMIC_QUOTES.length);
+      setIndex((prevIndex) => (prevIndex + 1) % islamicQuotes.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, []);
+  }, [islamicQuotes.length]);
 
-  const activeQuote = ISLAMIC_QUOTES[index];
+  if (islamicQuotes.length === 0) return null;
+
+  const activeQuote = islamicQuotes[index];
 
   return (
     <section className="py-14 bg-gray-50 text-gray-900 border-y border-gray-200 relative overflow-hidden">
@@ -57,7 +60,7 @@ export default function IslamicQuoteSection() {
 
         {/* Carousel indicators */}
         <div className="flex items-center justify-center gap-1.5 mt-6">
-          {ISLAMIC_QUOTES.map((_, i) => (
+          {islamicQuotes.map((_, i) => (
             <button
               key={i}
               onClick={() => setIndex(i)}

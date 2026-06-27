@@ -71,6 +71,7 @@ export interface UserProfile {
   address?: string;
   district?: string;
   division?: string;
+  upazila?: string;
   wishlist: string[]; // product IDs
   recentlyViewed: string[]; // product IDs
 }
@@ -83,6 +84,7 @@ export interface Order {
   address: string;
   district: string;
   division: string;
+  upazila?: string;
   items: {
     productId: string;
     name: string;

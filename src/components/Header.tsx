@@ -92,7 +92,7 @@ export default function Header({
   const totalCartItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white backdrop-blur-md border-gray-200 text-gray-900 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white/90 backdrop-blur-md border-gray-200 text-gray-900 shadow-sm transition-all duration-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
           
@@ -114,10 +114,10 @@ export default function Header({
             <img src="/logo.png" alt="Mifta Attar House" className="h-14 w-auto object-contain" />
             <div className="flex flex-col justify-center">
               <span className="font-serif text-xl font-bold tracking-tight text-orange-600 leading-none">
-                MIFTA
+                {language === 'en' ? 'MIFTA' : 'মিফতা'}
               </span>
               <span className="text-[10px] font-sans tracking-[0.2em] text-gray-800 font-bold uppercase mt-1 leading-none">
-                Attar House
+                {language === 'en' ? 'Attar House' : 'আতর হাউস'}
               </span>
             </div>
           </div>

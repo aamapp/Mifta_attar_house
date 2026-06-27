@@ -41,60 +41,10 @@ export default function FloatingButtons() {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
+    /* 
     if (chatMessage.trim() === '') return;
-
-    const userText = chatMessage;
-    const currentHistory = [...chatHistory, { sender: 'user' as const, text: userText }];
-    setChatHistory(currentHistory);
-    setChatMessage('');
-    setIsTyping(true);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          history: currentHistory.slice(0, -1), // Don't send the user message as history again, send it separately if needed, but our API uses history + message
-          message: userText,
-          context: products.map(p => ({
-            name: p.name_bn || p.name,
-            price: p.price,
-            discountPrice: p.discountPrice,
-            category: p.category,
-            stock: p.stock,
-            description: p.description_bn || p.description,
-            isNew: p.isNew
-          }))
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: data.text
-        }
-      ]);
-    } catch (error) {
-      console.error("Chat error:", error);
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: 'দুঃখিত, সংযোগে সমস্যা হচ্ছে। দয়া করে আবার চেষ্টা করুন।'
-        }
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
+    ... (chat logic hidden)
+    */
   };
 
   return (
@@ -116,7 +66,8 @@ export default function FloatingButtons() {
         )}
       </AnimatePresence>
 
-      {/* 2. Interactive Messenger/Live Chat widget */}
+      {/* 2. Interactive Messenger/Live Chat widget (HIDDEN AS REQUESTED) */}
+      {/* 
       <div className="relative">
         <AnimatePresence>
           {chatOpen && (
@@ -126,7 +77,6 @@ export default function FloatingButtons() {
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               className="pointer-events-auto absolute bottom-16 right-0 w-80 rounded-xl border border-gray-200 bg-white text-gray-900 shadow-2xl p-4 flex flex-col gap-3 z-50"
             >
-              {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
@@ -137,7 +87,6 @@ export default function FloatingButtons() {
                 </button>
               </div>
 
-              {/* Chat Log History */}
               <div ref={chatContainerRef} className="h-64 overflow-y-auto space-y-3.5 text-xs pr-1 flex flex-col">
                 {chatHistory.map((ch, idx) => (
                   <div
@@ -165,7 +114,6 @@ export default function FloatingButtons() {
                 )}
               </div>
 
-              {/* Chat Input form */}
               <form onSubmit={handleSendChat} className="relative mt-1">
                 <input
                   type="text"
@@ -183,7 +131,6 @@ export default function FloatingButtons() {
           )}
         </AnimatePresence>
 
-        {/* Floating Chat Trigger Button */}
         <button
           onClick={() => setChatOpen(!chatOpen)}
           className="pointer-events-auto p-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-all shadow-xl hover:scale-105 transform active:scale-95 cursor-pointer flex items-center justify-center"
@@ -192,6 +139,8 @@ export default function FloatingButtons() {
           <MessageCircle className="w-6 h-6" />
         </button>
       </div>
+      */}
+
 
     </div>
   );

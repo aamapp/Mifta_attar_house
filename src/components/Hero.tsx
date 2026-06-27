@@ -3,66 +3,144 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, Sparkles, Flame, Clock } from 'lucide-react';
 
 interface HeroProps {
   onExplore: () => void;
   onFlashSale: () => void;
 }
 
+const images = [
+  {
+    url: "/src/assets/images/luxury_attar_hero_1782537027698.jpg",
+    titleEn: "Premium Attar Collection",
+    titleBn: "প্রিমিয়াম আতর কালেকশন",
+    subtitleEn: "Pure & Long Lasting",
+    subtitleBn: "শতভাগ খাঁটি ও দীর্ঘস্থায়ী"
+  },
+  {
+    url: "/src/assets/images/perfume_banner_wide_1782537825797.jpg",
+    titleEn: "Luxury Fragrances",
+    titleBn: "বিলাসবহুল সুগন্ধি",
+    subtitleEn: "Imported from Dubai",
+    subtitleBn: "দুবাই থেকে আমদানিকৃত"
+  },
+  {
+    url: "/src/assets/images/floral_collection_category_1782537092479.jpg",
+    titleEn: "Floral Extracts",
+    titleBn: "ফ্লোরাল নির্যাস",
+    subtitleEn: "Essence of Nature",
+    subtitleBn: "প্রকৃতির সতেজ সুবাস"
+  },
+  {
+    url: "/src/assets/images/oud_collection_category_1782537041918.jpg",
+    titleEn: "Royal Oud Collection",
+    titleBn: "রয়্যাল উদ কালেকশন",
+    subtitleEn: "The King of Fragrances",
+    subtitleBn: "সুগন্ধির রাজা"
+  }
+];
+
 export default function Hero({ onExplore, onFlashSale }: HeroProps) {
-  const { language, websiteSettings } = useApp();
+  const { language } = useApp();
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <section id="hero" className="w-full bg-white pb-6 pt-2">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="hero" className="w-full bg-white pb-4 pt-1">
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         
-        {/* Banner Container */}
-        <div className="relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-yellow-400 to-orange-500 min-h-[160px] sm:min-h-[280px] lg:min-h-[360px] flex items-center shadow-sm cursor-pointer" onClick={onExplore}>
+        {/* Banner Container - Slimmer height but slightly taller than before */}
+        <div className="relative w-full h-[180px] sm:h-[260px] md:h-[320px] lg:h-[380px] overflow-hidden rounded-xl shadow-md cursor-pointer group" onClick={onExplore}>
           
-          <div className="flex flex-col md:flex-row w-full h-full items-center justify-between p-6 sm:p-12 relative z-10 gap-6">
-            
-            {/* Left side: Images/Graphics (Represented by placeholders or styled div for now, but we can use an image if we had one) */}
-            <div className="w-full md:w-1/2 flex items-center justify-center relative min-h-[120px] sm:min-h-[200px]">
-              {/* Product mockups cluster */}
-              <div className="absolute bottom-0 flex items-end gap-2 sm:gap-4 drop-shadow-xl">
-                <div className="w-20 h-32 sm:w-32 sm:h-48 bg-white rounded-t-full rounded-b-lg border-4 border-yellow-300 flex items-center justify-center shadow-lg relative overflow-hidden">
-                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-yellow-100" />
-                   <span className="text-yellow-600 font-bold text-xs sm:text-sm z-10">HONEY</span>
-                </div>
-                <div className="w-24 h-40 sm:w-40 sm:h-56 bg-black rounded-t-full rounded-b-lg border-4 border-gray-800 flex items-center justify-center shadow-2xl relative overflow-hidden z-10">
-                   <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gray-900" />
-                   <span className="text-white font-bold text-sm sm:text-base z-10 text-center">BLACK SEED<br/>HONEY</span>
-                </div>
-                <div className="w-16 h-24 sm:w-28 sm:h-40 bg-orange-200 rounded-t-full rounded-b-lg border-4 border-orange-300 flex items-center justify-center shadow-md relative overflow-hidden">
-                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-orange-300" />
-                   <span className="text-orange-800 font-bold text-[10px] sm:text-xs z-10">SUNDARBAN</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0"
+            >
+              <img 
+                src={images[currentIndex].url} 
+                alt={language === 'en' ? images[currentIndex].titleEn : images[currentIndex].titleBn}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+              
+              {/* Glassmorphism Overlay - Slim and Transparent */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent flex items-center px-4 sm:px-8 md:px-12">
+                <div className="max-w-[75%] sm:max-w-md backdrop-blur-md bg-white/10 p-3 sm:p-5 rounded-xl border border-white/20 shadow-xl">
+                  <motion.h2 
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-white text-base sm:text-2xl md:text-3xl font-extrabold leading-tight"
+                  >
+                    {language === 'en' ? images[currentIndex].titleEn : images[currentIndex].titleBn}
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium mt-0.5 sm:mt-1"
+                  >
+                    {language === 'en' ? images[currentIndex].subtitleEn : images[currentIndex].subtitleBn}
+                  </motion.p>
+                  
+                  <motion.div
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="mt-2 sm:mt-4"
+                  >
+                    <span className="inline-block bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-[10px] sm:text-xs font-bold py-1 sm:py-1.5 px-3 sm:px-5 rounded-full transition-all transform active:scale-95">
+                      {language === 'en' ? 'Shop Now' : 'আজই অর্ডার করুন'}
+                    </span>
+                  </motion.div>
                 </div>
               </div>
-            </div>
+            </motion.div>
+          </AnimatePresence>
 
-            {/* Right side: Text */}
-            <div className="w-full md:w-1/2 flex flex-col items-center md:items-end text-center md:text-right space-y-2 sm:space-y-4">
-              <h2 className="text-xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 leading-tight">
-                {language === 'en' ? 'Directly from nature to your home' : 'সরাসরি প্রকৃতি থেকে আপনার ঘরে'}
-              </h2>
-              <p className="text-lg sm:text-2xl lg:text-4xl font-black text-gray-900 bg-yellow-300 px-3 py-1 rounded">
-                {language === 'en' ? 'ORDER TODAY' : 'আজই অর্ডার করুন'}
-              </p>
-            </div>
-
+          {/* Indicator Dots */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentIndex(idx);
+                }}
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300 ${
+                  idx === currentIndex ? 'bg-white w-4 sm:w-6' : 'bg-white/40'
+                }`}
+              />
+            ))}
           </div>
 
-          {/* Dots Indicator (Visual Only) */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-100" />
-            <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50" />
-            <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-orange-600 opacity-50" />
-            <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50" />
-          </div>
-
+          {/* Navigation Arrows (Desktop) */}
+          <button 
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex hover:bg-black/40"
+            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); }}
+          >
+            ←
+          </button>
+          <button 
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex hover:bg-black/40"
+            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); }}
+          >
+            →
+          </button>
         </div>
       </div>
     </section>

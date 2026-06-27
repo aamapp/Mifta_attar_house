@@ -13,6 +13,7 @@ import {
   Heart,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Eye,
   KeyRound,
   Mail,
@@ -20,6 +21,8 @@ import {
   Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+import { locationData } from '../lib/locationData';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -45,29 +48,31 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
   // Auth screen state (if guest user or logged out)
   const [isLoggedIn, setIsLoggedIn] = useState(!!user);
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const [authEmail, setAuthEmail] = useState('mamun15yr@gmail.com');
-  const [authPassword, setAuthPassword] = useState('password123');
-  const [authName, setAuthName] = useState('Mamun Chowdhury');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
 
   // Profile Form state editing
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
-    name: user?.name || 'Mamun Chowdhury',
-    phone: user?.phone || '01712345678',
-    address: user?.address || 'House 42, Road 11, Banani',
-    district: user?.district || 'Dhaka',
-    division: user?.division || 'Dhaka'
+    name: user?.name || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    district: user?.district || '',
+    division: user?.division || '',
+    upazila: user?.upazila || ''
   });
 
   // Sync profile form when user changes
   React.useEffect(() => {
     if (user) {
       setProfileForm({
-        name: user.name || 'Mamun Chowdhury',
-        phone: user.phone || '01712345678',
-        address: user.address || 'House 42, Road 11, Banani',
-        district: user.district || 'Dhaka',
-        division: user.division || 'Dhaka'
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        district: user.district || '',
+        division: user.division || '',
+        upazila: user.upazila || ''
       });
     }
   }, [user]);
@@ -348,14 +353,14 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           {user.address || (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
                         </span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
-                          {language === 'en' ? 'District / Division' : 'জেলা / বিভাগ'}
-                        </span>
-                        <span className="font-sans font-medium text-stone-800">
-                          {user.district ? `${user.district}, ${user.division}` : (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
-                        </span>
-                      </div>
+                        <div className="space-y-1">
+                          <span className="block text-[9px] uppercase tracking-wider text-gold-600 font-bold font-mono">
+                            {language === 'en' ? 'Upazila / District / Division' : 'উপজেলা / জেলা / বিভাগ'}
+                          </span>
+                          <span className="font-sans font-medium text-stone-800">
+                            {user.district ? `${user.upazila ? user.upazila + ', ' : ''}${user.district}, ${user.division}` : (language === 'en' ? 'Not provided' : 'দেওয়া হয়নি')}
+                          </span>
+                        </div>
 
                       <div className="md:col-span-2 pt-4">
                         <button
@@ -404,6 +409,67 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                             onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
                             className="w-full h-11 px-4 rounded-sm bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-950"
                           />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="relative">
+                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
+                              {language === 'en' ? 'Division' : 'বিভাগ'}
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={profileForm.division}
+                                onChange={(e) => setProfileForm({ ...profileForm, division: e.target.value, district: '', upazila: '' })}
+                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
+                              >
+                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                                {Object.entries(locationData.divisions).map(([key, div]) => (
+                                  <option key={key} value={key}>{language === 'en' ? div.en : div.bn}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                            </div>
+                          </div>
+                          <div className="relative">
+                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
+                              {language === 'en' ? 'District' : 'জেলা'}
+                            </label>
+                            <div className="relative">
+                              <select
+                                disabled={!profileForm.division}
+                                value={profileForm.district}
+                                onChange={(e) => setProfileForm({ ...profileForm, district: e.target.value, upazila: '' })}
+                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
+                              >
+                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                                {profileForm.division && locationData.divisions[profileForm.division] && 
+                                 Object.entries(locationData.divisions[profileForm.division].districts).map(([key, dist]) => (
+                                  <option key={key} value={key}>{language === 'en' ? dist.en : dist.bn}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                            </div>
+                          </div>
+                          <div className="relative">
+                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
+                              {language === 'en' ? 'Upazila' : 'উপজেলা'}
+                            </label>
+                            <div className="relative">
+                              <select
+                                disabled={!profileForm.district}
+                                value={profileForm.upazila}
+                                onChange={(e) => setProfileForm({ ...profileForm, upazila: e.target.value })}
+                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
+                              >
+                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                                {profileForm.division && profileForm.district && 
+                                 locationData.divisions[profileForm.division]?.districts[profileForm.district] &&
+                                 (locationData.divisions[profileForm.division].districts[profileForm.district].upazilas || []).map((up) => (
+                                  <option key={up.en} value={up.en}>{language === 'en' ? up.en : up.bn}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                            </div>
+                          </div>
                         </div>
                       </div>
 

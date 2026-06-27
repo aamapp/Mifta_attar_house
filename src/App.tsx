@@ -94,6 +94,19 @@ export default function App() {
     setDirectCheckoutProduct(undefined); // Clear direct buy reference
   };
 
+  // Lock body scroll when any modal is open
+  React.useEffect(() => {
+    const isAnyModalOpen = cartOpen || accountOpen || adminOpen || checkoutOpen || !!quickViewProduct;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [cartOpen, accountOpen, adminOpen, checkoutOpen, quickViewProduct]);
+
   // Filtration logic
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -115,7 +128,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative pb-14 md:pb-0">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative pb-14 md:pb-0 pt-16">
       
       {/* 1. Header Layout */}
       <Header
@@ -154,10 +167,7 @@ export default function App() {
         catalogEl?.scrollIntoView({ behavior: 'smooth' });
       }} />
 
-      {/* 4. Islamic Prophetic rotating clean quote */}
-      <IslamicQuoteSection />
-
-      {/* 5. Main Store Catalog & Interactive Filtering Controls Section */}
+      {/* 4. Main Store Catalog & Interactive Filtering Controls Section */}
       <main id="catalog" className="py-12 bg-white relative">
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -284,6 +294,8 @@ export default function App() {
       {/* 6. Legacy Narrative / Why Choose Us segment */}
       <BrandStory />
 
+      <IslamicQuoteSection />
+
       {/* 7. Footer segment */}
       <Footer onAdminToggle={() => setAdminOpen(true)} />
 
@@ -351,11 +363,7 @@ export default function App() {
       />
 
       {/* Global Toasts Alerts Overlay Stack */}
-      <div className="fixed top-24 right-4 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none">
-        {toasts.map((toast) => (
-          <Toast key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
-        ))}
-      </div>
+      <Toast />
 
     </div>
   );

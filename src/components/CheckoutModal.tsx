@@ -15,9 +15,13 @@ import {
   Info,
   ShieldAlert,
   ArrowLeft,
-  DollarSign
+  DollarSign,
+  ChevronDown,
+  ShoppingBag
 } from 'lucide-react';
 import { motion } from 'motion/react';
+
+import { locationData } from '../lib/locationData';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -40,17 +44,18 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
   const [step, setStep] = useState<'info' | 'payment_process' | 'success'>('info');
   const [formData, setFormData] = useState({
-    name: 'Mamun Chowdhury',
-    phone: '01712345678',
-    address: 'House 42, Road 11, Banani',
-    district: 'Dhaka',
-    division: 'Dhaka',
-    deliveryOption: 'dhaka', // 'dhaka' or 'outside'
+    name: '',
+    phone: '',
+    address: '',
+    district: '',
+    division: '',
+    upazila: '',
+    deliveryOption: 'outside', // 'dhaka' or 'outside'
     paymentOption: 'cod' // 'cod', 'bkash', 'nagad', 'rocket'
   });
 
   // Online simulated payment state
-  const [mfsNumber, setMfsNumber] = useState('01712345678');
+  const [mfsNumber, setMfsNumber] = useState('');
   const [mfsOtp, setMfsOtp] = useState('');
   const [mfsPin, setMfsPin] = useState('');
   const [paymentSubstep, setPaymentSubstep] = useState<'number' | 'otp' | 'pin'>('number');
@@ -81,7 +86,29 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    if (name === 'division') {
+      const isDhaka = value.toLowerCase() === 'dhaka';
+      setFormData((prev) => ({ 
+        ...prev, 
+        [name]: value, 
+        district: '', 
+        upazila: '',
+        deliveryOption: isDhaka ? 'dhaka' : 'outside'
+      }));
+    } else if (name === 'district') {
+      const isDhakaDistrict = value.toLowerCase() === 'dhaka';
+      setFormData((prev) => ({ 
+        ...prev, 
+        [name]: value, 
+        upazila: '',
+        // If division is Dhaka but district is not Dhaka city core, user might still want to toggle, 
+        // but typically "Dhaka" means inside.
+        deliveryOption: isDhakaDistrict ? 'dhaka' : prev.deliveryOption
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleProceedToPayment = (e: React.FormEvent) => {
@@ -140,14 +167,14 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md overflow-y-auto">
-      <div className="relative max-w-4xl w-full rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6 bg-stone-900/80 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-4xl bg-white text-stone-900 shadow-2xl p-5 sm:p-8 overflow-y-auto sm:rounded-xl border-t sm:border border-stone-200">
         
         {/* Close button */}
         {step !== 'success' && (
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-sm border border-stone-200 bg-stone-50 text-stone-500 hover:text-black cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-900 transition-all z-10"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,11 +183,18 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
         {/* Step 1: Shipping and Payment Configuration */}
         {step === 'info' && (
           <div className="space-y-6 text-left">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-gold-600 uppercase tracking-widest">
-                {language === 'en' ? 'PROFESSIONAL CHECKOUT' : 'পেশাদার চেকআউট ফর্ম'}
-              </h2>
-              <div className="h-[1px] w-16 bg-gold-500 mt-2" />
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-gold-500/10 flex items-center justify-center border border-gold-500/20">
+                <ShoppingBag className="w-6 h-6 text-gold-600" />
+              </div>
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-stone-900 uppercase tracking-tight">
+                  {language === 'en' ? 'Checkout' : 'অর্ডার সম্পন্ন করুন'}
+                </h2>
+                <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">
+                  {language === 'en' ? 'Professional Billing Service' : 'পেশাদার বিলিং ও ডেলিভারি সেবা'}
+                </p>
+              </div>
             </div>
 
             <form onSubmit={handleProceedToPayment} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -214,44 +248,73 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1">
-                        {language === 'en' ? 'District' : 'জেলা'}
-                      </label>
-                      <input
-                        type="text"
-                        name="district"
-                        value={formData.district}
-                        onChange={handleInputChange}
-                        className="w-full h-11 px-4 rounded-sm bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:border-gold-500"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="relative">
+                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
+                          {language === 'en' ? 'Division' : 'বিভাগ'}
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="division"
+                            required
+                            value={formData.division}
+                            onChange={handleInputChange}
+                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
+                          >
+                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                            {Object.entries(locationData.divisions).map(([key, div]) => (
+                              <option key={key} value={key}>{language === 'en' ? div.en : div.bn}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
+                          {language === 'en' ? 'District' : 'জেলা'}
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="district"
+                            required
+                            disabled={!formData.division}
+                            value={formData.district}
+                            onChange={handleInputChange}
+                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                            {formData.division && locationData.divisions[formData.division] && 
+                             Object.entries(locationData.divisions[formData.division].districts).map(([key, dist]) => (
+                              <option key={key} value={key}>{language === 'en' ? dist.en : dist.bn}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
+                          {language === 'en' ? 'Upazila' : 'উপজেলা'}
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="upazila"
+                            required
+                            disabled={!formData.district}
+                            value={formData.upazila}
+                            onChange={handleInputChange}
+                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
+                            {formData.division && formData.district && 
+                             locationData.divisions[formData.division]?.districts[formData.district] &&
+                             (locationData.divisions[formData.division].districts[formData.district].upazilas || []).map((up) => (
+                              <option key={up.en} value={up.en}>{language === 'en' ? up.en : up.bn}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1">
-                        {language === 'en' ? 'Division' : 'বিভাগ'}
-                      </label>
-                      <select
-                        name="division"
-                        value={formData.division}
-                        onChange={handleInputChange}
-                        className="w-full h-11 px-3 rounded-sm bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:border-gold-500"
-                      >
-                        {[
-                          { val: 'Dhaka', en: 'Dhaka', bn: 'ঢাকা' },
-                          { val: 'Chattogram', en: 'Chattogram', bn: 'চট্টগ্রাম' },
-                          { val: 'Sylhet', en: 'Sylhet', bn: 'সিলেট' },
-                          { val: 'Rajshahi', en: 'Rajshahi', bn: 'রাজশাহী' },
-                          { val: 'Khulna', en: 'Khulna', bn: 'খুলনা' },
-                          { val: 'Barishal', en: 'Barishal', bn: 'বরিশাল' },
-                          { val: 'Rangpur', en: 'Rangpur', bn: 'রংপুর' },
-                          { val: 'Mymensingh', en: 'Mymensingh', bn: 'ময়মনসিংহ' }
-                        ].map((div) => (
-                          <option key={div.val} value={div.val}>{language === 'en' ? div.en : div.bn}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     {/* Delivery Options */}
@@ -517,14 +580,16 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   <span className="text-stone-500">{language === 'en' ? 'Recipient Phone' : 'মোবাইল নম্বর'}:</span>
                   <span className="font-bold text-stone-900">{completedOrder.phone}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-500">{language === 'en' ? 'Shipping Address' : 'ডেলিভারি ঠিকানা'}:</span>
-                  <span className="font-bold text-stone-900 text-right">{completedOrder.address}, {completedOrder.district}</span>
-                </div>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">{language === 'en' ? 'Shipping Address' : 'ডেলিভারি ঠিকানা'}:</span>
+                    <span className="font-bold text-stone-900 text-right">
+                      {completedOrder.address}, {completedOrder.upazila}, {completedOrder.district}, {completedOrder.division}
+                    </span>
+                  </div>
                 <div className="flex justify-between">
                   <span className="text-stone-500">{language === 'en' ? 'Payment Status' : 'পেমেন্ট স্ট্যাটাস'}:</span>
                   <span className="px-2 py-0.5 rounded-sm bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold uppercase text-[9px] tracking-wider">
-                    {completedOrder.paymentStatus === 'Pending (COD)' ? (language === 'en' ? 'Pending (COD)' : 'বাকি (ক্যাশ অন ডেলিভারি)') : (language === 'en' ? completedOrder.paymentStatus : 'পরিশোধিত')}
+                    {completedOrder.paymentStatus === 'pending' ? (language === 'en' ? 'Pending (COD)' : 'বাকি (ক্যাশ অন ডেলিভারি)') : (language === 'en' ? 'paid' : 'পরিশোধিত')}
                   </span>
                 </div>
                 <div className="flex justify-between">
