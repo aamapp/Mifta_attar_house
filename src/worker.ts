@@ -25,7 +25,7 @@ export default {
         }));
 
         const chat = ai.chats.create({
-          model: "gemini-3.5-flash", // Using 3.5-flash
+          model: "gemini-2.0-flash", // Using 2.0-flash
           config: {
             systemInstruction: `You are an AI assistant for "Mifta Attar House", a premium Islamic fragrance and attar store in Bangladesh.\nYou must communicate in Bengali (বাংলা). Be polite, helpful, and act as a knowledgeable fragrance advisor.\n\nHere is the current catalog data:\n${JSON.stringify(catalogContext, null, 2)}`,
             temperature: 0.7

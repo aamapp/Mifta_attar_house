@@ -25,7 +25,7 @@ export async function onRequestPost(context: any) {
     }));
 
     const chat = ai.chats.create({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       config: {
         systemInstruction: `You are an AI assistant for "Mifta Attar House", a premium Islamic fragrance and attar store in Bangladesh.
         You must communicate in Bengali (বাংলা). Be polite, helpful, and act as a knowledgeable fragrance advisor.
@@ -44,9 +44,12 @@ export async function onRequestPost(context: any) {
       headers: { "Content-Type": "application/json" }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Cloudflare Chat API error:", error);
-    return new Response(JSON.stringify({ error: "An error occurred while communicating with the assistant." }), { 
+    
+    // Return specific error message if it's a quota issue
+    const errorMessage = error.message || "An error occurred while communicating with the assistant.";
+    return new Response(JSON.stringify({ error: errorMessage }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
