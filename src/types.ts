@@ -72,6 +72,7 @@ export interface UserProfile {
   district?: string;
   division?: string;
   upazila?: string;
+  photoURL?: string;
   wishlist: string[]; // product IDs
   recentlyViewed: string[]; // product IDs
 }

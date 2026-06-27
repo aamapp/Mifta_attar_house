@@ -18,11 +18,15 @@ import {
   KeyRound,
   Mail,
   Lock,
-  Compass
+  Compass,
+  Camera,
+  Image as ImageIcon,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-
+import SmartSelect from './SmartSelect';
 import { locationData } from '../lib/locationData';
+import { uploadProductImage } from '../lib/supabase';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -54,13 +58,15 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
 
   // Profile Form state editing
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
     address: user?.address || '',
     district: user?.district || '',
     division: user?.division || '',
-    upazila: user?.upazila || ''
+    upazila: user?.upazila || '',
+    photoURL: user?.photoURL || ''
   });
 
   // Sync profile form when user changes
@@ -72,12 +78,38 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
         address: user.address || '',
         district: user.district || '',
         division: user.division || '',
-        upazila: user.upazila || ''
+        upazila: user.upazila || '',
+        photoURL: user.photoURL || ''
       });
     }
   }, [user]);
 
   if (!isOpen) return null;
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      addToast({ en: 'Please select an image file.', bn: 'দয়া করে একটি ছবি ফাইল নির্বাচন করুন।' }, 'error');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const publicUrl = await uploadProductImage(file);
+      if (publicUrl) {
+        updateProfile({ photoURL: publicUrl });
+        setProfileForm(prev => ({ ...prev, photoURL: publicUrl }));
+        addToast({ en: 'Profile photo updated!', bn: 'প্রোফাইল ছবি আপডেট হয়েছে!' }, 'success');
+      }
+    } catch (err) {
+      console.error('Photo upload error:', err);
+      addToast({ en: 'Failed to upload photo.', bn: 'ছবি আপলোড করতে ব্যর্থ হয়েছে।' }, 'error');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   // Handle Login
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -104,7 +136,7 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md overflow-y-auto">
-      <div className="relative max-w-3xl w-full rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-6 sm:p-8 max-h-[85vh] overflow-y-auto">
+      <div className="relative max-w-5xl w-full rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -287,8 +319,8 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                   <User className="w-6 h-6 text-gold-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-stone-900 font-sans">{user.name}</h2>
-                  <span className="text-xs text-stone-500 font-mono">{user.email}</span>
+                  <h2 className="text-lg font-bold text-stone-900 font-sans">{user?.name}</h2>
+                  <span className="text-xs text-stone-500 font-mono">{user?.email}</span>
                 </div>
               </div>
 
@@ -328,7 +360,55 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
               
               {/* Profile Editor */}
               {activeTab === 'profile' && (
-                <div className="space-y-4">
+                <div className="space-y-8">
+                  {/* Avatar Section inspired by reference image */}
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <div className="relative group">
+                      <div className="w-48 h-48 sm:w-56 sm:h-56 bg-stone-100 rounded-sm border-4 border-white shadow-xl overflow-hidden relative">
+                        {user?.photoURL ? (
+                          <img 
+                            src={user.photoURL} 
+                            alt={user.name} 
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gold-500/5">
+                            <User className="w-20 h-20 text-gold-600 opacity-20" />
+                          </div>
+                        )}
+                        
+                        {/* Upload Overlay */}
+                        {isUploadingPhoto && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm">
+                            <RefreshCw className="w-8 h-8 text-white animate-spin" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Camera Button - Reference inspired */}
+                      <label 
+                        htmlFor="profile-photo-upload"
+                        className="absolute -bottom-3 -right-3 h-14 w-14 bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform z-10 border-4 border-white"
+                      >
+                        <Camera className="w-6 h-6" />
+                        <input 
+                          id="profile-photo-upload"
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handlePhotoUpload}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="text-center mt-8 space-y-1">
+                      <h3 className="text-2xl font-bold text-stone-900 font-serif tracking-tight">{user?.name}</h3>
+                      <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">
+                        {language === 'en' ? 'Mifta Gold Member' : 'মিফতা গোল্ড মেম্বার'}
+                      </p>
+                    </div>
+                  </div>
+
                   {!isEditingProfile ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-sm border border-stone-200 bg-stone-50">
                       <div className="space-y-1">
@@ -411,65 +491,48 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
                           />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <div className="relative">
-                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
-                              {language === 'en' ? 'Division' : 'বিভাগ'}
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={profileForm.division}
-                                onChange={(e) => setProfileForm({ ...profileForm, division: e.target.value, district: '', upazila: '' })}
-                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
-                              >
-                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                                {Object.entries(locationData.divisions).map(([key, div]) => (
-                                  <option key={key} value={key}>{language === 'en' ? div.en : div.bn}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                            </div>
-                          </div>
-                          <div className="relative">
-                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
-                              {language === 'en' ? 'District' : 'জেলা'}
-                            </label>
-                            <div className="relative">
-                              <select
-                                disabled={!profileForm.division}
-                                value={profileForm.district}
-                                onChange={(e) => setProfileForm({ ...profileForm, district: e.target.value, upazila: '' })}
-                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
-                              >
-                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                                {profileForm.division && locationData.divisions[profileForm.division] && 
-                                 Object.entries(locationData.divisions[profileForm.division].districts).map(([key, dist]) => (
-                                  <option key={key} value={key}>{language === 'en' ? dist.en : dist.bn}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                            </div>
-                          </div>
-                          <div className="relative">
-                            <label className="block text-xs font-bold text-stone-500 mb-1.5 ml-1">
-                              {language === 'en' ? 'Upazila' : 'উপজেলা'}
-                            </label>
-                            <div className="relative">
-                              <select
-                                disabled={!profileForm.district}
-                                value={profileForm.upazila}
-                                onChange={(e) => setProfileForm({ ...profileForm, upazila: e.target.value })}
-                                className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-stone-950 disabled:opacity-50 disabled:cursor-not-allowed appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
-                              >
-                                <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                                {profileForm.division && profileForm.district && 
-                                 locationData.divisions[profileForm.division]?.districts[profileForm.district] &&
-                                 (locationData.divisions[profileForm.division].districts[profileForm.district].upazilas || []).map((up) => (
-                                  <option key={up.en} value={up.en}>{language === 'en' ? up.en : up.bn}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                            </div>
-                          </div>
+                          <SmartSelect
+                            label={language === 'en' ? 'Division' : 'বিভাগ'}
+                            value={profileForm.division}
+                            onChange={(val) => setProfileForm({ ...profileForm, division: val, district: '', upazila: '' })}
+                            options={[
+                              { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                              ...Object.entries(locationData.divisions).map(([key, div]) => ({
+                                value: key,
+                                label: language === 'en' ? div.en : div.bn
+                              }))
+                            ]}
+                          />
+                          <SmartSelect
+                            label={language === 'en' ? 'District' : 'জেলা'}
+                            disabled={!profileForm.division}
+                            value={profileForm.district}
+                            onChange={(val) => setProfileForm({ ...profileForm, district: val, upazila: '' })}
+                            options={[
+                              { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                              ...(profileForm.division && locationData.divisions[profileForm.division]
+                                ? Object.entries(locationData.divisions[profileForm.division].districts).map(([key, dist]) => ({
+                                    value: key,
+                                    label: language === 'en' ? dist.en : dist.bn
+                                  }))
+                                : [])
+                            ]}
+                          />
+                          <SmartSelect
+                            label={language === 'en' ? 'Upazila' : 'উপজেলা'}
+                            disabled={!profileForm.district}
+                            value={profileForm.upazila}
+                            onChange={(val) => setProfileForm({ ...profileForm, upazila: val })}
+                            options={[
+                              { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                              ...(profileForm.division && profileForm.district && locationData.divisions[profileForm.division]?.districts[profileForm.district]
+                                ? (locationData.divisions[profileForm.division].districts[profileForm.district].upazilas || []).map((up) => ({
+                                    value: up.en,
+                                    label: language === 'en' ? up.en : up.bn
+                                  }))
+                                : [])
+                            ]}
+                          />
                         </div>
                       </div>
 

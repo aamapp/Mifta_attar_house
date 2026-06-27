@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
+import SmartSelect from './SmartSelect';
 import { locationData } from '../lib/locationData';
 
 interface CheckoutModalProps {
@@ -249,71 +250,48 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="relative">
-                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
-                          {language === 'en' ? 'Division' : 'বিভাগ'}
-                        </label>
-                        <div className="relative">
-                          <select
-                            name="division"
-                            required
-                            value={formData.division}
-                            onChange={handleInputChange}
-                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white"
-                          >
-                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                            {Object.entries(locationData.divisions).map(([key, div]) => (
-                              <option key={key} value={key}>{language === 'en' ? div.en : div.bn}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                        </div>
-                      </div>
-                      <div className="relative">
-                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
-                          {language === 'en' ? 'District' : 'জেলা'}
-                        </label>
-                        <div className="relative">
-                          <select
-                            name="district"
-                            required
-                            disabled={!formData.division}
-                            value={formData.district}
-                            onChange={handleInputChange}
-                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                            {formData.division && locationData.divisions[formData.division] && 
-                             Object.entries(locationData.divisions[formData.division].districts).map(([key, dist]) => (
-                              <option key={key} value={key}>{language === 'en' ? dist.en : dist.bn}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                        </div>
-                      </div>
-                      <div className="relative">
-                        <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1.5 ml-1">
-                          {language === 'en' ? 'Upazila' : 'উপজেলা'}
-                        </label>
-                        <div className="relative">
-                          <select
-                            name="upazila"
-                            required
-                            disabled={!formData.district}
-                            value={formData.upazila}
-                            onChange={handleInputChange}
-                            className="w-full h-12 pl-4 pr-10 rounded-xl bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 appearance-none transition-all cursor-pointer shadow-sm hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <option value="">{language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --'}</option>
-                            {formData.division && formData.district && 
-                             locationData.divisions[formData.division]?.districts[formData.district] &&
-                             (locationData.divisions[formData.division].districts[formData.district].upazilas || []).map((up) => (
-                              <option key={up.en} value={up.en}>{language === 'en' ? up.en : up.bn}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                        </div>
-                      </div>
+                      <SmartSelect
+                        label={language === 'en' ? 'Division' : 'বিভাগ'}
+                        value={formData.division}
+                        onChange={(val) => handleInputChange({ target: { name: 'division', value: val } } as any)}
+                        options={[
+                          { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                          ...Object.entries(locationData.divisions).map(([key, div]) => ({
+                            value: key,
+                            label: language === 'en' ? div.en : div.bn
+                          }))
+                        ]}
+                      />
+                      <SmartSelect
+                        label={language === 'en' ? 'District' : 'জেলা'}
+                        disabled={!formData.division}
+                        value={formData.district}
+                        onChange={(val) => handleInputChange({ target: { name: 'district', value: val } } as any)}
+                        options={[
+                          { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                          ...(formData.division && locationData.divisions[formData.division]
+                            ? Object.entries(locationData.divisions[formData.division].districts).map(([key, dist]) => ({
+                                value: key,
+                                label: language === 'en' ? dist.en : dist.bn
+                              }))
+                            : [])
+                        ]}
+                      />
+                      <SmartSelect
+                        label={language === 'en' ? 'Upazila' : 'উপজেলা'}
+                        disabled={!formData.district}
+                        value={formData.upazila}
+                        onChange={(val) => handleInputChange({ target: { name: 'upazila', value: val } } as any)}
+                        options={[
+                          { value: '', label: language === 'en' ? '-- Select --' : '-- সিলেক্ট করুন --' },
+                          ...(formData.division && formData.district && locationData.divisions[formData.division]?.districts[formData.district]
+                            ? (locationData.divisions[formData.division].districts[formData.district].upazilas || []).map((up) => ({
+                                value: up.en,
+                                label: language === 'en' ? up.en : up.bn
+                              }))
+                            : [])
+                        ]}
+                      />
                     </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

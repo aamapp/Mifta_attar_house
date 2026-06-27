@@ -18,6 +18,7 @@ import AccountModal from './components/AccountModal';
 import AdminPanel from './components/AdminPanel';
 import FloatingButtons from './components/FloatingButtons';
 import BottomNavigation from './components/BottomNavigation';
+import SmartSelect from './components/SmartSelect';
 import BrandStory from './components/BrandStory';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
@@ -198,19 +199,18 @@ export default function App() {
                 <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
               </div>
 
-              {/* Sort selector widget */}
-              <div className="md:col-span-3 relative">
-                <select
+              <div className="md:col-span-3">
+                <SmartSelect
+                  label={language === 'en' ? 'Sort By' : 'সর্টিং'}
                   value={sortBy}
-                  onChange={(e: any) => setSortBy(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
-                >
-                  <option value="default">{language === 'en' ? 'Default Sorting' : 'সাধারণ সর্টিং'}</option>
-                  <option value="price-low">{language === 'en' ? 'Price: Low to High' : 'মূল্য: কম থেকে বেশি'}</option>
-                  <option value="price-high">{language === 'en' ? 'Price: High to Low' : 'মূল্য: বেশি থেকে কম'}</option>
-                  <option value="rating">{language === 'en' ? 'Customer Rating' : 'গ্রাহক রেটিং অনুসারে'}</option>
-                </select>
-                <ArrowUpDown className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                  onChange={(val) => setSortBy(val as any)}
+                  options={[
+                    { value: 'default', label: language === 'en' ? 'Default Sorting' : 'সাধারণ সর্টিং' },
+                    { value: 'price-low', label: language === 'en' ? 'Price: Low to High' : 'মূল্য: কম থেকে বেশি' },
+                    { value: 'price-high', label: language === 'en' ? 'Price: High to Low' : 'মূল্য: বেশি থেকে কম' },
+                    { value: 'rating', label: language === 'en' ? 'Customer Rating' : 'গ্রাহক রেটিং অনুসারে' },
+                  ]}
+                />
               </div>
 
               {/* Reset Category Quick trigger */}

@@ -34,7 +34,8 @@ import {
   Truck,
   Image
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import SmartSelect from './SmartSelect';
 import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage } from '../lib/supabase';
 
 interface AdminPanelProps {
@@ -76,6 +77,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   // Product Editor state
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Dynamic Website Custom Contents state
@@ -209,7 +211,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           </button>
 
           <div className="flex flex-col items-center space-y-3">
-            <div className="h-14 w-14 rounded-full border border-gold-500 bg-gold-500/10 flex items-center justify-center animate-pulse">
+            <div className="h-14 w-14 rounded-sm border border-gold-500 bg-gold-500/10 flex items-center justify-center animate-pulse">
               <ShieldAlert className="w-7 h-7 text-gold-600" />
             </div>
             <h3 className="font-serif text-xl font-bold text-gold-600 tracking-wider uppercase">
@@ -386,7 +388,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-stone-900/60 backdrop-blur-md overflow-hidden">
-      <div className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-6xl rounded-none sm:rounded-sm border-none sm:border border-stone-200 bg-white text-stone-900 shadow-2xl flex flex-col overflow-hidden">
+      <div className="relative w-full h-full sm:h-[95vh] sm:max-w-7xl rounded-none sm:rounded-sm border-none sm:border border-stone-200 bg-white text-stone-900 shadow-2xl flex flex-col overflow-hidden">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 p-4 sm:p-6 shrink-0 text-left bg-stone-50/50">
@@ -462,63 +464,136 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             
             {/* Tab 1: Dashboard Overview */}
             {activeTab === 'dashboard' && (
-              <div className="space-y-6">
-                
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-4 rounded-sm border border-stone-200 bg-stone-50">
-                    <div className="flex justify-between items-center text-stone-500 mb-2">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-stone-400">মোট নীট রাজস্ব</span>
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                    </div>
-                    <span className="text-sm sm:text-xl font-extrabold font-mono text-stone-900 block truncate">৳{totalRevenue}</span>
-                  </div>
-
-                  <div className="p-4 rounded-sm border border-stone-200 bg-stone-50">
-                    <div className="flex justify-between items-center text-stone-500 mb-2">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-stone-400">অর্ডার লগ</span>
-                      <ShoppingBag className="w-4 h-4 text-gold-600" />
-                    </div>
-                    <span className="text-sm sm:text-xl font-extrabold font-mono text-stone-900 block">{orders.length}</span>
-                  </div>
-
-                  <div className="p-4 rounded-sm border border-stone-200 bg-stone-50">
-                    <div className="flex justify-between items-center text-stone-500 mb-2">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-stone-400">অপেক্ষারত</span>
-                      <Bell className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <span className="text-sm sm:text-xl font-extrabold font-mono text-stone-900 block">{pendingOrdersCount}</span>
-                  </div>
-
-                  <div className="p-4 rounded-sm border border-stone-200 bg-stone-50">
-                    <div className="flex justify-between items-center text-stone-500 mb-2">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-stone-400">স্টক এলার্ট</span>
-                      <ShieldAlert className="w-4 h-4 text-red-500" />
-                    </div>
-                    <span className="text-sm sm:text-xl font-extrabold font-mono text-stone-900 block">{outOfStockProductsCount}</span>
-                  </div>
+              <div className="space-y-8">
+                {/* Metrics Grid - Modern Bento Design */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  {[
+                    { label: 'মোট রাজস্ব', value: `৳${totalRevenue.toLocaleString()}`, sub: '+১৫% গত সপ্তাহ', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: 'সক্রিয় অর্ডার', value: orders.filter(o => o.orderStatus !== 'delivered').length, sub: '৫টি প্রসেসিং হচ্ছে', icon: ShoppingBag, color: 'text-gold-600', bg: 'bg-gold-50' },
+                    { label: 'মোট কাস্টমার', value: '২৮৪', sub: '+১২ নতুন আজ', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'স্টক অ্যালার্ট', value: products.filter(p => p.stock < 10).length, sub: 'রিফিল প্রয়োজন', icon: Package, color: 'text-orange-600', bg: 'bg-orange-50' },
+                  ].map((stat, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="p-6 bg-white border border-stone-200 rounded-sm shadow-sm group hover:border-gold-500/30 transition-all cursor-default"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={`p-2.5 rounded-sm ${stat.bg} ${stat.color}`}>
+                          <stat.icon className="w-5 h-5" />
+                        </div>
+                        <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">
+                          {stat.sub}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-bold text-stone-400 tracking-[0.1em]">{stat.label}</p>
+                        <p className="text-2xl font-serif font-bold text-stone-900 tracking-tight">{stat.value}</p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
 
-                {/* Sales Analytics Simulated Chart */}
-                <div className="p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-[11px] uppercase tracking-wider text-stone-500">বিক্রয় বিশ্লেষণ ট্রেন্ড</h3>
-                      <p className="text-[10px] text-stone-400 font-sans">সাপ্তাহিক অর্ডার ভলিউম পারফরম্যান্স</p>
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-gold-600" />
-                  </div>
-                  <div className="grid grid-cols-7 items-end h-28 gap-2 sm:gap-4 pt-4 border-b border-stone-200">
-                    {[
-                      { day: 'Mon', value: 35 }, { day: 'Tue', value: 55 }, { day: 'Wed', value: 45 },
-                      { day: 'Thu', value: 75 }, { day: 'Fri', value: 95 }, { day: 'Sat', value: 80 },
-                      { day: 'Sun', value: 110 }
-                    ].map((d) => (
-                      <div key={d.day} className="flex flex-col items-center gap-2">
-                        <div className="w-full bg-gold-500 rounded-t-sm hover:brightness-110 transition-all cursor-pointer relative group" style={{ height: `${(d.value / 120) * 100}%` }}></div>
-                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">{d.day}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  {/* Recent Activity Section */}
+                  <div className="lg:col-span-8 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-gold-500" />
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-900">সাম্প্রতিক অর্ডার সমূহ (Recent Orders)</h3>
                       </div>
-                    ))}
+                      <button onClick={() => setActiveTab('orders')} className="text-[10px] font-bold text-gold-600 uppercase hover:underline tracking-widest">সকল অর্ডার দেখুন</button>
+                    </div>
+                    <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100 shadow-sm overflow-hidden">
+                      {orders.slice(0, 5).length > 0 ? (
+                        orders.slice(0, 5).map(order => (
+                          <div key={order.id} className="p-5 flex items-center justify-between hover:bg-stone-50/50 transition-colors group">
+                            <div className="flex items-center gap-5">
+                              <div className="h-12 w-12 rounded-sm bg-stone-100 flex items-center justify-center text-xs font-mono font-bold text-stone-400 group-hover:bg-gold-50 group-hover:text-gold-600 transition-colors">
+                                #{order.id.slice(-4)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-stone-900 group-hover:text-gold-700 transition-colors">{order.customerName}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-[10px] text-stone-400 font-mono uppercase">{new Date(order.date).toLocaleDateString()}</p>
+                                  <span className="text-stone-200">|</span>
+                                  <p className="text-[10px] text-stone-400 uppercase tracking-tighter">{order.items.length} আইটেম</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-stone-900 font-mono">৳{order.total.toLocaleString()}</p>
+                              <span className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm ${
+                                order.orderStatus === 'delivered' ? 'bg-emerald-500 text-white' : 'bg-gold-500 text-black'
+                              }`}>
+                                {order.orderStatus}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-10 text-center text-stone-400 text-xs uppercase font-bold tracking-widest">
+                          কোন অর্ডার পাওয়া যায়নি
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sidebar Tools */}
+                  <div className="lg:col-span-4 space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-gold-500" />
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-900">দ্রুত অ্যাকশন (Quick Tools)</h3>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3">
+                        <button 
+                          onClick={() => setIsAddingProduct(true)}
+                          className="p-5 bg-stone-900 text-gold-500 rounded-sm flex items-center gap-4 hover:bg-black transition-all group shadow-lg"
+                        >
+                          <div className="h-10 w-10 rounded-sm bg-gold-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Plus className="w-5 h-5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[11px] font-bold uppercase tracking-widest leading-none">নতুন পণ্য যোগ করুন</p>
+                            <p className="text-[9px] uppercase tracking-tighter text-gold-500/60 mt-1.5">Add New Product</p>
+                          </div>
+                        </button>
+                        <button 
+                          onClick={() => setActiveTab('settings')}
+                          className="p-5 bg-white border border-stone-200 text-stone-700 rounded-sm flex items-center gap-4 hover:border-gold-500 transition-all group shadow-sm"
+                        >
+                          <div className="h-10 w-10 rounded-sm bg-stone-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Settings className="w-5 h-5 text-stone-400" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[11px] font-bold uppercase tracking-widest leading-none">ওয়েবসাইট সেটিংস</p>
+                            <p className="text-[9px] uppercase tracking-tighter text-stone-400 mt-1.5">Website Configuration</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Stock Alert Mini Widget */}
+                    <div className="p-6 bg-orange-50 border border-orange-100 rounded-sm space-y-4">
+                      <div className="flex items-center gap-2 text-orange-700">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">স্টক ওয়ার্নিং (Stock Warning)</span>
+                      </div>
+                      <div className="space-y-3">
+                        {products.filter(p => p.stock < 5).slice(0, 3).map(p => (
+                          <div key={p.id} className="flex justify-between items-center text-[11px]">
+                            <span className="text-stone-600 font-bold truncate pr-4">{language === 'bn' ? p.name.bn : p.name.en}</span>
+                            <span className="text-orange-600 font-mono font-bold shrink-0">{p.stock}টি অবশিষ্ট</span>
+                          </div>
+                        ))}
+                        {products.filter(p => p.stock < 5).length === 0 && (
+                          <p className="text-[10px] text-stone-400 text-center uppercase py-2">সকল পণ্যের পর্যাপ্ত স্টক আছে</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -538,7 +613,13 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       <div className="flex flex-wrap justify-between items-center gap-2 border-b border-stone-200 pb-2">
                         <div>
                           <span className="font-bold text-gold-600 font-mono text-sm">{ord.id}</span>
-                          <span className="text-stone-500 ml-2 font-mono">{new Date(ord.date).toLocaleDateString()}</span>
+                          <span className="text-stone-500 ml-2 font-mono">
+                            {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <span className="mx-1.5 opacity-30">|</span>
+                            <span className="text-gold-600 font-bold">
+                              {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </span>
                         </div>
                         
                         {/* Order status dispatchers */}
@@ -642,6 +723,19 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {activeTab === 'products' && (
               <div className="space-y-6">
                 
+                {/* Add New Product Button */}
+                {!editingProduct && !isAddingProduct && (
+                  <button
+                    onClick={() => setIsAddingProduct(true)}
+                    className="w-full py-4 border-2 border-dashed border-gold-500/30 rounded-sm bg-gold-500/5 hover:bg-gold-500/10 text-gold-600 flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-gold-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-widest">নতুন পণ্য যোগ করুন (Add New Product)</span>
+                  </button>
+                )}
+
                 {/* Product Form: conditional between Edit and Add */}
                 {editingProduct ? (
                   <form onSubmit={handleSaveEditProduct} className="p-4 rounded-sm border-2 border-gold-500 bg-stone-50 space-y-4 shadow-lg text-stone-900">
@@ -659,77 +753,98 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">পণ্যের নাম (ইংরেজি) *</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-7 text-left">
+                      <div className="sm:col-span-2 relative">
                         <input
                           type="text"
+                          id="edit-p-name-en"
                           required
+                          placeholder=" "
                           value={editingProduct.name.en}
                           onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, en: e.target.value } })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium"
+                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium placeholder-transparent transition-all"
                         />
+                        <label 
+                          htmlFor="edit-p-name-en"
+                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                        >
+                          পণ্যের নাম (English) *
+                        </label>
                       </div>
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">পণ্যের নাম (বাংলা) *</label>
+                      <div className="relative">
                         <input
                           type="text"
+                          id="edit-p-name-bn"
                           required
+                          placeholder=" "
                           value={editingProduct.name.bn}
                           onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, bn: e.target.value } })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium"
+                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium placeholder-transparent transition-all"
                         />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">ক্যাটাগরি</label>
-                        <select
-                          value={editingProduct.category}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
-                          className="w-full h-10 px-2 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
+                        <label 
+                          htmlFor="edit-p-name-bn"
+                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
                         >
-                          <option value="oud">উদ কালেকশন</option>
-                          <option value="arabic">অ্যারাবিক আতর</option>
-                          <option value="floral">ফ্লোরাল কালেকশন</option>
-                          <option value="fresh">স্পোর্টি ও ফ্রেশ</option>
-                          <option value="natural">ন্যাচারাল ও হেলথ</option>
-                          <option value="gifts">গিফট বক্স</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">ক্যাটালগ মূল্য (৳) *</label>
-                        <input
-                          type="number"
-                          required
-                          value={editingProduct.price}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">স্টক *</label>
-                        <input
-                          type="number"
-                          required
-                          value={editingProduct.stock}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold"
-                        />
+                          পণ্যের নাম (বাংলা) *
+                        </label>
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">ছবির লিঙ্ক (Image URL) *</label>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <input
-                            type="text"
-                            required
-                            value={editingProduct.images[0] || ''}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
-                            className="flex-1 h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-sans"
-                          />
-                          <div className="relative">
+                        <SmartSelect
+                          label="ক্যাটাগরি"
+                          value={editingProduct.category}
+                          onChange={(val) => setEditingProduct({ ...editingProduct, category: val })}
+                          options={[
+                            { value: 'oud', label: 'উদ কালেকশন' },
+                            { value: 'arabic', label: 'অ্যারাবিক আতর' },
+                            { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
+                            { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
+                            { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
+                            { value: 'gifts', label: 'গিফট বক্স' },
+                          ]}
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="number"
+                          id="edit-p-price"
+                          required
+                          placeholder=" "
+                          value={editingProduct.price}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                        />
+                        <label 
+                          htmlFor="edit-p-price"
+                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                        >
+                          মূল্য (৳) *
+                        </label>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="number"
+                          id="edit-p-stock"
+                          required
+                          placeholder=" "
+                          value={editingProduct.stock}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                        />
+                        <label 
+                          htmlFor="edit-p-stock"
+                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                        >
+                          স্টক পরিমাণ *
+                        </label>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-2">পণ্যের ছবি (Product Image)</label>
+                        <div className="flex items-center gap-4">
+                          <div className="relative group cursor-pointer shrink-0">
                             <input
                               type="file"
                               id="edit-product-image-upload"
@@ -739,28 +854,40 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             />
                             <label
                               htmlFor="edit-product-image-upload"
-                              className={`h-10 px-4 flex items-center gap-2 rounded-sm bg-stone-900 text-gold-500 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black transition-all ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
+                              className="block relative w-24 h-24 border-2 border-dashed border-stone-200 rounded-sm bg-white overflow-hidden transition-all hover:border-gold-500/50 hover:bg-stone-50 cursor-pointer shadow-sm"
                             >
-                              <Image className="w-3.5 h-3.5" />
-                              {isUploadingImage ? 'আপলোড হচ্ছে...' : 'ডিভাইস থেকে'}
+                              {editingProduct.images[0] ? (
+                                <>
+                                  <img 
+                                    src={editingProduct.images[0]} 
+                                    alt="Preview" 
+                                    className="h-full w-full object-contain p-2 transition-transform group-hover:scale-105"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid';
+                                    }}
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[1px]">
+                                    <RefreshCw className="w-5 h-5 text-white" />
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="h-full flex items-center justify-center">
+                                  <Plus className="w-5 h-5 text-stone-300" />
+                                </div>
+                              )}
+                              
+                              {isUploadingImage && (
+                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                  <RefreshCw className="w-5 h-5 text-gold-600 animate-spin" />
+                                </div>
+                              )}
                             </label>
                           </div>
-                        </div>
-                        
-                        {/* Image Preview */}
-                        {editingProduct.images[0] && (
-                          <div className="mt-3 p-2 bg-white border border-stone-100 rounded-sm inline-block">
-                            <div className="text-[9px] font-bold text-stone-400 uppercase mb-1">প্রিভিউ:</div>
-                            <img 
-                              src={editingProduct.images[0]} 
-                              alt="Preview" 
-                              className="h-32 w-auto object-contain rounded-sm border border-stone-200"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+URL';
-                              }}
-                            />
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">ছবি পরিবর্তন করুন</p>
+                            <p className="text-[9px] text-stone-400 uppercase tracking-tighter max-w-[200px]">বাম পাশের ছবির উপর ক্লিক করে ডিভাইস থেকে নতুন ছবি আপলোড করুন</p>
                           </div>
-                        )}
+                        </div>
                       </div>
 
                       <div className="sm:col-span-3">
@@ -832,170 +959,284 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </button>
                     </div>
                   </form>
-                ) : (
-                  /* Form to add a new Product */
-                  <form onSubmit={handleAddProduct} className="p-4 rounded-sm border border-stone-200 bg-stone-50 space-y-4">
-                    <div className="text-xs font-bold text-gold-600 uppercase tracking-widest flex items-center gap-1.5 border-b border-stone-200 pb-2 mb-2">
-                      <Plus className="w-4 h-4" />
-                      <span>ক্যাটালগে নতুন পণ্য যুক্ত করুন</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Product Name (EN) *</label>
-                        <input
-                          type="text"
-                          required
-                          value={newProduct.name.en}
-                          onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, en: e.target.value } })}
-                          placeholder="e.g. Royal Oud Luxury Attar"
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Product Name (BN) *</label>
-                        <input
-                          type="text"
-                          required
-                          value={newProduct.name.bn}
-                          onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, bn: e.target.value } })}
-                          placeholder="উদা: রয়্যাল উদ লাক্সারি আতর"
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Category</label>
-                        <select
-                          value={newProduct.category}
-                          onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                          className="w-full h-10 px-2 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
+                ) : isAddingProduct ? (
+                  <div className="fixed inset-0 z-[60] bg-white overflow-y-auto">
+                    {/* Header for Add Product Screen */}
+                    <div className="sticky top-0 z-10 bg-stone-900 text-gold-500 px-6 py-4 flex items-center justify-between border-b border-gold-500/20">
+                      <div className="flex items-center gap-3">
+                        <button 
+                          type="button"
+                          onClick={() => setIsAddingProduct(false)}
+                          className="p-2 hover:bg-white/10 rounded-sm transition-colors cursor-pointer"
                         >
-                          <option value="oud">Oud Collection</option>
-                          <option value="arabic">Arabic Attar</option>
-                          <option value="floral">Floral Collection</option>
-                          <option value="fresh">Sporty & Fresh</option>
-                          <option value="natural">Natural & Health</option>
-                          <option value="gifts">Gift Boxes</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Catalog Price (৳) *</label>
-                        <input
-                          type="number"
-                          required
-                          value={newProduct.price}
-                          onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Initial Stock *</label>
-                        <input
-                          type="number"
-                          required
-                          value={newProduct.stock}
-                          onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                          className="w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">Product Description (BN)</label>
-                        <textarea
-                          value={newProduct.description.bn}
-                          onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, bn: e.target.value } })}
-                          placeholder="উপাদান এবং সুগন্ধ সম্পর্কে সংক্ষিপ্ত নোট..."
-                          className="w-full h-20 p-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">ছবির লিঙ্ক (Image URL) *</label>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <input
-                            type="text"
-                            required
-                            value={newProduct.images[0]}
-                            onChange={(e) => setNewProduct({ ...newProduct, images: [e.target.value] })}
-                            placeholder="https://images.unsplash.com/..."
-                            className="flex-1 h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                          />
-                          <div className="relative">
-                            <input
-                              type="file"
-                              id="add-product-image-upload"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleLocalFileUpload(e, false)}
-                            />
-                            <label
-                              htmlFor="add-product-image-upload"
-                              className={`h-10 px-4 flex items-center gap-2 rounded-sm bg-stone-900 text-gold-500 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-black transition-all ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
-                            >
-                              <Image className="w-3.5 h-3.5" />
-                              {isUploadingImage ? 'আপলোড হচ্ছে...' : 'ডিভাইস থেকে'}
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Image Preview */}
-                        {newProduct.images[0] && (
-                          <div className="mt-3 p-2 bg-white border border-stone-100 rounded-sm inline-block">
-                            <div className="text-[9px] font-bold text-stone-400 uppercase mb-1">প্রিভিউ:</div>
-                            <img 
-                              src={newProduct.images[0]} 
-                              alt="Preview" 
-                              className="h-32 w-auto object-contain rounded-sm border border-stone-200"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+URL';
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-4 p-3 bg-white border border-stone-100 rounded-sm">
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="new-best" checked={newProduct.isBestSeller} onChange={(e) => setNewProduct({...newProduct, isBestSeller: e.target.checked})} />
-                          <label htmlFor="new-best" className="text-[10px] font-bold text-stone-600 uppercase tracking-tighter">Best Seller</label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="new-new" checked={newProduct.isNewArrival} onChange={(e) => setNewProduct({...newProduct, isNewArrival: e.target.checked})} />
-                          <label htmlFor="new-new" className="text-[10px] font-bold text-stone-600 uppercase tracking-tighter">New Arrival</label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="new-trend" checked={newProduct.isTrending} onChange={(e) => setNewProduct({...newProduct, isTrending: e.target.checked})} />
-                          <label htmlFor="new-trend" className="text-[10px] font-bold text-stone-600 uppercase tracking-tighter">Trending</label>
-                        </div>
-                        <div className="flex items-center gap-2 text-orange-600">
-                          <input type="checkbox" id="new-flash" checked={newProduct.isFlashSale} onChange={(e) => setNewProduct({...newProduct, isFlashSale: e.target.checked})} />
-                          <label htmlFor="new-flash" className="text-[10px] font-bold uppercase tracking-tighter">Flash Sale</label>
+                          <X className="w-5 h-5" />
+                        </button>
+                        <div>
+                          <h3 className="font-serif text-lg font-bold uppercase tracking-widest leading-none">নতুন পণ্য যোগ করুন</h3>
+                          <p className="text-[10px] uppercase font-bold tracking-widest mt-1 opacity-70">ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম</p>
                         </div>
                       </div>
-
-                      {newProduct.isFlashSale && (
-                        <div className="sm:col-span-3 p-3 bg-orange-50 border border-orange-100 rounded-sm">
-                          <label className="block text-[10px] uppercase font-bold text-orange-600 mb-1">Flash Sale Discount (%)</label>
-                          <input
-                            type="number"
-                            value={newProduct.flashSaleDiscount}
-                            onChange={(e) => setNewProduct({ ...newProduct, flashSaleDiscount: Number(e.target.value) })}
-                            className="w-full h-10 px-3 rounded-sm bg-white border border-orange-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold"
-                          />
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingProduct(false)}
+                        className="px-4 py-2 border border-gold-500/30 hover:bg-gold-500/10 rounded-sm text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all"
+                      >
+                        ড্যাশবোর্ডে ফিরে যান
+                      </button>
                     </div>
 
-                    <button
-                      type="submit"
-                      className="w-full py-3 bg-stone-900 text-gold-500 font-bold rounded-sm text-xs tracking-widest uppercase hover:bg-black transition-colors cursor-pointer"
-                    >
-                      পণ্যটি তালিকায় যুক্ত করুন
-                    </button>
-                  </form>
+                    <div className="w-full min-h-screen bg-white pb-20">
+                      <div className="w-full space-y-0">
+                        <div className="bg-white overflow-hidden">
+                          {/* Form Section */}
+                          <form onSubmit={(e) => {
+                            handleAddProduct(e);
+                            setIsAddingProduct(false);
+                          }} className="divide-y divide-stone-100">
+                            
+                            {/* 1. Image & Primary Info Section */}
+                            <div className="p-6 sm:p-10 bg-stone-50/50">
+                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                
+                                {/* Left: Integrated Image Upload & Preview */}
+                                <div className="lg:col-span-5 space-y-4">
+                                  <div className="flex items-center gap-2 text-stone-800 mb-4">
+                                    <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
+                                      <Image className="w-4 h-4 text-gold-600" />
+                                    </div>
+                                    <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের ছবি (Product Image)</h3>
+                                  </div>
+
+                                  <div className="relative group cursor-pointer">
+                                    <input
+                                      type="file"
+                                      id="add-product-image-upload"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => handleLocalFileUpload(e, false)}
+                                    />
+                                    <label 
+                                      htmlFor="add-product-image-upload"
+                                      className="block relative aspect-square w-full border-2 border-dashed border-stone-200 rounded-sm bg-white overflow-hidden transition-all hover:border-gold-500/50 hover:bg-stone-50 cursor-pointer shadow-sm"
+                                    >
+                                      {newProduct.images[0] ? (
+                                        <>
+                                          <img 
+                                            src={newProduct.images[0]} 
+                                            alt="Preview" 
+                                            className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
+                                            onError={(e) => {
+                                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Invalid+Image+URL';
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity backdrop-blur-[2px]">
+                                            <RefreshCw className="w-8 h-8 text-white mb-2" />
+                                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">পরিবর্তন করতে ক্লিক করুন</span>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <div className="h-full flex flex-col items-center justify-center space-y-4 text-stone-400">
+                                          <div className="h-16 w-16 rounded-full bg-stone-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <Plus className="w-8 h-8 text-stone-300" />
+                                          </div>
+                                          <div className="text-center">
+                                            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500">ছবি যুক্ত করুন</p>
+                                            <p className="text-[9px] uppercase tracking-tighter mt-1">ক্লিক করুন অথবা ড্র্যাগ করুন</p>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {isUploadingImage && (
+                                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
+                                          <RefreshCw className="w-8 h-8 text-gold-600 animate-spin" />
+                                        </div>
+                                      )}
+                                    </label>
+                                  </div>
+                                </div>
+
+                                {/* Right: Primary Fields */}
+                                <div className="lg:col-span-7 space-y-6 pt-0 lg:pt-12">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                                    <div className="md:col-span-2 relative">
+                                      <input
+                                        type="text"
+                                        id="add-p-name-en"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.name.en}
+                                        onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, en: e.target.value } })}
+                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-name-en"
+                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                                      >
+                                        পণ্যের নাম (English) *
+                                      </label>
+                                    </div>
+
+                                    <div className="md:col-span-2 relative">
+                                      <input
+                                        type="text"
+                                        id="add-p-name-bn"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.name.bn}
+                                        onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, bn: e.target.value } })}
+                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-name-bn"
+                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                                      >
+                                        পণ্যের নাম (বাংলা) *
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <SmartSelect
+                                        label="ক্যাটাগরি"
+                                        value={newProduct.category}
+                                        onChange={(val) => setNewProduct({ ...newProduct, category: val })}
+                                        options={[
+                                          { value: 'oud', label: 'উদ কালেকশন' },
+                                          { value: 'arabic', label: 'অ্যারাবিক আতর' },
+                                          { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
+                                          { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
+                                          { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
+                                          { value: 'gifts', label: 'গিফট বক্স' },
+                                        ]}
+                                      />
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-price"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.price}
+                                        onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold shadow-sm placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-price"
+                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                                      >
+                                        মূল্য (৳) *
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-stock"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.stock}
+                                        onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold shadow-sm placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-stock"
+                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                                      >
+                                        স্টক পরিমাণ *
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+
+                            {/* 3. Flags & Badges */}
+                            <div className="p-6 sm:p-10 bg-stone-50/30">
+                              <div className="flex items-center gap-2 text-stone-800 mb-6">
+                                <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
+                                  <div className="w-1.5 h-1.5 rounded-sm bg-gold-600" />
+                                </div>
+                                <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের স্ট্যাটাস ও ব্যাজ (Status & Badges)</h3>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
+                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isBestSeller} onChange={(e) => setNewProduct({...newProduct, isBestSeller: e.target.checked})} />
+                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">বেস্ট সেলার</span>
+                                </label>
+                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
+                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isNewArrival} onChange={(e) => setNewProduct({...newProduct, isNewArrival: e.target.checked})} />
+                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">নতুন পণ্য</span>
+                                </label>
+                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
+                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isTrending} onChange={(e) => setNewProduct({...newProduct, isTrending: e.target.checked})} />
+                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">ট্রেন্ডিং</span>
+                                </label>
+                                <label className="flex items-center p-4 bg-white border border-orange-200 rounded-sm cursor-pointer hover:border-orange-500 transition-colors group">
+                                  <input type="checkbox" className="w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500" checked={newProduct.isFlashSale} onChange={(e) => setNewProduct({...newProduct, isFlashSale: e.target.checked})} />
+                                  <span className="ml-3 text-[10px] font-bold text-orange-600 uppercase tracking-wider">ফ্ল্যাশ সেল</span>
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* 4. Description */}
+                            <div className="p-6 sm:p-10">
+                              <div className="flex items-center gap-2 text-stone-800 mb-6">
+                                <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
+                                  <div className="w-1.5 h-1.5 rounded-sm bg-gold-600" />
+                                </div>
+                                <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের বর্ণনা (Product Description)</h3>
+                              </div>
+
+                              <div className="space-y-4">
+                              <div className="relative pt-2">
+                                <textarea
+                                  id="add-p-desc-bn"
+                                  required
+                                  placeholder=" "
+                                  value={newProduct.description.bn}
+                                  onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, bn: e.target.value } })}
+                                  className="peer w-full h-40 p-5 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm resize-none placeholder-transparent transition-all"
+                                />
+                                <label 
+                                  htmlFor="add-p-desc-bn"
+                                  className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-5 peer-placeholder-shown:left-5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
+                                >
+                                  বিস্তারিত বর্ণনা (বাংলা) *
+                                </label>
+                              </div>
+                              </div>
+
+                              {/* Save Actions */}
+                              <div className="pt-10 flex flex-col sm:flex-row gap-4">
+                                <button
+                                  type="submit"
+                                  className="flex-1 py-5 bg-stone-900 text-gold-500 font-bold rounded-sm text-xs tracking-[0.2em] uppercase cursor-pointer hover:bg-black transition-all shadow-xl"
+                                >
+                                  পণ্যটি তালিকায় যুক্ত করুন (SAVE PRODUCT)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsAddingProduct(false)}
+                                  className="px-10 py-5 bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold rounded-sm text-xs tracking-widest uppercase cursor-pointer transition-all"
+                                >
+                                  বাতিল করুন
+                                </button>
+                              </div>
+                            </div>
+
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-stone-50 p-4 rounded-sm border border-stone-200">
+                    <p className="text-xs text-stone-400 text-center uppercase font-bold tracking-widest py-8">
+                      উপরে "নতুন পণ্য যোগ করুন" বাটনে ক্লিক করে পণ্য যুক্ত করুন
+                    </p>
+                  </div>
                 )}
 
                 {/* Products List & Stock editor */}
@@ -1070,15 +1311,15 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">ডিসকাউন্ট ধরন</label>
-                      <select
+                      <SmartSelect
+                        label="ডিসকাউন্ট ধরন"
                         value={newCoupon.discountType}
-                        onChange={(e) => setNewCoupon({ ...newCoupon, discountType: e.target.value as any })}
-                        className="w-full h-10 px-2 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                      >
-                        <option value="percentage">শতকরা (%)</option>
-                        <option value="fixed">নির্দিষ্ট টাকা (৳)</option>
-                      </select>
+                        onChange={(val) => setNewCoupon({ ...newCoupon, discountType: val as any })}
+                        options={[
+                          { value: 'percentage', label: 'শতকরা (%)' },
+                          { value: 'fixed', label: 'নির্দিষ্ট টাকা (৳)' },
+                        ]}
+                      />
                     </div>
 
                     <div>
