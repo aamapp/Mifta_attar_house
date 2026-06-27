@@ -108,18 +108,15 @@ export default function Header({
           <div
             onClick={() => onScrollToSection('hero')}
             onDoubleClick={onOpenAdmin}
-            className="flex items-center gap-2 cursor-pointer shrink-0"
+            className="flex items-center gap-3 cursor-pointer shrink-0"
             title={language === 'en' ? 'Mifta Attar House (Double click logo for admin access)' : 'মিফতা আতর হাউস (অ্যাডমিন প্যানেলের জন্য লোগোতে ডাবল ক্লিক করুন)'}
           >
-            {/* Islamic Star / Geometric Symbol as Logo */}
-            <div className="relative flex h-8 w-8 items-center justify-center rounded bg-orange-500 shadow-sm">
-              <span className="text-white font-serif text-xl font-bold">M</span>
-            </div>
+            <img src="/logo.png" alt="Mifta Attar House" className="h-14 w-auto object-contain" />
             <div className="flex flex-col justify-center">
-              <span className="font-serif text-lg font-bold tracking-wide text-orange-500 leading-none">
+              <span className="font-serif text-xl font-bold tracking-tight text-orange-600 leading-none">
                 MIFTA
               </span>
-              <span className="text-[10px] font-sans tracking-wide text-gray-600 font-medium uppercase mt-0.5 leading-none">
+              <span className="text-[10px] font-sans tracking-[0.2em] text-gray-800 font-bold uppercase mt-1 leading-none">
                 Attar House
               </span>
             </div>
