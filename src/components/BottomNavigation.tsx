@@ -83,28 +83,44 @@ export default function BottomNavigation({
             <button
               key={item.id}
               onClick={item.action}
-              className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 group transition-all duration-300 ${
-                isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
-              }`}
+              className="relative flex flex-col items-center justify-center w-full h-full group transition-all duration-300"
             >
-              <div className="relative">
-                <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-active:scale-90'}`} />
-                {item.isCart && totalCartItems > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 bg-white text-orange-600 text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-orange-600"
-                  >
-                    {totalCartItems}
-                  </motion.span>
-                )}
+              {/* Line Indicator Above Icon */}
+              {isActive && (
+                <motion.div
+                  layoutId="navLine"
+                  className="absolute top-1 w-3.5 h-[3px] bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+
+              <div className="relative flex flex-col items-center justify-center space-y-1 mt-1">
+                {/* Icon Container */}
+                <div className="relative">
+                  <Icon 
+                    className={`w-5 h-5 text-white transition-all duration-300 ${
+                      isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'opacity-90 group-hover:opacity-100'
+                    }`} 
+                  />
+                  
+                  {item.isCart && totalCartItems > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1.5 -right-1.5 bg-white text-orange-600 text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-orange-600 z-20 shadow-sm"
+                    >
+                      {totalCartItems}
+                    </motion.span>
+                  )}
+                </div>
+
+                {/* Label */}
+                <span className={`text-[8px] font-bold tracking-[0.15em] uppercase text-white transition-all duration-300 ${
+                  isActive ? 'opacity-100 translate-y-0' : 'opacity-70'
+                }`}>
+                  {item.label}
+                </span>
               </div>
-              
-              <span className={`text-[9px] font-bold tracking-widest uppercase transition-colors duration-300 ${
-                isActive ? 'opacity-100' : 'opacity-70'
-              }`}>
-                {item.label}
-              </span>
             </button>
           );
         })}
