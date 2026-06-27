@@ -30,80 +30,33 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
   return (
     <motion.div
       layout
-      className="group relative flex flex-col h-full rounded-sm border border-stone-200 bg-white hover:border-gold-500/40 transition-all overflow-hidden shadow-sm hover:shadow-md"
-      style={{ boxShadow: '0 4px 20px rgba(212,175,55,0.04)' }}
+      className="group relative flex flex-col h-full rounded bg-white border border-gray-100 hover:border-orange-500/50 transition-all overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
     >
       {/* Badges Overlay */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 pointer-events-none">
         {product.isBestSeller && (
-          <span className="px-2.5 py-1 text-[9px] font-bold tracking-[0.15em] uppercase rounded-sm bg-gold-500 text-black font-sans shadow-md">
-            {language === 'en' ? 'BEST SELLER' : 'সেরা বিক্রি'}
-          </span>
-        )}
-        {product.isFlashSale && (
-          <span className="px-2.5 py-1 text-[9px] font-bold tracking-[0.15em] uppercase rounded-sm bg-red-600 text-white font-sans shadow-md animate-pulse">
-            {language === 'en' ? `FLASH -${discountPercent}%` : `বিশেষ ছাড় -${discountPercent}%`}
-          </span>
-        )}
-        {product.isNewArrival && (
-          <span className="px-2.5 py-1 text-[9px] font-bold tracking-[0.15em] uppercase rounded-sm bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 font-sans shadow-md">
-            {language === 'en' ? 'NEW' : 'নতুন'}
+          <span className="px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 rounded bg-red-500 text-white font-sans shadow-sm">
+            <Zap className="w-2.5 h-2.5 fill-white" />
+            {language === 'en' ? 'Best Selling' : 'বেস্ট সেলিং'}
           </span>
         )}
       </div>
 
-      {/* Wishlist Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleWishlist(product.id);
-        }}
-        className="absolute top-3 right-3 z-10 p-2 rounded-sm bg-white/90 border border-stone-200 hover:border-gold-500/30 text-stone-500 hover:text-red-500 transition-colors shadow-md cursor-pointer"
-        title={isSaved ? 'Remove from Wishlist' : 'Add to Wishlist'}
-      >
-        <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
-      </button>
-
       {/* Image Preview Container */}
       <div
         onClick={() => onQuickView(product)}
-        className="relative pt-[115%] overflow-hidden bg-stone-100 cursor-pointer border-b border-stone-150"
+        className="relative pt-[100%] overflow-hidden bg-gray-50 cursor-pointer"
       >
         <img
           src={product.images[0]}
           alt={product.name[language]}
           referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          className="absolute inset-0 w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
         />
-        {/* Hover Action Overlays */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickView(product);
-            }}
-            className="p-3 rounded-sm bg-white border border-gold-500/20 text-gold-600 hover:bg-gold-500 hover:text-black transition-all transform scale-90 group-hover:scale-100 duration-300"
-            title="Quick View"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          {!outOfStock && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart(product, 1, '6ml');
-              }}
-              className="p-3 rounded-sm bg-gold-500 text-black hover:brightness-110 transition-all transform scale-90 group-hover:scale-100 duration-300 shadow-lg shadow-gold-500/20"
-              title="Add to Cart"
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
+        
         {outOfStock && (
-          <div className="absolute inset-0 bg-black/75 flex items-center justify-center">
-            <span className="px-3.5 py-1.5 rounded-sm border border-red-500/30 bg-red-500/10 text-xs font-bold text-red-500 font-sans tracking-widest uppercase">
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="px-3 py-1 rounded bg-red-50 text-xs font-bold text-red-600 border border-red-200 uppercase tracking-wider">
               {language === 'en' ? 'OUT OF STOCK' : 'স্টক শেষ'}
             </span>
           </div>
@@ -111,80 +64,50 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
       </div>
 
       {/* Product Information */}
-      <div className="flex-1 p-4 flex flex-col justify-between space-y-3 bg-white">
-        <div className="space-y-1.5">
-          {/* Rating */}
-          <div className="flex items-center gap-1">
-            <div className="flex text-gold-500">
-              <Star className="w-3 h-3 fill-gold-500 text-gold-500" />
-            </div>
-            <span className="text-[11px] font-bold text-stone-700 font-mono">
-              {product.rating}
-            </span>
-            <span className="text-[10px] text-stone-400 font-sans">
-              ({product.reviewsCount})
-            </span>
-          </div>
-
+      <div className="flex-1 p-4 flex flex-col justify-between space-y-3 bg-white border-t border-gray-50">
+        <div className="space-y-1">
           {/* Product Title */}
           <h3
             onClick={() => onQuickView(product)}
-            className="font-serif text-base font-bold text-stone-900 group-hover:text-gold-600 transition-colors cursor-pointer line-clamp-1 leading-snug"
+            className="font-sans text-sm font-semibold text-gray-900 group-hover:text-orange-500 transition-colors cursor-pointer line-clamp-2 leading-tight min-h-[2.5rem]"
           >
             {product.name[language]}
           </h3>
 
-          {/* Stock Display */}
-          <div className="text-[10px] font-sans font-medium">
-            {outOfStock ? (
-              <span className="text-red-500">{language === 'en' ? 'Stockout' : 'স্টক শেষ'}</span>
-            ) : product.stock <= 10 ? (
-              <span className="text-gold-600 font-bold">
-                {language === 'en' ? `Only ${product.stock} items left!` : `মাত্র ${product.stock} পিস বাকি আছে!`}
-              </span>
-            ) : (
-              <span className="text-emerald-600 font-bold">
-                {language === 'en' ? 'In Stock' : 'স্টকে আছে'}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Pricing & Primary Action Buttons */}
-        <div className="space-y-3 pt-1">
-          <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-gold-600 font-mono">
+          {/* Pricing */}
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-sm font-bold text-orange-500 font-mono">
               ৳{product.price}
             </span>
             {product.originalPrice && (
-              <span className="text-xs text-stone-400 line-through font-mono">
+              <span className="text-xs text-gray-400 line-through font-mono">
                 ৳{product.originalPrice}
               </span>
             )}
           </div>
+          
+          {/* Save Tag */}
+          {product.originalPrice && (
+            <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-green-100 text-green-700 text-[10px] font-semibold font-sans">
+              {language === 'en' ? 'Save' : 'সেইভ'} ৳{product.originalPrice - product.price}
+            </div>
+          )}
+        </div>
 
-          {/* Direct Buy Buttons */}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => onQuickView(product)}
-              className="w-full py-2 px-1 text-[10px] font-bold tracking-widest rounded-sm border border-stone-200 text-stone-750 hover:text-black hover:border-stone-400 bg-stone-50 transition-all font-sans uppercase flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>{language === 'en' ? 'DETAILS' : 'বিস্তারিত'}</span>
-            </button>
-            <button
-              onClick={() => onBuyNow(product)}
-              disabled={outOfStock}
-              className={`w-full py-2 px-1 text-[10px] font-extrabold tracking-widest rounded-sm transition-all font-sans uppercase flex items-center justify-center gap-1 cursor-pointer ${
-                outOfStock
-                  ? 'bg-stone-100 border border-stone-100 text-stone-300 cursor-not-allowed'
-                  : 'bg-gold-500 hover:brightness-110 text-black shadow-sm'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 fill-current" />
-              <span>{language === 'en' ? 'BUY' : 'কিনুন'}</span>
-            </button>
-          </div>
+        {/* Primary Action Button */}
+        <div className="pt-2">
+          <button
+            onClick={() => onBuyNow(product)}
+            disabled={outOfStock}
+            className={`w-full py-2 px-3 text-xs font-semibold rounded transition-all font-sans flex items-center justify-center gap-2 cursor-pointer border ${
+              outOfStock
+                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-white border-orange-500 text-orange-500 hover:bg-orange-50 active:bg-orange-100'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>{language === 'en' ? 'Add To Cart' : 'কার্টে যোগ করুন'}</span>
+          </button>
         </div>
       </div>
     </motion.div>

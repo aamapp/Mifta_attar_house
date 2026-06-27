@@ -34,61 +34,47 @@ export default function FeaturedCategories({ onSelectCategory }: FeaturedCategor
   };
 
   return (
-    <section className="py-16 bg-white text-stone-900 border-b border-stone-100">
+    <section className="py-8 bg-white border-b border-gray-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="font-serif text-2xl sm:text-3xl font-normal tracking-[0.15em] text-gold-600 uppercase">
-            {language === 'en' ? 'Exquisite Collections' : 'আমাদের কালেকশন সমূহ'}
+        <div className="text-center mx-auto mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+            {language === 'en' ? 'Featured Categories' : 'ফিচার্ড ক্যাটাগরি'}
           </h2>
-          <div className="h-0.5 w-20 bg-gold-500 mx-auto mt-3 mb-4" />
-          <p className="text-stone-600 text-sm font-sans">
-            {language === 'en' 
-              ? 'Select from our tailored premium categories crafted to bring deep spiritual peace and elite status.'
-              : 'ইসলামী ঐতিহ্যের ছোঁয়ায় তৈরি প্রিমিয়াম আতর, সুগন্ধি, সুন্নাহ গিফট এবং অর্গানিক স্বাস্থ্যের সেরা পণ্য বেছে নিন।'}
-          </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              onClick={() => onSelectCategory(category.id)}
-              className="group relative h-48 rounded-sm overflow-hidden border border-stone-200 hover:border-gold-500/40 bg-stone-50 cursor-pointer shadow-sm transition-all flex flex-col justify-end p-4"
-              id={`category-card-${category.id}`}
-            >
-              {/* background image overlay */}
-              <div className="absolute inset-0 z-0">
-                <img
-                  src={category.image}
-                  alt={category.name[language]}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/60 to-transparent" />
-              </div>
+        {/* Categories Flex Container */}
+        <div className="relative">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory px-2">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                onClick={() => onSelectCategory(category.id)}
+                className="group flex flex-col items-center gap-3 cursor-pointer shrink-0 snap-start"
+                id={`category-card-${category.id}`}
+              >
+                {/* Image Container */}
+                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-50 hover:bg-gray-100 rounded-3xl overflow-hidden shadow-sm transition-colors flex items-center justify-center p-3 relative">
+                  <img
+                    src={category.image}
+                    alt={category.name[language]}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform"
+                  />
+                  {/* Overlay for icon if needed, but we'll stick to images primarily */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-3xl" />
+                </div>
 
-              {/* Icon Container */}
-              <div className="absolute top-4 left-4 z-10 p-2 rounded-sm bg-white border border-stone-200 group-hover:border-gold-500/30 transition-colors shadow-sm">
-                {renderIcon(category.icon)}
+                {/* Info Overlay */}
+                <div className="text-center w-24 sm:w-32">
+                  <h3 className="text-sm font-semibold text-gray-800 group-hover:text-orange-500 transition-colors line-clamp-1">
+                    {category.name[language]}
+                  </h3>
+                </div>
               </div>
-
-              {/* Info Overlay */}
-              <div className="relative z-10 space-y-1">
-                <h3 className="font-serif text-sm font-bold text-stone-900 group-hover:text-gold-600 transition-colors">
-                  {category.name[language]}
-                </h3>
-                <p className="text-[10px] text-stone-600 font-sans line-clamp-2 leading-normal group-hover:text-stone-900 transition-colors">
-                  {category.description[language]}
-                </p>
-              </div>
-
-              {/* Glowing Bottom Border */}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gold-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
       </div>

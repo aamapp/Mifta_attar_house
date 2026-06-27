@@ -17,6 +17,7 @@ import CheckoutModal from './components/CheckoutModal';
 import AccountModal from './components/AccountModal';
 import AdminPanel from './components/AdminPanel';
 import FloatingButtons from './components/FloatingButtons';
+import BottomNavigation from './components/BottomNavigation';
 import BrandStory from './components/BrandStory';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
@@ -114,7 +115,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-neutral-900 font-sans selection:bg-gold-500 selection:text-black antialiased overflow-x-hidden relative islamic-pattern">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative pb-14 md:pb-0">
       
       {/* 1. Header Layout */}
       <Header
@@ -157,26 +158,19 @@ export default function App() {
       <IslamicQuoteSection />
 
       {/* 5. Main Store Catalog & Interactive Filtering Controls Section */}
-      <main id="catalog" className="py-20 bg-[#FAF8F5] relative border-t border-gold-500/15">
-        
-        {/* Abstract golden radial background decor */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-gold-500/5 blur-3xl pointer-events-none" />
+      <main id="catalog" className="py-12 bg-white relative">
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Main Title Headers */}
-          <div className="text-center space-y-3 mb-12">
-            <span className="block text-xs font-bold tracking-[0.2em] text-gold-600 uppercase font-sans">
-              {language === 'en' ? 'PUREST ESSENCE CATALOG' : 'আভিজাত্য ও পবিত্রতার অনন্য কালেকশন'}
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-normal text-neutral-900">
-              {language === 'en' ? 'EXPLORE OUR FRAGRANCES' : 'আমাদের সম্পূর্ণ ক্যাটালগ'}
+          <div className="text-center space-y-2 mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {language === 'en' ? 'Explore Products' : 'আমাদের কালেকশন'}
             </h2>
-            <div className="h-0.5 w-16 bg-gold-500 mx-auto" />
           </div>
 
           {/* Filtering Widgets Row Panel */}
-          <div className="p-5 rounded-sm border border-stone-200 bg-white shadow-sm mb-10 flex flex-col gap-4">
+          <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 shadow-sm mb-8 flex flex-col gap-4">
             
             {/* Row 1: Search bar, Sort bar */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -184,13 +178,14 @@ export default function App() {
               {/* Search input widget */}
               <div className="md:col-span-6 relative">
                 <input
+                  id="catalog-search-input"
                   type="text"
-                  placeholder={language === 'en' ? 'Search for royal Oud, Rose, Kalojira...' : 'পছন্দের সুগন্ধি সার্চ করুন...'}
+                  placeholder={language === 'en' ? 'Search for royal Oud, Rose, Kalojira...' : 'পছন্দের পণ্য সার্চ করুন...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-11 pl-11 pr-4 rounded-sm bg-stone-50 border border-stone-200 text-sm text-stone-800 focus:outline-none focus:border-gold-500 focus:bg-white transition-all font-sans"
+                  className="w-full h-11 pl-11 pr-4 rounded-lg bg-white border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-orange-500 transition-all font-sans"
                 />
-                <Search className="absolute left-4 top-3.5 w-4 h-4 text-stone-400" />
+                <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
               </div>
 
               {/* Sort selector widget */}
@@ -198,20 +193,20 @@ export default function App() {
                 <select
                   value={sortBy}
                   onChange={(e: any) => setSortBy(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 rounded-sm bg-stone-50 border border-stone-200 text-xs font-bold text-stone-700 focus:outline-none focus:border-gold-500 uppercase cursor-pointer"
+                  className="w-full h-11 pl-10 pr-3 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
                 >
                   <option value="default">{language === 'en' ? 'Default Sorting' : 'সাধারণ সর্টিং'}</option>
                   <option value="price-low">{language === 'en' ? 'Price: Low to High' : 'মূল্য: কম থেকে বেশি'}</option>
                   <option value="price-high">{language === 'en' ? 'Price: High to Low' : 'মূল্য: বেশি থেকে কম'}</option>
                   <option value="rating">{language === 'en' ? 'Customer Rating' : 'গ্রাহক রেটিং অনুসারে'}</option>
                 </select>
-                <ArrowUpDown className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400 pointer-events-none" />
+                <ArrowUpDown className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
 
               {/* Reset Category Quick trigger */}
               <div className="md:col-span-3 flex gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
                 {[
-                  { id: 'all', en: 'All', bn: 'সব আতর' },
+                  { id: 'all', en: 'All', bn: 'সব' },
                   { id: 'oud', en: 'Oud', bn: 'উদ' },
                   { id: 'arabic', en: 'Arabic', bn: 'অ্যারাবিক' },
                   { id: 'floral', en: 'Floral', bn: 'ফ্লোরাল' },
@@ -220,10 +215,10 @@ export default function App() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex-1 min-w-[64px] md:min-w-0 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase transition-all cursor-pointer ${
+                    className={`flex-1 min-w-[64px] md:min-w-0 py-2.5 rounded-lg text-xs font-bold tracking-wide transition-all cursor-pointer ${
                       selectedCategory === cat.id
-                        ? 'bg-gold-500 text-black font-extrabold shadow-sm'
-                        : 'border border-stone-200 text-stone-600 hover:text-black hover:bg-stone-50'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:text-orange-500 hover:border-orange-200'
                     }`}
                   >
                     {language === 'en' ? cat.en : cat.bn}
@@ -234,13 +229,13 @@ export default function App() {
             </div>
 
             {/* Row 2: Price range filter */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-stone-200 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-200 text-xs">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-gold-600" />
-                <span className="font-bold uppercase tracking-wider text-stone-500">
+                <SlidersHorizontal className="w-4 h-4 text-gray-500" />
+                <span className="font-bold uppercase tracking-wider text-gray-500">
                   {language === 'en' ? 'FILTERS BUDGET RANGE:' : 'বাজেট সীমা:'}
                 </span>
-                <span className="font-mono text-gold-600 font-bold">৳0 — ৳{priceRange}</span>
+                <span className="font-mono text-orange-500 font-bold">৳0 — ৳{priceRange}</span>
               </div>
               <input
                 type="range"
@@ -249,7 +244,7 @@ export default function App() {
                 step="50"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full sm:max-w-xs h-1 rounded-sm bg-stone-200 accent-gold-500 cursor-pointer"
+                className="w-full sm:max-w-xs h-1 rounded-sm bg-gray-200 accent-orange-500 cursor-pointer"
               />
             </div>
 
@@ -257,21 +252,21 @@ export default function App() {
 
           {/* Grid list of Product Card modules */}
           {sortedProducts.length === 0 ? (
-            <div className="text-center py-20 rounded-2xl border border-dashed border-stone-300 bg-white space-y-4 shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center mx-auto text-stone-500 animate-pulse">
+            <div className="text-center py-20 rounded-2xl border border-dashed border-gray-200 bg-gray-50 space-y-4 shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-gray-400">
                 <Search className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif text-sm font-bold text-stone-800">
+                <h3 className="font-sans text-sm font-bold text-gray-800">
                   {language === 'en' ? 'No items match your filters' : 'কোনো পণ্য পাওয়া যায়নি'}
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-gray-500 font-sans">
                   {language === 'en' ? 'Try adjusting your search queries or slider values.' : 'অনুগ্রহ করে বাজেট বা সর্টিং পরিবর্তন করে চেষ্টা করুন।'}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
               {sortedProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}
@@ -294,6 +289,20 @@ export default function App() {
 
       {/* 8. Floating Back to Top / Advisor Chat module */}
       <FloatingButtons />
+
+      {/* 9. Mobile Bottom Navigation */}
+      <BottomNavigation
+        onOpenCart={() => setCartOpen(true)}
+        onOpenAccount={() => setAccountOpen(true)}
+        onScrollToSection={(sectionId) => {
+          if (sectionId === 'hero') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const el = document.getElementById(sectionId);
+            el?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+      />
 
       {/* =========================================
           MODALS CHANNELS & DRAWER MANAGERS

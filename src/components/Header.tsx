@@ -92,14 +92,14 @@ export default function Header({
   const totalCartItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur-md border-stone-200 text-stone-900 shadow-sm">
+    <header className="sticky top-0 z-40 w-full border-b bg-white backdrop-blur-md border-gray-200 text-gray-900 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between gap-4">
+        <div className="flex h-16 items-center justify-between gap-4">
           
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-stone-500 hover:text-gold-600 transition-colors"
+            className="md:hidden p-2 text-gray-700 hover:text-orange-500 transition-colors"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -108,47 +108,46 @@ export default function Header({
           <div
             onClick={() => onScrollToSection('hero')}
             onDoubleClick={onOpenAdmin}
-            className="flex items-center gap-2.5 cursor-pointer shrink-0"
+            className="flex items-center gap-2 cursor-pointer shrink-0"
             title={language === 'en' ? 'Mifta Attar House (Double click logo for admin access)' : 'মিফতা আতর হাউস (অ্যাডমিন প্যানেলের জন্য লোগোতে ডাবল ক্লিক করুন)'}
           >
-            {/* Islamic Star / Geometric Symbol */}
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-sm border border-gold-500/30 bg-white shadow-md shadow-gold-500/5">
-              <span className="text-gold-600 font-serif text-2xl font-bold">M</span>
-              <div className="absolute -inset-0.5 rounded-sm border border-gold-500/15 animate-pulse" />
+            {/* Islamic Star / Geometric Symbol as Logo */}
+            <div className="relative flex h-8 w-8 items-center justify-center rounded bg-orange-500 shadow-sm">
+              <span className="text-white font-serif text-xl font-bold">M</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-serif text-lg sm:text-xl font-bold tracking-[0.2em] text-gold-600 hover:text-gold-500 transition-colors">
-                MIFTA ATTAR
+            <div className="flex flex-col justify-center">
+              <span className="font-serif text-lg font-bold tracking-wide text-orange-500 leading-none">
+                MIFTA
               </span>
-              <span className="text-[9px] font-sans tracking-widest text-stone-500 -mt-1 font-bold">
-                মিফতা আতর হাউস
+              <span className="text-[10px] font-sans tracking-wide text-gray-600 font-medium uppercase mt-0.5 leading-none">
+                Attar House
               </span>
             </div>
           </div>
 
           {/* Navigation Links - Desktop */}
-          <nav className="hidden lg:flex items-center gap-6 text-[11px] uppercase tracking-[0.15em] text-stone-600 font-bold">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-700">
             <button
               onClick={() => onScrollToSection('catalog')}
-              className="hover:text-gold-600 transition-colors py-2 cursor-pointer font-sans"
+              className="hover:text-orange-500 transition-colors py-2 cursor-pointer font-sans"
             >
               {language === 'en' ? 'Oud Collection' : 'আতর কালেকশন'}
             </button>
             <button
               onClick={() => onScrollToSection('catalog')}
-              className="hover:text-gold-600 transition-colors py-2 cursor-pointer font-sans"
+              className="hover:text-orange-500 transition-colors py-2 cursor-pointer font-sans"
             >
               {language === 'en' ? 'Arabic Attar' : 'অ্যারাবিক আতর'}
             </button>
             <button
               onClick={() => onScrollToSection('catalog')}
-              className="hover:text-gold-600 transition-colors py-2 cursor-pointer font-sans"
+              className="hover:text-orange-500 transition-colors py-2 cursor-pointer font-sans"
             >
               {language === 'en' ? 'Gift Boxes' : 'উপহার বক্স'}
             </button>
             <button
               onClick={() => onScrollToSection('story')}
-              className="hover:text-gold-600 transition-colors py-2 cursor-pointer font-sans"
+              className="hover:text-orange-500 transition-colors py-2 cursor-pointer font-sans"
             >
               {language === 'en' ? 'Our Story' : 'আমাদের গল্প'}
             </button>
@@ -166,13 +165,13 @@ export default function Header({
                   setShowSearchResults(true);
                 }}
                 onFocus={() => setShowSearchResults(true)}
-                className="w-full h-10 pl-10 pr-4 rounded-sm bg-stone-50 border border-stone-200 text-sm text-stone-850 placeholder-stone-400 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/30 transition-all font-sans"
+                className="w-full h-10 pl-10 pr-4 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-sans"
               />
-              <Search className="absolute left-3.5 w-4 h-4 text-stone-400" />
+              <Search className="absolute left-3.5 w-4 h-4 text-gray-400" />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 text-stone-400 hover:text-stone-900"
+                  className="absolute right-3 text-gray-400 hover:text-gray-900"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -181,8 +180,8 @@ export default function Header({
 
             {/* Smart Search Results Dropdown */}
             {showSearchResults && filteredProducts.length > 0 && (
-              <div className="absolute left-0 right-0 mt-2 max-h-[380px] overflow-y-auto rounded-sm border border-gold-500/20 bg-white shadow-2xl p-2 z-50">
-                <div className="px-3 py-1 text-[11px] font-sans font-bold text-gold-600 tracking-[0.15em] uppercase border-b border-stone-150 mb-1">
+              <div className="absolute left-0 right-0 mt-2 max-h-[380px] overflow-y-auto rounded-md border border-gray-200 bg-white shadow-xl p-2 z-50">
+                <div className="px-3 py-2 text-xs font-sans font-bold text-gray-500 uppercase border-b border-gray-100 mb-1">
                   {language === 'en' ? 'MATCHING FRAGRANCES' : 'মিলে যাওয়া পণ্যসমূহ'}
                 </div>
                 {filteredProducts.map((product) => (
@@ -193,19 +192,19 @@ export default function Header({
                       setShowSearchResults(false);
                       setSearchQuery('');
                     }}
-                    className="flex items-center gap-3 p-2 hover:bg-stone-50 rounded-sm cursor-pointer transition-colors border border-transparent hover:border-gold-500/10"
+                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer transition-colors border border-transparent"
                   >
                     <img
                       src={product.images[0]}
                       alt={product.name[language]}
                       referrerPolicy="no-referrer"
-                      className="w-10 h-10 object-cover rounded-sm border border-stone-250"
+                      className="w-10 h-10 object-cover rounded border border-gray-200"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-stone-800 truncate font-sans">
+                      <div className="text-sm font-semibold text-gray-900 truncate font-sans">
                         {product.name[language]}
                       </div>
-                      <div className="text-[11px] text-gold-600 font-mono mt-0.5 font-bold">
+                      <div className="text-xs text-orange-600 font-bold mt-0.5">
                         ৳{product.price}
                       </div>
                     </div>
@@ -216,46 +215,38 @@ export default function Header({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             
             {/* Language Switch */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'bn' : 'en')}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-stone-200 hover:border-gold-500/30 text-xs font-bold text-gold-600 bg-stone-50 hover:bg-stone-100 transition-all font-sans cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 hover:border-orange-500 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all font-sans cursor-pointer"
               title={language === 'en' ? 'বাংলা সংস্করণ' : 'English Version'}
             >
-              <Globe className="w-3.5 h-3.5 text-gold-600 animate-spin-slow" />
+              <Globe className="w-4 h-4 text-orange-500" />
               <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
-            </button>
-
-            {/* Dark/Light Switch */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-gold-550" /> : <Moon className="w-4 h-4 text-stone-700" />}
             </button>
 
             {/* Admin Dashboard (Visible only when logged in as admin) */}
             {isAdmin && (
               <button
                 onClick={onOpenAdmin}
-                className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
+                className="hidden md:flex p-2 text-gray-700 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-all relative cursor-pointer"
                 title={language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
               >
-                <Settings className="w-4.5 h-4.5" />
-                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-gold-600" />
+                <Settings className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-orange-500" />
               </button>
             )}
 
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
-              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all relative cursor-pointer"
+              className="hidden md:flex p-2 text-gray-700 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-all relative cursor-pointer"
             >
-              <Heart className="w-4.5 h-4.5" />
+              <Heart className="w-5 h-5" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white border border-white">
                   {wishlist.length}
                 </span>
               )}
@@ -264,15 +255,15 @@ export default function Header({
             {/* Account Panel */}
             <button
               onClick={onOpenAccount}
-              className="hidden md:flex p-2 text-stone-500 hover:text-gold-600 hover:bg-stone-100 rounded-sm transition-all cursor-pointer"
+              className="hidden md:flex p-2 text-gray-700 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-all cursor-pointer"
             >
-              <User className="w-4.5 h-4.5" />
+              <User className="w-5 h-5" />
             </button>
 
             {/* Shopping Cart Drawer */}
             <button
               onClick={onOpenCart}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-sm bg-gold-500 text-black font-bold hover:brightness-110 transition-all shadow-md shadow-gold-500/10 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-md bg-orange-500 text-white font-bold hover:bg-orange-600 transition-all shadow-sm cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4 shrink-0" />
               <span className="text-xs font-bold leading-none font-sans">{totalCartItems}</span>
@@ -284,7 +275,7 @@ export default function Header({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-stone-200 p-4 space-y-4 shadow-md">
+        <div className="md:hidden bg-white border-b border-gray-200 p-4 space-y-4 shadow-md">
           {/* Mobile Search */}
           <div className="relative">
             <input
@@ -292,11 +283,11 @@ export default function Header({
               placeholder={language === 'en' ? 'Search fragrances...' : 'আতর খুঁজুন...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 rounded-sm bg-stone-50 border border-stone-200 text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-gold-500"
+              className="w-full h-10 pl-10 pr-4 rounded-md bg-gray-50 border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
             />
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-stone-400" />
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
             {searchQuery && (
-              <div className="absolute left-0 right-0 mt-2 max-h-[250px] overflow-y-auto rounded-sm border border-gold-500/20 bg-white shadow-2xl p-2 z-50">
+              <div className="absolute left-0 right-0 mt-2 max-h-[250px] overflow-y-auto rounded-md border border-gray-200 bg-white shadow-xl p-2 z-50">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
@@ -305,10 +296,10 @@ export default function Header({
                       setMobileMenuOpen(false);
                       setSearchQuery('');
                     }}
-                    className="flex items-center gap-3 p-2 hover:bg-stone-100 rounded-sm"
+                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md"
                   >
-                    <img src={product.images[0]} alt={product.name[language]} className="w-8 h-8 object-cover rounded-sm border border-stone-200" />
-                    <div className="text-xs font-semibold text-stone-800">{product.name[language]}</div>
+                    <img src={product.images[0]} alt={product.name[language]} className="w-8 h-8 object-cover rounded border border-gray-200" />
+                    <div className="text-sm font-semibold text-gray-900">{product.name[language]}</div>
                   </div>
                 ))}
               </div>
@@ -321,7 +312,7 @@ export default function Header({
                 onScrollToSection('catalog');
                 setMobileMenuOpen(false);
               }}
-              className="text-left text-stone-600 hover:text-gold-600 py-1 font-bold"
+              className="text-left text-gray-700 hover:text-orange-500 py-1 font-bold"
             >
               {language === 'en' ? 'Attar Collection' : 'আতর কালেকশন'}
             </button>
@@ -330,7 +321,7 @@ export default function Header({
                 onScrollToSection('catalog');
                 setMobileMenuOpen(false);
               }}
-              className="text-left text-stone-600 hover:text-gold-600 py-1 font-bold"
+              className="text-left text-gray-700 hover:text-orange-500 py-1 font-bold"
             >
               {language === 'en' ? 'Natural Health' : 'ন্যাচারাল হেলথ'}
             </button>
@@ -339,7 +330,7 @@ export default function Header({
                 onScrollToSection('catalog');
                 setMobileMenuOpen(false);
               }}
-              className="text-left text-stone-600 hover:text-gold-600 py-1 font-bold"
+              className="text-left text-gray-700 hover:text-orange-500 py-1 font-bold"
             >
               {language === 'en' ? 'Gift Chests' : 'উপহার বক্স'}
             </button>
@@ -348,13 +339,13 @@ export default function Header({
                 onScrollToSection('story');
                 setMobileMenuOpen(false);
               }}
-              className="text-left text-stone-600 hover:text-gold-600 py-1 font-bold"
+              className="text-left text-gray-700 hover:text-orange-500 py-1 font-bold"
             >
               {language === 'en' ? 'Our Story' : 'আমাদের ঐতিহ্য'}
             </button>
           </div>
 
-          <div className="h-px bg-stone-200 my-3" />
+          <div className="h-px bg-gray-200 my-3" />
 
           {/* Quick Actions for Mobile */}
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -363,28 +354,10 @@ export default function Header({
               onClick={() => {
                 setLanguage(language === 'en' ? 'bn' : 'en');
               }}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-gold-600 font-sans cursor-pointer"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-md border border-gray-200 bg-gray-50 font-bold text-gray-700 font-sans cursor-pointer hover:border-orange-500"
             >
-              <Globe className="w-4 h-4 text-gold-600" />
+              <Globe className="w-4 h-4 text-orange-500" />
               <span>{language === 'en' ? 'বাংলা' : 'English'}</span>
-            </button>
-
-            {/* Dark/Light Switch */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-gold-550" />
-                  <span>{language === 'en' ? 'Light Mode' : 'লাইট মোড'}</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-stone-750" />
-                  <span>{language === 'en' ? 'Dark Mode' : 'ডার্ক মোড'}</span>
-                </>
-              )}
             </button>
 
             {/* Wishlist */}
@@ -393,7 +366,7 @@ export default function Header({
                 onOpenWishlist();
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-md border border-gray-200 bg-gray-50 font-bold text-gray-700 cursor-pointer hover:border-orange-500"
             >
               <Heart className="w-4 h-4 text-rose-500" />
               <span>{language === 'en' ? `Wishlist (${wishlist.length})` : `পছন্দের তালিকা (${wishlist.length})`}</span>
@@ -405,9 +378,9 @@ export default function Header({
                 onOpenAccount();
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-sm border border-stone-200 bg-stone-50 font-bold text-stone-600 cursor-pointer"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-md border border-gray-200 bg-gray-50 font-bold text-gray-700 cursor-pointer hover:border-orange-500"
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 text-gray-500" />
               <span>{language === 'en' ? 'Account' : 'আমার অ্যাকাউন্ট'}</span>
             </button>
 
@@ -418,9 +391,9 @@ export default function Header({
                   onOpenAdmin();
                   setMobileMenuOpen(false);
                 }}
-                className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-sm border border-gold-500 bg-gold-500/10 font-bold text-gold-600 cursor-pointer"
+                className="col-span-1 flex items-center justify-center gap-2 py-2.5 rounded-md border border-orange-500 bg-orange-50 font-bold text-orange-600 cursor-pointer"
               >
-                <Settings className="w-4 h-4 text-gold-600" />
+                <Settings className="w-4 h-4 text-orange-600" />
                 <span>{language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}</span>
               </button>
             )}

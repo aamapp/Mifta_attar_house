@@ -3,18 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { MessageCircle, ArrowUp, Send, Check } from 'lucide-react';
+import { MessageCircle, ArrowUp, Send, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
 
 export default function FloatingButtons() {
-  const { language, addToast } = useApp();
+  const { language, addToast, products } = useApp();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  
   const [chatHistory, setChatHistory] = useState<{ sender: 'user' | 'bot'; text: string }[]>([
-    { sender: 'bot', text: 'Assalamu Alaikum! Welcome to Mifta Attar House. How can I assist you with our non-alcoholic pure fragrances today?' }
+    { sender: 'bot', text: 'আসসালামু আলাইকুম! মিফতাহ আত্তার হাউজে আপনাকে স্বাগতম। আজ আপনাকে কীভাবে সাহায্য করতে পারি?' }
   ]);
 
   useEffect(() => {
@@ -25,32 +29,76 @@ export default function FloatingButtons() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory, isTyping]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSendChat = (e: React.FormEvent) => {
+  const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (chatMessage.trim() === '') return;
 
     const userText = chatMessage;
-    setChatHistory((prev) => [...prev, { sender: 'user', text: userText }]);
+    const currentHistory = [...chatHistory, { sender: 'user' as const, text: userText }];
+    setChatHistory(currentHistory);
     setChatMessage('');
+    setIsTyping(true);
 
-    // Simulated reply
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          history: currentHistory.slice(0, -1), // Don't send the user message as history again, send it separately if needed, but our API uses history + message
+          message: userText,
+          context: products.map(p => ({
+            name: p.name_bn || p.name,
+            price: p.price,
+            discountPrice: p.discountPrice,
+            category: p.category,
+            stock: p.stock,
+            description: p.description_bn || p.description,
+            isNew: p.isNew
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      
       setChatHistory((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: 'Jazakallah Khair for reaching out! Our dedicated fragrance advisor is analyzing your query. You can also directly ping us on WhatsApp: +8801712345678 for instant delivery.'
+          text: data.text
         }
       ]);
-    }, 1200);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: 'দুঃখিত, সংযোগে সমস্যা হচ্ছে। দয়া করে আবার চেষ্টা করুন।'
+        }
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 pointer-events-none">
+    <div className="fixed bottom-20 md:bottom-6 right-6 z-40 flex flex-col gap-3 pointer-events-none">
       
       {/* 1. Back to Top Button */}
       <AnimatePresence>
@@ -60,7 +108,7 @@ export default function FloatingButtons() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="pointer-events-auto p-3.5 rounded-sm border border-stone-200 bg-white hover:bg-stone-50 text-gold-600 hover:text-gold-700 transition-colors shadow-2xl hover:-translate-y-1 transition-transform cursor-pointer"
+            className="pointer-events-auto p-3.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-orange-500 transition-colors shadow-lg hover:-translate-y-1 transform cursor-pointer"
             title="Back to Top"
           >
             <ArrowUp className="w-5 h-5" />
@@ -76,45 +124,58 @@ export default function FloatingButtons() {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="pointer-events-auto absolute bottom-16 right-0 w-80 rounded-sm border border-stone-200 bg-white text-stone-900 shadow-2xl p-4 flex flex-col gap-3 z-50"
+              className="pointer-events-auto absolute bottom-16 right-0 w-80 rounded-xl border border-gray-200 bg-white text-gray-900 shadow-2xl p-4 flex flex-col gap-3 z-50"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-gold-600 font-sans">Mifta Advisor Chat</span>
+                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-orange-500 font-sans">মিফতাহ এআই অ্যাসিস্ট্যান্ট</span>
                 </div>
-                <button onClick={() => setChatOpen(false)} className="text-stone-400 hover:text-stone-900 cursor-pointer">
-                  <X className="w-3.5 h-3.5" />
+                <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Chat Log History */}
-              <div className="h-48 overflow-y-auto space-y-3.5 text-xs pr-1">
+              <div ref={chatContainerRef} className="h-64 overflow-y-auto space-y-3.5 text-xs pr-1 flex flex-col">
                 {chatHistory.map((ch, idx) => (
                   <div
                     key={idx}
-                    className={`p-2.5 rounded-sm max-w-[85%] ${
+                    className={`p-2.5 rounded-lg max-w-[85%] ${
                       ch.sender === 'user'
-                        ? 'bg-gold-500 text-black font-bold self-end ml-auto'
-                        : 'bg-stone-50 text-stone-800 border border-stone-200 mr-auto text-left'
+                        ? 'bg-orange-500 text-white self-end ml-auto'
+                        : 'bg-gray-50 text-gray-800 border border-gray-100 mr-auto text-left'
                     }`}
                   >
-                    {ch.text}
+                    {ch.sender === 'bot' ? (
+                      <div className="markdown-body text-xs">
+                        <ReactMarkdown>{ch.text}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      ch.text
+                    )}
                   </div>
                 ))}
+                {isTyping && (
+                   <div className="bg-gray-50 text-gray-800 border border-gray-100 mr-auto text-left p-2.5 rounded-lg max-w-[85%] flex items-center gap-2">
+                     <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                     <span>লিখছে...</span>
+                   </div>
+                )}
               </div>
 
               {/* Chat Input form */}
               <form onSubmit={handleSendChat} className="relative mt-1">
                 <input
                   type="text"
-                  placeholder={language === 'en' ? 'Type a question...' : 'জিজ্ঞাসা লিখুন...'}
+                  placeholder="জিজ্ঞাসা লিখুন..."
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
-                  className="w-full h-10 pl-3 pr-10 rounded-sm bg-white border border-stone-200 text-xs text-stone-900 focus:outline-none focus:border-gold-500"
+                  className="w-full h-10 pl-3 pr-10 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+                  disabled={isTyping}
                 />
-                <button type="submit" className="absolute right-2.5 top-2.5 text-gold-600 hover:text-gold-700 cursor-pointer">
+                <button type="submit" disabled={isTyping || chatMessage.trim() === ''} className="absolute right-2.5 top-2.5 text-orange-500 hover:text-orange-600 cursor-pointer disabled:opacity-50">
                   <Send className="w-4.5 h-4.5" />
                 </button>
               </form>
@@ -125,7 +186,7 @@ export default function FloatingButtons() {
         {/* Floating Chat Trigger Button */}
         <button
           onClick={() => setChatOpen(!chatOpen)}
-          className="pointer-events-auto p-4 rounded-full bg-gold-500 text-black hover:brightness-110 transition-all shadow-2xl hover:scale-105 transform active:scale-95 cursor-pointer flex items-center justify-center"
+          className="pointer-events-auto p-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-all shadow-xl hover:scale-105 transform active:scale-95 cursor-pointer flex items-center justify-center"
           title="Live Chat Assistant"
         >
           <MessageCircle className="w-6 h-6" />

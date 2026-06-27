@@ -29,17 +29,17 @@ export default function Footer({ onAdminToggle }: FooterProps) {
   };
 
   return (
-    <footer className="bg-stone-50 text-stone-900 border-t border-stone-200 pt-16 pb-8">
+    <footer className="bg-[#040E0B] text-white border-t border-emerald-900 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Top Segment: Brand summary & Newsletter */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-b border-stone-200 pb-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 border-b border-emerald-900 pb-12 items-center">
           
           <div className="lg:col-span-6 space-y-4 text-left">
             <h3 className="font-serif text-xl font-bold tracking-widest text-gold-600 uppercase">
               MIFTA ATTAR HOUSE
             </h3>
-            <p className="text-xs text-stone-600 font-sans max-w-md leading-relaxed">
+            <p className="text-xs text-stone-400 font-sans max-w-md leading-relaxed">
               {language === 'en'
                 ? 'Your sanctuary for elite, 100% alcohol-free premium attars and Islamic lifestyle lifestyle offerings. Dedicated to purity, sillage longevity, and Sunnah status.'
                 : 'পবিত্রতা ও আভিজাত্যের বিশ্বস্ত ঠিকানা। আমরা দিচ্ছি শতভাগ খাঁটি, অ্যালকোহল মুক্ত প্রিমিয়াম সৌদি আরবিক ও ইন্ডিয়ান সুগন্ধি আতর ও অর্গানিক লাইফস্টাইল পণ্য।'}
@@ -58,7 +58,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
                 placeholder={language === 'en' ? 'Enter email address...' : 'আপনার ইমেইল অ্যাড্রেস লিখুন...'}
                 value={newsEmail}
                 onChange={(e) => setNewsEmail(e.target.value)}
-                className="w-full h-12 pl-4 pr-12 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-850"
+                className="w-full h-12 pl-4 pr-12 rounded-sm bg-emerald-900/40 border border-emerald-800 text-xs focus:outline-none focus:border-gold-500 text-white placeholder-stone-500"
               />
               <button
                 type="submit"
@@ -79,7 +79,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
             <h4 className="text-xs font-bold uppercase tracking-widest text-gold-600 font-sans">
               {language === 'en' ? 'Our Collections' : 'আতর কালেকশন'}
             </h4>
-            <ul className="space-y-2 text-xs text-stone-600 font-sans">
+            <ul className="space-y-2 text-xs text-stone-400 font-sans">
               {[
                 { en: 'Oud Collection', bn: 'উদ কালেকশন' },
                 { en: 'Arabic Attar', bn: 'আরবি আতর কালেকশন' },
@@ -87,7 +87,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
                 { en: 'Sporty & Fresh', bn: 'স্পোর্টি ও ফ্রেশ আতর' }
               ].map((item, idx) => (
                 <li key={idx}>
-                  <a href="#" className="hover:text-gold-600 transition-colors">
+                  <a href="#" className="hover:text-gold-500 transition-colors">
                     {language === 'en' ? item.en : item.bn}
                   </a>
                 </li>
@@ -100,7 +100,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
             <h4 className="text-xs font-bold uppercase tracking-widest text-gold-600 font-sans">
               {language === 'en' ? 'Customer Support' : 'গ্রাহক সেবা'}
             </h4>
-            <ul className="space-y-2 text-xs text-stone-600 font-sans">
+            <ul className="space-y-2 text-xs text-stone-400 font-sans">
               {[
                 { en: 'Order Guidelines', bn: 'অর্ডার করার নিয়ম' },
                 { en: 'Return Policies', bn: 'রিটার্ন পলিসি' },
@@ -108,7 +108,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
                 { en: 'Privacy Policies', bn: 'গোপনীয়তা নীতিমালা' }
               ].map((item, idx) => (
                 <li key={idx}>
-                  <a href="#" className="hover:text-gold-600 transition-colors">
+                  <a href="#" className="hover:text-gold-500 transition-colors">
                     {language === 'en' ? item.en : item.bn}
                   </a>
                 </li>
@@ -121,7 +121,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
             <h4 className="text-xs font-bold uppercase tracking-widest text-gold-600 font-sans">
               {language === 'en' ? 'Premium Showroom' : 'আমাদের শোরুম'}
             </h4>
-            <div className="space-y-3 text-xs text-stone-600 font-sans leading-relaxed">
+            <div className="space-y-3 text-xs text-stone-400 font-sans leading-relaxed">
               <div className="flex gap-2 items-start">
                 <MapPin className="w-4 h-4 text-gold-600 shrink-0" />
                 <span>
@@ -132,7 +132,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
               </div>
               <div className="flex gap-2 items-center">
                 <Phone className="w-4 h-4 text-gold-600 shrink-0" />
-                <a href="tel:+8801712345678" className="hover:text-gold-600 transition-colors">+880 1712-345678</a>
+                <a href="tel:+8801712345678" className="hover:text-gold-500 transition-colors">+880 1712-345678</a>
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
             <h4 className="text-xs font-bold uppercase tracking-widest text-gold-600 font-sans">
               {language === 'en' ? 'Secured Seal' : 'নিরাপত্তা ও বিশ্বাস'}
             </h4>
-            <div className="space-y-3 text-xs text-stone-600 font-sans">
+            <div className="space-y-3 text-xs text-stone-400 font-sans">
               <p className="leading-relaxed">
                 {language === 'en'
                   ? 'We accept major Bangladeshi banking channels bKash, Nagad, Rocket and Cash on Delivery.'
@@ -152,7 +152,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
               {/* Secret Admin trigger */}
               <button
                 onClick={onAdminToggle}
-                className="text-[10px] uppercase font-bold tracking-widest text-stone-500 hover:text-gold-600 border border-stone-250 hover:border-gold-500/30 bg-white px-2.5 py-1 rounded-sm transition-colors cursor-pointer block"
+                className="text-[10px] uppercase font-bold tracking-widest text-stone-400 hover:text-gold-500 border border-emerald-800 hover:border-gold-500/30 bg-emerald-900 px-2.5 py-1 rounded-sm transition-colors cursor-pointer block"
               >
                 {language === 'en' ? 'ADMIN ACCESS' : 'অ্যাডমিন প্যানেল'}
               </button>
@@ -162,7 +162,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
         </div>
 
         {/* Bottom copyright segment */}
-        <div className="border-t border-stone-200 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+        <div className="border-t border-emerald-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-1">
             <span>
               {language === 'en' 
@@ -172,9 +172,9 @@ export default function Footer({ onAdminToggle }: FooterProps) {
           </div>
 
           <div className="flex items-center gap-4 text-[10px] uppercase tracking-wider font-bold">
-            <a href="#" className="hover:text-stone-700">{language === 'en' ? 'TERMS' : 'শর্তাবলী'}</a>
+            <a href="#" className="hover:text-stone-300">{language === 'en' ? 'TERMS' : 'শর্তাবলী'}</a>
             <span>•</span>
-            <a href="#" className="hover:text-stone-700">{language === 'en' ? 'PRIVACY' : 'প্রাইভেসি'}</a>
+            <a href="#" className="hover:text-stone-300">{language === 'en' ? 'PRIVACY' : 'প্রাইভেসি'}</a>
           </div>
         </div>
 

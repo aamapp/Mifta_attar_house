@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ShieldCheck, Truck, Sparkles, Award, Star, ThumbsUp, Heart } from 'lucide-react';
 
@@ -33,65 +34,58 @@ export default function BrandStory() {
   ];
 
   return (
-    <section id="story" className="py-20 bg-white text-stone-900 border-t border-stone-100">
+    <section id="story" className="py-12 bg-gray-50 border-t border-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Narrative Story - 6 Columns */}
-          <div className="lg:col-span-6 space-y-6 text-left">
-            <div className="space-y-2">
-              <span className="block text-xs font-bold text-gold-600 uppercase tracking-widest font-sans">
-                {language === 'en' ? 'OUR LEGACY' : 'আমাদের ঐতিহ্য ও গল্প'}
-              </span>
-              <h2 className="font-serif text-3xl sm:text-4xl font-normal text-stone-900 font-bold leading-tight tracking-wide">
-                {language === 'en' ? 'Crafting Heavenly Pure Fragrances' : 'মিফতা আতর হাউসের স্বপ্ন ও পথচলা'}
-              </h2>
-            </div>
-            
-            <p className="text-sm text-stone-600 font-sans leading-relaxed">
-              {language === 'en'
-                ? 'Mifta Attar House was born from a desire to revive the ancient, sacred tradition of pure non-alcoholic perfumery. We believe that a fragrance is not just a cosmetic asset—it is food for the spiritual heart, an expression of clean status, and a beautiful prophetic sunnah.'
-                : 'পবিত্রতা ও আভিজাত্যের চিরন্তন মেলবন্ধন ঘটাতে মিফতা আতর হাউসের যাত্রা শুরু। আমরা বিশ্বাস করি, সুগন্ধি কেবল সাজসজ্জার অংশ নয়—বরং এটি আত্মার খাদ্য, পবিত্রতা প্রকাশের মাধ্যম এবং রাসূলুল্লাহ (সাঃ)-এর অন্যতম প্রিয় সুন্নাহ। আমরা মানহীন অ্যালকোহল মিশ্রিত সুগন্ধির বিপরীতে আপনাদের হাতে তুলে দিই শতভাগ খাঁটি ও বিশুদ্ধ আতর।'}
-            </p>
-
-            <p className="text-sm text-stone-800 font-sans italic border-l-2 border-gold-500 pl-4 py-1.5 bg-stone-50">
-              {language === 'en'
-                ? '"Fragrance has the spiritual potency to increase focus, clear cognitive blockages, and invite celestial peace into the home environment."'
-                : '"বিশুদ্ধ সুগন্ধি মনকে প্রফুল্ল রাখে, মেধা বিকাশে সাহায্য করে এবং যেকোনো সৎ ইবাদতে মনযোগ বৃদ্ধি করতে সাহায্য করে।"'}
-            </p>
-
-            <div className="flex gap-4 items-center">
-              <div className="flex -space-x-2">
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100" referrerPolicy="no-referrer" />
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100" referrerPolicy="no-referrer" />
+        
+        {/* Core Benefits Horizontal Strip (Mobile Scrollable, Desktop Grid) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+          {benefits.map((b, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col items-center text-center p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+            >
+              <div className="p-4 rounded-full bg-orange-50 mb-4">
+                {React.cloneElement(b.icon, { className: 'w-6 h-6 text-orange-500' })}
               </div>
-              <span className="text-xs text-stone-500 font-sans">
-                {language === 'en' ? 'Loved by 5,000+ satisfied spiritual souls across Bangladesh' : 'সারাদেশে ৫,০০০+ সন্তুষ্ট কাস্টমারের অফুরন্ত ভালোবাসা ও বিশ্বাস'}
-              </span>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2">
+                {b.title[language]}
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                {b.desc[language]}
+              </p>
             </div>
-          </div>
-
-          {/* Benefits Grid list - 6 Columns */}
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {benefits.map((b, idx) => (
-              <div
-                key={idx}
-                className="p-5 rounded-sm border border-stone-200 bg-stone-50/60 hover:border-gold-500/30 hover:bg-stone-50 hover:shadow-sm text-left space-y-3 transition-all"
-              >
-                <div className="p-2.5 rounded-sm bg-white border border-stone-200 shadow-sm w-fit">
-                  {b.icon}
-                </div>
-                <h3 className="font-serif text-sm font-bold text-stone-900 tracking-wide">
-                  {b.title[language]}
-                </h3>
-                <p className="text-xs text-stone-600 font-sans leading-relaxed">
-                  {b.desc[language]}
-                </p>
-              </div>
-            ))}
-          </div>
-
+          ))}
         </div>
+
+        {/* Narrative Section (Optional, below features) */}
+        <div className="mt-16 bg-white rounded-2xl p-8 sm:p-12 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 lg:gap-16">
+          <div className="md:w-1/2">
+            <span className="block text-sm font-bold text-orange-500 uppercase tracking-wider mb-2">
+              {language === 'en' ? 'About Our Products' : 'আমাদের পণ্য সম্পর্কে'}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-4 leading-tight">
+              {language === 'en' ? 'Natural, Pure, & High Quality' : 'শতভাগ প্রাকৃতিক, খাঁটি ও উচ্চমানের'}
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+              {language === 'en'
+                ? 'We are committed to providing the purest natural products. Our items are carefully sourced and strictly monitored for quality to ensure you get the absolute best nature has to offer.'
+                : 'আপনাদের সুস্বাস্থ্য নিশ্চিত করতে আমরা নিয়ে এসেছি সম্পূর্ণ প্রাকৃতিক ও বিশুদ্ধ পণ্য। সেরা মানের উপাদান সংগ্রহ থেকে শুরু করে প্যাকেজিং পর্যন্ত প্রতিটি ধাপে আমরা সর্বোচ্চ সতর্কতা বজায় রাখি।'}
+            </p>
+            <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-100 inline-flex">
+              <div className="flex -space-x-2">
+                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100" referrerPolicy="no-referrer" alt="" />
+                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100" referrerPolicy="no-referrer" alt="" />
+              </div>
+              <span className="text-xs sm:text-sm text-gray-700 font-bold">
+                {language === 'en' ? 'Loved by 5,000+ happy customers' : '৫০০০+ কাস্টমারের আস্থা'}
+              </span>
+            </div>
+          </div>
+          <div className="md:w-1/2 w-full aspect-video md:aspect-square lg:aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden relative">
+             <img src="https://images.unsplash.com/photo-1611078598463-22878513b632?auto=format&fit=crop&q=80&w=1000" alt="Natural products" className="w-full h-full object-cover" />
+          </div>
+        </div>
+
       </div>
     </section>
   );
