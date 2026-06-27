@@ -25,7 +25,7 @@ export async function onRequestPost(context: any) {
     }));
 
     const chat = ai.chats.create({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       config: {
         systemInstruction: `You are an AI assistant for "Mifta Attar House", a premium Islamic fragrance and attar store in Bangladesh.
         You must communicate in Bengali (বাংলা). Be polite, helpful, and act as a knowledgeable fragrance advisor.
