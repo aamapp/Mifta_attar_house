@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { Product, Coupon, Order, Review, IslamicQuote, HeroSlide } from '../types';
 import {
   X,
+  ArrowLeft,
   LayoutDashboard,
   ShoppingBag,
   Package,
@@ -106,7 +107,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     category: 'oud',
     price: 350,
     originalPrice: 450,
-    images: ['https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&q=80&w=600'],
+    images: [],
     description: { en: '', bn: '' },
     specifications: {
       en: [{ label: 'Alcohol Content', value: '100% Alcohol Free' }],
@@ -458,81 +459,157 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-stone-900/60 backdrop-blur-md overflow-hidden">
-      <div className="relative w-full h-full sm:h-[95vh] sm:max-w-7xl rounded-none sm:rounded-sm border-none sm:border border-stone-200 bg-white text-stone-900 shadow-2xl flex flex-col overflow-hidden">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 p-4 sm:p-6 shrink-0 text-left bg-stone-50/50">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-sm border border-gold-500 bg-gold-500/5 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-gold-600" />
-            </div>
-            <div>
-              <h2 className="font-serif text-sm sm:text-lg font-bold text-gold-600 tracking-widest uppercase leading-tight">
-                মিফতা সিস্টেম কন্ট্রোল সেন্টার
-              </h2>
-              <p className="text-[9px] sm:text-[10px] text-stone-500 uppercase tracking-widest font-sans font-bold">
-                স্টোরফ্রন্ট ও ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম
-              </p>
+    <div className="fixed inset-0 z-50 bg-stone-50 text-stone-900 flex flex-col h-screen overflow-hidden">
+      
+      {/* Sticky Top Header */}
+      <div className="sticky top-0 bg-white border-b border-stone-200 z-45 w-full shadow-sm shrink-0">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-3 shrink-0">
+            <img src="/logo.png" alt="Mifta Attar House" className="h-12 w-auto object-contain" />
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-1.5">
+                <span className="font-serif text-lg font-bold tracking-tight text-orange-600 leading-none">
+                  {language === 'en' ? 'MIFTA' : 'মিফতা'}
+                </span>
+                <span className="px-1.5 py-0.5 rounded-md bg-stone-900 text-[8px] font-bold text-white uppercase tracking-wider scale-90">
+                  {language === 'en' ? 'ADMIN' : 'অ্যাডমিন'}
+                </span>
+              </div>
+              <span className="text-[9px] font-sans tracking-[0.15em] text-stone-800 font-bold uppercase mt-1 leading-none">
+                {language === 'en' ? 'Control Center' : 'কন্ট্রোল সেন্টার'}
+              </span>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-sm border border-stone-200 bg-white text-stone-500 hover:text-black cursor-pointer shadow-sm transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
           
-          {/* Sidebar Tabs */}
-          <div className="w-full lg:w-72 flex lg:flex-col justify-between border-b lg:border-b-0 lg:border-r border-stone-200 bg-stone-50/30 overflow-hidden">
-            <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-y-auto lg:overflow-x-visible p-2 sm:p-4 w-full no-scrollbar">
-              {[
-                { id: 'dashboard', label: 'ড্যাশবোর্ড ওভারভিউ', icon: <LayoutDashboard className="w-4 h-4" /> },
-                { id: 'orders', label: `অর্ডারসমূহ (${orders.length})`, icon: <ShoppingBag className="w-4 h-4" /> },
-                { id: 'products', label: `পণ্যসমূহ (${products.length})`, icon: <Package className="w-4 h-4" /> },
-                { id: 'coupons', label: `কুপনসমূহ (${coupons.length})`, icon: <Tags className="w-4 h-4" /> },
-                { id: 'reviews', label: `রিভিউসমূহ (${reviews.length})`, icon: <MessageSquare className="w-4 h-4" /> },
-                { id: 'quotes', label: `ইসলামিক বাণী (${islamicQuotes.length})`, icon: <HeartHandshake className="w-4 h-4" /> },
-                { id: 'hero', label: `হিরো ব্যানার (${heroSlides.length})`, icon: <Image className="w-4 h-4" /> },
-                { id: 'settings', label: `ওয়েবসাইটের লেখা`, icon: <RefreshCw className="w-4 h-4" /> },
-                { id: 'supabase', label: `সুপাবেস ডাটাবেস`, icon: <Database className="w-4 h-4" /> }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2.5 px-4 py-3 rounded-sm text-[11px] font-bold uppercase transition-all tracking-wider text-left shrink-0 cursor-pointer whitespace-nowrap lg:whitespace-normal ${
-                    activeTab === tab.id
-                      ? 'bg-gold-500 text-black shadow-md shadow-gold-500/10'
-                      : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
-                  }`}
-                >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Logout/Lock Button */}
+          <div className="flex items-center gap-2">
+            {/* Supabase status pill */}
+            <span className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+              supabaseStatus.connected ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-stone-50 text-stone-500 border border-stone-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${supabaseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
+              {supabaseStatus.connected ? 'Live' : 'Offline'}
+            </span>
+            
+            {/* Logout / Lock system */}
             <button
-              type="button"
               onClick={() => {
                 localStorage.removeItem('mifta_admin_logged_in');
                 setIsAdminLoggedIn(false);
                 addToast({ en: 'Logged out of admin panel.', bn: 'অ্যাডমিন প্যানেল থেকে সফলভাবে লগআউট করা হয়েছে।' }, 'info');
                 window.dispatchEvent(new Event('storage'));
               }}
-              className="hidden lg:flex items-center gap-2 px-4 py-3 text-[11px] font-bold uppercase text-red-600 hover:bg-red-50 rounded-sm cursor-pointer transition-colors mt-auto m-4 border border-red-200"
+              className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 rounded-lg border border-red-100 flex items-center gap-1 cursor-pointer transition-all"
+              title={language === 'en' ? 'Lock Admin Panel' : 'লগআউট করুন'}
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{language === 'en' ? 'Lock' : 'লগআউট'}</span>
+            </button>
+
+            {/* Back / Close Shop Button */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full border border-stone-200 bg-white text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-all cursor-pointer shadow-xs"
+              title={language === 'en' ? 'Back to Shop' : 'হোমে ফিরে যান'}
             >
               <X className="w-4 h-4" />
-              <span>{language === 'en' ? 'Lock System' : 'সিস্টেম লক করুন'}</span>
             </button>
           </div>
+        </div>
+      </div>
 
-          {/* Right Panel Main Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white min-h-0">
+      {/* Sub-Header bar for Marketing group (coupons, reviews, quotes) */}
+      {['coupons', 'reviews', 'quotes'].includes(activeTab) && (
+        <div className="bg-stone-100/50 border-b border-stone-200/80 shrink-0 z-30 py-3 px-4">
+          <div className="max-w-7xl mx-auto flex justify-center sm:justify-start">
+            <div className="bg-stone-200/60 p-1.5 rounded-2xl flex gap-1 items-center w-full sm:w-auto overflow-x-auto no-scrollbar border border-stone-300/30">
+              {[
+                { id: 'coupons', label: language === 'bn' ? 'কুপনসমূহ' : 'Coupons', count: coupons.length, icon: Tags },
+                { id: 'reviews', label: language === 'bn' ? 'রিভিউসমূহ' : 'Reviews', count: reviews.length, icon: MessageSquare },
+                { id: 'quotes', label: language === 'bn' ? 'ইসলামিক বাণী' : 'Quotes', count: islamicQuotes.length, icon: HeartHandshake },
+              ].map((subTab) => {
+                const Icon = subTab.icon;
+                const isSubActive = activeTab === subTab.id;
+                return (
+                  <button
+                    key={subTab.id}
+                    onClick={() => setActiveTab(subTab.id as any)}
+                    className={`relative flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
+                      isSubActive ? 'text-white' : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    {isSubActive && (
+                      <motion.div
+                        layoutId="marketingActiveIndicator"
+                        className="absolute inset-0 bg-stone-900 rounded-xl shadow-md z-0"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      <Icon className={`w-4 h-4 ${isSubActive ? 'text-orange-400' : 'text-orange-600'}`} />
+                      <span>{subTab.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                        isSubActive ? 'bg-stone-850 text-orange-300' : 'bg-stone-200/80 text-stone-600'
+                      }`}>
+                        {subTab.count}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sub-Header bar for Settings group (hero, settings, supabase) */}
+      {['hero', 'settings', 'supabase'].includes(activeTab) && (
+        <div className="bg-stone-100/50 border-b border-stone-200/80 shrink-0 z-30 py-3 px-4">
+          <div className="max-w-7xl mx-auto flex justify-center sm:justify-start">
+            <div className="bg-stone-200/60 p-1.5 rounded-2xl flex gap-1 items-center w-full sm:w-auto overflow-x-auto no-scrollbar border border-stone-300/30">
+              {[
+                { id: 'hero', label: language === 'bn' ? 'হিরো ব্যানার' : 'Hero Banners', count: heroSlides.length, icon: Image },
+                { id: 'settings', label: language === 'bn' ? 'ওয়েবসাইটের লেখা' : 'Website Content', icon: RefreshCw },
+                { id: 'supabase', label: language === 'bn' ? 'সুপাবেস ডাটাবেস' : 'Database Setup', icon: Database },
+              ].map((subTab) => {
+                const Icon = subTab.icon;
+                const isSubActive = activeTab === subTab.id;
+                return (
+                  <button
+                    key={subTab.id}
+                    onClick={() => setActiveTab(subTab.id as any)}
+                    className={`relative flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
+                      isSubActive ? 'text-white' : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    {isSubActive && (
+                      <motion.div
+                        layoutId="settingsActiveIndicator"
+                        className="absolute inset-0 bg-stone-900 rounded-xl shadow-md z-0"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      <Icon className={`w-4 h-4 ${isSubActive ? 'text-orange-400' : 'text-orange-600'}`} />
+                      <span>{subTab.label}</span>
+                      {subTab.count !== undefined && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                          isSubActive ? 'bg-stone-850 text-orange-300' : 'bg-stone-200/80 text-stone-600'
+                        }`}>
+                          {subTab.count}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-stone-50/40 min-h-0 pb-6">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 w-full">
             
             {/* Tab 1: Dashboard Overview */}
             {activeTab === 'dashboard' && (
@@ -679,7 +756,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <span className="text-xs text-stone-500 font-mono">মোট {orders.length}</span>
                 </div>
 
-                <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                <div className="space-y-3">
                   {orders.map((ord) => (
                     <div key={ord.id} className="p-4 rounded-sm border border-stone-200 bg-stone-50 space-y-3 text-xs">
                       <div className="flex flex-wrap justify-between items-center gap-2 border-b border-stone-200 pb-2">
@@ -815,511 +892,592 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                 {/* Product Form: conditional between Edit and Add */}
                 {editingProduct ? (
-                  <form onSubmit={handleSaveEditProduct} className="p-4 rounded-sm border-2 border-gold-500 bg-stone-50 space-y-4 shadow-lg text-stone-900">
-                    <div className="text-xs font-bold text-gold-600 uppercase tracking-widest flex items-center justify-between border-b border-stone-200 pb-2 mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <RefreshCw className="w-4 h-4 animate-spin-slow" />
-                        <span>পণ্য এডিট করা হচ্ছে: {editingProduct.name.bn}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(null)}
-                        className="text-[10px] text-stone-500 hover:text-stone-900 font-bold uppercase tracking-wider px-2.5 py-1 border border-stone-200 bg-white rounded-sm cursor-pointer"
-                      >
-                        বন্ধ করুন
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-7 text-left">
-                      <div className="sm:col-span-2 relative">
-                        <input
-                          type="text"
-                          id="edit-p-name-en"
-                          required
-                          placeholder=" "
-                          value={editingProduct.name.en}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, en: e.target.value } })}
-                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium placeholder-transparent transition-all"
-                        />
-                        <label 
-                          htmlFor="edit-p-name-en"
-                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                        >
-                          পণ্যের নাম (English) *
-                        </label>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="edit-p-name-bn"
-                          required
-                          placeholder=" "
-                          value={editingProduct.name.bn}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, bn: e.target.value } })}
-                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-medium placeholder-transparent transition-all"
-                        />
-                        <label 
-                          htmlFor="edit-p-name-bn"
-                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                        >
-                          পণ্যের নাম (বাংলা) *
-                        </label>
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <SmartSelect
-                          label="ক্যাটাগরি"
-                          value={editingProduct.category}
-                          onChange={(val) => setEditingProduct({ ...editingProduct, category: val })}
-                          options={[
-                            { value: 'oud', label: 'উদ কালেকশন' },
-                            { value: 'arabic', label: 'অ্যারাবিক আতর' },
-                            { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
-                            { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
-                            { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
-                            { value: 'gifts', label: 'গিফট বক্স' },
-                          ]}
-                        />
-                      </div>
-
-                      <div className="relative">
-                        <input
-                          type="number"
-                          id="edit-p-price"
-                          required
-                          placeholder=" "
-                          value={editingProduct.price}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                        />
-                        <label 
-                          htmlFor="edit-p-price"
-                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                        >
-                          মূল্য (৳) *
-                        </label>
-                      </div>
-
-                      <div className="relative">
-                        <input
-                          type="number"
-                          id="edit-p-stock"
-                          required
-                          placeholder=" "
-                          value={editingProduct.stock}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                          className="peer w-full h-10 px-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                        />
-                        <label 
-                          htmlFor="edit-p-stock"
-                          className="absolute left-2.5 -top-2.5 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-2.5 peer-placeholder-shown:left-3 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-2.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                        >
-                          স্টক পরিমাণ *
-                        </label>
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-2">পণ্যের ছবি (Product Image)</label>
-                        <div className="flex items-center gap-4">
-                          <div className="relative group cursor-pointer shrink-0">
-                            <input
-                              type="file"
-                              id="edit-product-image-upload"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleLocalFileUpload(e, true)}
-                            />
-                            <label
-                              htmlFor="edit-product-image-upload"
-                              className="block relative w-24 h-24 border-2 border-dashed border-stone-200 rounded-sm bg-white overflow-hidden transition-all hover:border-gold-500/50 hover:bg-stone-50 cursor-pointer shadow-sm"
-                            >
-                              {editingProduct.images[0] ? (
-                                <>
-                                  <img 
-                                    src={editingProduct.images[0]} 
-                                    alt="Preview" 
-                                    className="h-full w-full object-contain p-2 transition-transform group-hover:scale-105"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid';
-                                    }}
-                                  />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[1px]">
-                                    <RefreshCw className="w-5 h-5 text-white" />
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="h-full flex items-center justify-center">
-                                  <Plus className="w-5 h-5 text-stone-300" />
-                                </div>
-                              )}
-                              
-                              {isUploadingImage && (
-                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-                                  <RefreshCw className="w-5 h-5 text-gold-600 animate-spin" />
-                                </div>
-                              )}
-                            </label>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">ছবি পরিবর্তন করুন</p>
-                            <p className="text-[9px] text-stone-400 uppercase tracking-tighter max-w-[200px]">বাম পাশের ছবির উপর ক্লিক করে ডিভাইস থেকে নতুন ছবি আপলোড করুন</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">পণ্যের বিবরণ (ইংরেজি) *</label>
-                        <textarea
-                          required
-                          value={editingProduct.description.en}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, en: e.target.value } })}
-                          className="w-full h-20 p-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label className="block text-[10px] uppercase font-bold text-stone-500 mb-1">পণ্যের বিবরণ (বাংলা) *</label>
-                        <textarea
-                          required
-                          value={editingProduct.description.bn}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, bn: e.target.value } })}
-                          className="w-full h-20 p-3 rounded-sm bg-white border border-stone-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900"
-                        />
-                      </div>
-
-                      {/* New Fields for Professional Control */}
-                      <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-4 p-3 bg-white border border-stone-100 rounded-sm">
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="edit-best" checked={editingProduct.isBestSeller} onChange={(e) => setEditingProduct({...editingProduct, isBestSeller: e.target.checked})} />
-                          <label htmlFor="edit-best" className="text-[10px] font-bold text-stone-600 uppercase">বেস্ট সেলার</label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="edit-new" checked={editingProduct.isNewArrival} onChange={(e) => setEditingProduct({...editingProduct, isNewArrival: e.target.checked})} />
-                          <label htmlFor="edit-new" className="text-[10px] font-bold text-stone-600 uppercase">নতুন কালেকশন</label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="edit-trend" checked={editingProduct.isTrending} onChange={(e) => setEditingProduct({...editingProduct, isTrending: e.target.checked})} />
-                          <label htmlFor="edit-trend" className="text-[10px] font-bold text-stone-600 uppercase">ট্রেন্ডিং</label>
-                        </div>
-                        <div className="flex items-center gap-2 text-orange-600">
-                          <input type="checkbox" id="edit-flash" checked={editingProduct.isFlashSale} onChange={(e) => setEditingProduct({...editingProduct, isFlashSale: e.target.checked})} />
-                          <label htmlFor="edit-flash" className="text-[10px] font-bold uppercase">ফ্ল্যাশ সেল</label>
-                        </div>
-                      </div>
-
-                      {editingProduct.isFlashSale && (
-                        <div className="sm:col-span-3 p-3 bg-orange-50 border border-orange-100 rounded-sm">
-                          <label className="block text-[10px] uppercase font-bold text-orange-600 mb-1">ফ্ল্যাশ সেল ডিসকাউন্ট (%)</label>
-                          <input
-                            type="number"
-                            value={editingProduct.flashSaleDiscount || 0}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, flashSaleDiscount: Number(e.target.value) })}
-                            className="w-full h-10 px-3 rounded-sm bg-white border border-orange-200 text-xs focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-4 pt-2">
-                      <button
-                        type="submit"
-                        className="flex-1 py-3 bg-gold-500 hover:brightness-110 text-black font-bold rounded-sm text-xs tracking-widest uppercase cursor-pointer"
-                      >
-                        পরিবর্তনগুলো সংরক্ষণ করুন
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(null)}
-                        className="px-6 py-3 border border-stone-200 bg-white text-stone-700 font-bold rounded-sm text-xs tracking-widest uppercase cursor-pointer"
-                      >
-                        বাতিল
-                      </button>
-                    </div>
-                  </form>
-                ) : isAddingProduct ? (
-                  <div className="fixed inset-0 z-[60] bg-white overflow-y-auto">
-                    {/* Header for Add Product Screen */}
-                    <div className="sticky top-0 z-10 bg-stone-900 text-gold-500 px-6 py-4 flex items-center justify-between border-b border-gold-500/20">
+                  <div className="fixed inset-0 z-[100] bg-white w-screen h-screen overflow-y-auto">
+                    {/* Header for Edit Product Screen */}
+                    <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-6 py-3.5 flex items-center justify-between shadow-xs">
                       <div className="flex items-center gap-3">
                         <button 
                           type="button"
-                          onClick={() => setIsAddingProduct(false)}
-                          className="p-2 hover:bg-white/10 rounded-sm transition-colors cursor-pointer"
+                          onClick={() => setEditingProduct(null)}
+                          className="p-1.5 rounded-full border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-colors cursor-pointer flex items-center justify-center"
                         >
-                          <X className="w-5 h-5" />
+                          <ArrowLeft className="w-4 h-4" />
                         </button>
                         <div>
-                          <h3 className="font-serif text-lg font-bold uppercase tracking-widest leading-none">নতুন পণ্য যোগ করুন</h3>
-                          <p className="text-[10px] uppercase font-bold tracking-widest mt-1 opacity-70">ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম</p>
+                          <h3 className="font-serif text-sm sm:text-base font-bold text-stone-850 tracking-wide leading-tight">পণ্য সম্পাদনা করুন</h3>
+                          <p className="text-[9px] uppercase font-bold tracking-widest text-stone-400 mt-0.5">
+                            {editingProduct.name.bn}
+                          </p>
                         </div>
                       </div>
                       <button
-                        type="button"
-                        onClick={() => setIsAddingProduct(false)}
-                        className="px-4 py-2 border border-gold-500/30 hover:bg-gold-500/10 rounded-sm text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all"
+                        type="submit"
+                        className="px-6 py-1.5 bg-[#F97316] hover:bg-[#F97316]/90 rounded-xl text-[10px] font-bold uppercase tracking-wider text-white cursor-pointer transition-all"
                       >
-                        ড্যাশবোর্ডে ফিরে যান
+                        সেইভ
                       </button>
                     </div>
 
-                    <div className="w-full min-h-screen bg-white pb-20">
-                      <div className="w-full space-y-0">
-                        <div className="bg-white overflow-hidden">
-                          {/* Form Section */}
-                          <form onSubmit={(e) => {
-                            handleAddProduct(e);
-                            setIsAddingProduct(false);
-                          }} className="divide-y divide-stone-100">
-                            
-                            {/* 1. Image & Primary Info Section */}
-                            <div className="p-6 sm:p-10 bg-stone-50/50">
-                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                                
-                                {/* Left: Integrated Image Upload & Preview */}
-                                <div className="lg:col-span-5 space-y-4">
-                                  <div className="flex items-center gap-2 text-stone-800 mb-4">
-                                    <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
-                                      <Image className="w-4 h-4 text-gold-600" />
-                                    </div>
-                                    <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের ছবি (Product Image)</h3>
+                    <div className="w-full pb-32">
+                      <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
+                        <form onSubmit={handleSaveEditProduct} className="space-y-6">
+                          
+                          {/* 1. Image & Primary Info Section */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                              
+                              {/* Left: Image Upload & Preview */}
+                              <div className="lg:col-span-4 space-y-4">
+                                <div className="flex items-center gap-2 text-stone-800 mb-2">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <Image className="w-4 h-4 text-orange-600" />
                                   </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">পণ্যের ছবি (Product Image)</h3>
+                                </div>
 
-                                  <div className="relative group cursor-pointer">
+                                <div className="relative group cursor-pointer">
+                                  <input
+                                    type="file"
+                                    id="edit-product-image-upload"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleLocalFileUpload(e, true)}
+                                  />
+                                  <label 
+                                    htmlFor="edit-product-image-upload"
+                                    className={`block relative ${editingProduct.images[0] ? 'aspect-video' : 'aspect-square h-40'} w-full border-2 border-dashed border-stone-200 rounded-xl bg-white overflow-hidden transition-all hover:border-orange-500/50 hover:bg-stone-50 cursor-pointer shadow-sm`}
+                                  >
+                                    {editingProduct.images[0] ? (
+                                      <>
+                                        <img 
+                                          src={editingProduct.images[0]} 
+                                          alt="Preview" 
+                                          className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Invalid+Image+URL';
+                                          }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity backdrop-blur-[2px]">
+                                          <RefreshCw className="w-8 h-8 text-white mb-2" />
+                                          <span className="text-[10px] text-white font-bold uppercase tracking-widest">পরিবর্তন করতে ক্লিক করুন</span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="h-full flex flex-col items-center justify-center space-y-4 text-stone-400">
+                                        <div className="h-16 w-16 rounded-full bg-stone-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                          <Plus className="w-8 h-8 text-stone-300" />
+                                        </div>
+                                        <div className="text-center">
+                                          <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500">ছবি যুক্ত করুন</p>
+                                          <p className="text-[9px] uppercase tracking-tighter mt-1">ক্লিক করুন অথবা ড্র্যাগ করুন</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {isUploadingImage && (
+                                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                        <RefreshCw className="w-6 h-6 text-orange-600 animate-spin" />
+                                      </div>
+                                    )}
+                                  </label>
+                                </div>
+                              </div>
+
+                              {/* Right: Primary Fields */}
+                              <div className="lg:col-span-7 space-y-5 text-left">
+                                <div className="flex items-center gap-2 text-stone-800 mb-2">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <ShoppingBag className="w-4 h-4 text-orange-600" />
+                                  </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">প্রাথমিক তথ্য (Primary Info)</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="relative">
                                     <input
-                                      type="file"
-                                      id="add-product-image-upload"
-                                      accept="image/*"
-                                      className="hidden"
-                                      onChange={(e) => handleLocalFileUpload(e, false)}
+                                      type="text"
+                                      id="edit-p-name-en"
+                                      required
+                                      placeholder=" "
+                                      value={editingProduct.name.en}
+                                      onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, en: e.target.value } })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
                                     />
                                     <label 
-                                      htmlFor="add-product-image-upload"
-                                      className="block relative aspect-square w-full border-2 border-dashed border-stone-200 rounded-sm bg-white overflow-hidden transition-all hover:border-gold-500/50 hover:bg-stone-50 cursor-pointer shadow-sm"
+                                      htmlFor="edit-p-name-en"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
-                                      {newProduct.images[0] ? (
-                                        <>
-                                          <img 
-                                            src={newProduct.images[0]} 
-                                            alt="Preview" 
-                                            className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
-                                            onError={(e) => {
-                                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Invalid+Image+URL';
-                                            }}
-                                          />
-                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity backdrop-blur-[2px]">
-                                            <RefreshCw className="w-8 h-8 text-white mb-2" />
-                                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">পরিবর্তন করতে ক্লিক করুন</span>
-                                          </div>
-                                        </>
-                                      ) : (
-                                        <div className="h-full flex flex-col items-center justify-center space-y-4 text-stone-400">
-                                          <div className="h-16 w-16 rounded-full bg-stone-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <Plus className="w-8 h-8 text-stone-300" />
-                                          </div>
-                                          <div className="text-center">
-                                            <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500">ছবি যুক্ত করুন</p>
-                                            <p className="text-[9px] uppercase tracking-tighter mt-1">ক্লিক করুন অথবা ড্র্যাগ করুন</p>
-                                          </div>
-                                        </div>
-                                      )}
+                                      পণ্যের নাম (English) *
+                                    </label>
+                                  </div>
 
-                                      {isUploadingImage && (
-                                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
-                                          <RefreshCw className="w-8 h-8 text-gold-600 animate-spin" />
-                                        </div>
-                                      )}
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      id="edit-p-name-bn"
+                                      required
+                                      placeholder=" "
+                                      value={editingProduct.name.bn}
+                                      onChange={(e) => setNewProduct({ ...editingProduct, name: { ...editingProduct.name, bn: e.target.value } })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="edit-p-name-bn"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      পণ্যের নাম (বাংলা) *
                                     </label>
                                   </div>
                                 </div>
 
-                                {/* Right: Primary Fields */}
-                                <div className="lg:col-span-7 space-y-6 pt-0 lg:pt-12">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
-                                    <div className="md:col-span-2 relative">
-                                      <input
-                                        type="text"
-                                        id="add-p-name-en"
-                                        required
-                                        placeholder=" "
-                                        value={newProduct.name.en}
-                                        onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, en: e.target.value } })}
-                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm placeholder-transparent transition-all"
-                                      />
-                                      <label 
-                                        htmlFor="add-p-name-en"
-                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                                      >
-                                        পণ্যের নাম (English) *
-                                      </label>
-                                    </div>
+                                <div className="relative">
+                                  <SmartSelect
+                                    label="ক্যাটাগরি"
+                                    value={editingProduct.category}
+                                    onChange={(val) => setEditingProduct({ ...editingProduct, category: val })}
+                                    options={[
+                                      { value: 'oud', label: 'উদ কালেকশন' },
+                                      { value: 'arabic', label: 'অ্যারাবিক আতর' },
+                                      { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
+                                      { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
+                                      { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
+                                      { value: 'gifts', label: 'গিফট বক্স' },
+                                    ]}
+                                  />
+                                </div>
 
-                                    <div className="md:col-span-2 relative">
-                                      <input
-                                        type="text"
-                                        id="add-p-name-bn"
-                                        required
-                                        placeholder=" "
-                                        value={newProduct.name.bn}
-                                        onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, bn: e.target.value } })}
-                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm placeholder-transparent transition-all"
-                                      />
-                                      <label 
-                                        htmlFor="add-p-name-bn"
-                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                                      >
-                                        পণ্যের নাম (বাংলা) *
-                                      </label>
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      id="edit-p-price"
+                                      required
+                                      placeholder=" "
+                                      value={editingProduct.price}
+                                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="edit-p-price"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      মূল্য (৳) *
+                                    </label>
+                                  </div>
 
-                                    <div className="relative">
-                                      <SmartSelect
-                                        label="ক্যাটাগরি"
-                                        value={newProduct.category}
-                                        onChange={(val) => setNewProduct({ ...newProduct, category: val })}
-                                        options={[
-                                          { value: 'oud', label: 'উদ কালেকশন' },
-                                          { value: 'arabic', label: 'অ্যারাবিক আতর' },
-                                          { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
-                                          { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
-                                          { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
-                                          { value: 'gifts', label: 'গিফট বক্স' },
-                                        ]}
-                                      />
-                                    </div>
-
-                                    <div className="relative">
-                                      <input
-                                        type="number"
-                                        id="add-p-price"
-                                        required
-                                        placeholder=" "
-                                        value={newProduct.price}
-                                        onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold shadow-sm placeholder-transparent transition-all"
-                                      />
-                                      <label 
-                                        htmlFor="add-p-price"
-                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                                      >
-                                        মূল্য (৳) *
-                                      </label>
-                                    </div>
-
-                                    <div className="relative">
-                                      <input
-                                        type="number"
-                                        id="add-p-stock"
-                                        required
-                                        placeholder=" "
-                                        value={newProduct.stock}
-                                        onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                                        className="peer w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 font-mono font-bold shadow-sm placeholder-transparent transition-all"
-                                      />
-                                      <label 
-                                        htmlFor="add-p-stock"
-                                        className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                                      >
-                                        স্টক পরিমাণ *
-                                      </label>
-                                    </div>
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      id="edit-p-stock"
+                                      required
+                                      placeholder=" "
+                                      value={editingProduct.stock}
+                                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="edit-p-stock"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      স্টক পরিমাণ *
+                                    </label>
                                   </div>
                                 </div>
                               </div>
+
+                            </div>
+                          </div>
+
+                          {/* 2. Description Section */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                            <div className="flex items-center gap-2 text-stone-800 mb-4">
+                              <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                <Package className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <h3 className="font-bold text-xs uppercase tracking-wider">পণ্যের বিবরণ (Description)</h3>
                             </div>
 
-
-                            {/* 3. Flags & Badges */}
-                            <div className="p-6 sm:p-10 bg-stone-50/30">
-                              <div className="flex items-center gap-2 text-stone-800 mb-6">
-                                <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
-                                  <div className="w-1.5 h-1.5 rounded-sm bg-gold-600" />
-                                </div>
-                                <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের স্ট্যাটাস ও ব্যাজ (Status & Badges)</h3>
-                              </div>
-
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
-                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isBestSeller} onChange={(e) => setNewProduct({...newProduct, isBestSeller: e.target.checked})} />
-                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">বেস্ট সেলার</span>
-                                </label>
-                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
-                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isNewArrival} onChange={(e) => setNewProduct({...newProduct, isNewArrival: e.target.checked})} />
-                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">নতুন পণ্য</span>
-                                </label>
-                                <label className="flex items-center p-4 bg-white border border-stone-200 rounded-sm cursor-pointer hover:border-gold-500 transition-colors group">
-                                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500" checked={newProduct.isTrending} onChange={(e) => setNewProduct({...newProduct, isTrending: e.target.checked})} />
-                                  <span className="ml-3 text-[10px] font-bold text-stone-600 uppercase tracking-wider group-hover:text-gold-600">ট্রেন্ডিং</span>
-                                </label>
-                                <label className="flex items-center p-4 bg-white border border-orange-200 rounded-sm cursor-pointer hover:border-orange-500 transition-colors group">
-                                  <input type="checkbox" className="w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500" checked={newProduct.isFlashSale} onChange={(e) => setNewProduct({...newProduct, isFlashSale: e.target.checked})} />
-                                  <span className="ml-3 text-[10px] font-bold text-orange-600 uppercase tracking-wider">ফ্ল্যাশ সেল</span>
-                                </label>
-                              </div>
-                            </div>
-
-                            {/* 4. Description */}
-                            <div className="p-6 sm:p-10">
-                              <div className="flex items-center gap-2 text-stone-800 mb-6">
-                                <div className="h-8 w-8 rounded-sm border border-gold-500/20 bg-gold-500/10 flex items-center justify-center">
-                                  <div className="w-1.5 h-1.5 rounded-sm bg-gold-600" />
-                                </div>
-                                <h3 className="font-bold text-sm uppercase tracking-widest">পণ্যের বর্ণনা (Product Description)</h3>
-                              </div>
-
-                              <div className="space-y-4">
-                              <div className="relative pt-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (English) *</label>
                                 <textarea
-                                  id="add-p-desc-bn"
                                   required
-                                  placeholder=" "
-                                  value={newProduct.description.bn}
-                                  onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, bn: e.target.value } })}
-                                  className="peer w-full h-40 p-5 rounded-sm bg-white border border-stone-200 text-sm focus:outline-none focus:border-gold-500 text-stone-900 shadow-sm resize-none placeholder-transparent transition-all"
+                                  value={editingProduct.description.en}
+                                  onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, en: e.target.value } })}
+                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
                                 />
-                                <label 
-                                  htmlFor="add-p-desc-bn"
-                                  className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-5 peer-placeholder-shown:left-5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2.5 peer-focus:left-3 peer-focus:text-[10px] peer-focus:font-bold peer-focus:text-gold-600 pointer-events-none"
-                                >
-                                  বিস্তারিত বর্ণনা (বাংলা) *
-                                </label>
-                              </div>
                               </div>
 
-                              {/* Save Actions */}
-                              <div className="pt-10 flex flex-col sm:flex-row gap-4">
-                                <button
-                                  type="submit"
-                                  className="flex-1 py-5 bg-stone-900 text-gold-500 font-bold rounded-sm text-xs tracking-[0.2em] uppercase cursor-pointer hover:bg-black transition-all shadow-xl"
-                                >
-                                  পণ্যটি তালিকায় যুক্ত করুন (SAVE PRODUCT)
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setIsAddingProduct(false)}
-                                  className="px-10 py-5 bg-stone-100 hover:bg-stone-200 text-stone-500 font-bold rounded-sm text-xs tracking-widest uppercase cursor-pointer transition-all"
-                                >
-                                  বাতিল করুন
-                                </button>
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (বাংলা) *</label>
+                                <textarea
+                                  required
+                                  value={editingProduct.description.bn}
+                                  onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, bn: e.target.value } })}
+                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
+                                />
                               </div>
                             </div>
+                          </div>
 
-                          </form>
-                        </div>
+                          {/* 3. Badges & Sales Promotions */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                            <div className="flex items-center gap-2 text-stone-800 mb-4">
+                              <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                <Tags className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <h3 className="font-bold text-xs uppercase tracking-wider">ট্যাগ ও ডিসকাউন্ট (Badges & Sale Promotions)</h3>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-white border border-stone-200/60 rounded-xl">
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="edit-best" checked={editingProduct.isBestSeller} onChange={(e) => setEditingProduct({...editingProduct, isBestSeller: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">বেস্ট সেলার</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="edit-new" checked={editingProduct.isNewArrival} onChange={(e) => setEditingProduct({...editingProduct, isNewArrival: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">নতুন কালেকশন</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="edit-trend" checked={editingProduct.isTrending} onChange={(e) => setEditingProduct({...editingProduct, isTrending: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">ট্রেন্ডিং</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none text-orange-600 font-bold">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="edit-flash" checked={editingProduct.isFlashSale} onChange={(e) => setEditingProduct({...editingProduct, isFlashSale: e.target.checked})} />
+                                <span className="text-[10px] uppercase">ফ্ল্যাশ সেল</span>
+                              </label>
+                            </div>
+
+                            {editingProduct.isFlashSale && (
+                              <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl space-y-1.5 max-w-sm">
+                                <label className="block text-[10px] uppercase font-bold text-orange-600">ফ্ল্যাশ সেল ডিসকাউন্ট (%)</label>
+                                <input
+                                  type="number"
+                                  value={editingProduct.flashSaleDiscount || 0}
+                                  onChange={(e) => setEditingProduct({ ...editingProduct, flashSaleDiscount: Number(e.target.value) })}
+                                  className="w-full h-10 px-3 rounded-lg bg-white border border-orange-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Submit / Cancel Buttons */}
+                          <div className="flex gap-4 pt-4 border-t border-stone-100">
+                            <button
+                              type="submit"
+                              className="flex-1 py-3 bg-[#F97316] hover:bg-orange-700 text-white font-bold rounded-xl text-xs tracking-wider uppercase cursor-pointer shadow-md shadow-orange-600/10 transition-all"
+                            >
+                              পরিবর্তনগুলো সংরক্ষণ করুন
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingProduct(null)}
+                              className="px-8 py-3 border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 font-bold rounded-xl text-xs tracking-wider uppercase cursor-pointer transition-all"
+                            >
+                              বাতিল
+                            </button>
+                          </div>
+                        </form>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-stone-50 p-4 rounded-sm border border-stone-200">
-                    <p className="text-xs text-stone-400 text-center uppercase font-bold tracking-widest py-8">
-                      উপরে "নতুন পণ্য যোগ করুন" বাটনে ক্লিক করে পণ্য যুক্ত করুন
-                    </p>
+                ) : isAddingProduct ? (
+                  <div className="fixed inset-0 z-[100] bg-white w-screen h-screen overflow-y-auto">
+                    {/* Header for Add Product Screen */}
+                    <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-6 py-3.5 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-3">
+                        <button 
+                          type="button"
+                          onClick={() => setIsAddingProduct(false)}
+                          className="p-1.5 rounded-full border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-colors cursor-pointer flex items-center justify-center"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <div>
+                          <h3 className="font-serif text-sm sm:text-base font-bold text-stone-850 tracking-wide leading-tight">নতুন পণ্য যোগ করুন</h3>
+                          <p className="text-[9px] uppercase font-bold tracking-widest text-stone-400 mt-0.5">ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম</p>
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-1.5 bg-[#F97316] hover:bg-[#F97316]/90 rounded-xl text-[10px] font-bold uppercase tracking-wider text-white cursor-pointer transition-all"
+                      >
+                        সেইভ
+                      </button>
+                    </div>
+
+                    <div className="w-full pb-32">
+                      <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
+                        <form onSubmit={(e) => {
+                          handleAddProduct(e);
+                          setIsAddingProduct(false);
+                        }} className="space-y-6">
+                          
+                          {/* 1. Image & Primary Info Section */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                              
+                              {/* Left: Image Upload & Preview */}
+                              <div className="lg:col-span-4 space-y-4">
+                                <div className="flex items-center gap-2 text-stone-800 mb-2">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <Image className="w-4 h-4 text-orange-600" />
+                                  </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">পণ্যের ছবি (Product Image)</h3>
+                                </div>
+
+                                <div className="relative group cursor-pointer">
+                                  <input
+                                    type="file"
+                                    id="add-product-image-upload"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleLocalFileUpload(e, false)}
+                                  />
+                                  <label 
+                                    htmlFor="add-product-image-upload"
+                                    className={`block relative ${newProduct.images[0] ? 'aspect-video' : 'aspect-square h-40'} w-full border-2 border-dashed border-stone-200 rounded-xl bg-white overflow-hidden transition-all hover:border-orange-500/50 hover:bg-stone-50 cursor-pointer shadow-sm`}
+                                  >
+                                    {newProduct.images[0] ? (
+                                      <>
+                                        <img 
+                                          src={newProduct.images[0]} 
+                                          alt="Preview" 
+                                          className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Invalid+Image+URL';
+                                          }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity backdrop-blur-[2px]">
+                                          <RefreshCw className="w-8 h-8 text-white mb-2" />
+                                          <span className="text-[10px] text-white font-bold uppercase tracking-widest">পরিবর্তন করতে ক্লিক করুন</span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="h-full flex flex-col items-center justify-center space-y-4 text-stone-400">
+                                        <div className="h-16 w-16 rounded-full bg-stone-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                          <Plus className="w-8 h-8 text-stone-300" />
+                                        </div>
+                                        <div className="text-center">
+                                          <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500">ছবি যুক্ত করুন</p>
+                                          <p className="text-[9px] uppercase tracking-tighter mt-1">ক্লিক করুন অথবা ড্র্যাগ করুন</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {isUploadingImage && (
+                                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                        <RefreshCw className="w-6 h-6 text-orange-600 animate-spin" />
+                                      </div>
+                                    )}
+                                  </label>
+                                </div>
+                              </div>
+
+                              {/* Right: Primary Fields */}
+                              <div className="lg:col-span-7 space-y-5 text-left">
+                                <div className="flex items-center gap-2 text-stone-800 mb-2">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <ShoppingBag className="w-4 h-4 text-orange-600" />
+                                  </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">প্রাথমিক তথ্য (Primary Info)</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      id="add-p-name-en"
+                                      required
+                                      placeholder=" "
+                                      value={newProduct.name.en}
+                                      onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, en: e.target.value } })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="add-p-name-en"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      পণ্যের নাম (English) *
+                                    </label>
+                                  </div>
+
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      id="add-p-name-bn"
+                                      required
+                                      placeholder=" "
+                                      value={newProduct.name.bn}
+                                      onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, bn: e.target.value } })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="add-p-name-bn"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      পণ্যের নাম (বাংলা) *
+                                    </label>
+                                  </div>
+                                </div>
+
+                                <div className="relative">
+                                  <SmartSelect
+                                    label="ক্যাটাগরি"
+                                    value={newProduct.category}
+                                    onChange={(val) => setNewProduct({ ...newProduct, category: val })}
+                                    options={[
+                                      { value: 'oud', label: 'উদ কালেকশন' },
+                                      { value: 'arabic', label: 'অ্যারাবিক আতর' },
+                                      { value: 'floral', label: 'ফ্লোরাল কালেকশন' },
+                                      { value: 'fresh', label: 'স্পোর্টি ও ফ্রেশ' },
+                                      { value: 'natural', label: 'ন্যাচারাল ও হেলথ' },
+                                      { value: 'gifts', label: 'গিফট বক্স' },
+                                    ]}
+                                  />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      id="add-p-price"
+                                      required
+                                      placeholder=" "
+                                      value={newProduct.price}
+                                      onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="add-p-price"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      মূল্য (৳) *
+                                    </label>
+                                  </div>
+
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      id="add-p-stock"
+                                      required
+                                      placeholder=" "
+                                      value={newProduct.stock}
+                                      onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                                      className="peer w-full h-11 px-3.5 pt-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                    />
+                                    <label 
+                                      htmlFor="add-p-stock"
+                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                    >
+                                      স্টক পরিমাণ *
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+
+                          {/* 2. Description Section */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                            <div className="flex items-center gap-2 text-stone-800 mb-4">
+                              <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                <Package className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <h3 className="font-bold text-xs uppercase tracking-wider">পণ্যের বিবরণ (Description)</h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (English) *</label>
+                                <textarea
+                                  required
+                                  value={newProduct.description.en}
+                                  onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, en: e.target.value } })}
+                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (বাংলা) *</label>
+                                <textarea
+                                  required
+                                  value={newProduct.description.bn}
+                                  onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, bn: e.target.value } })}
+                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 3. Badges & Sales Promotions */}
+                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                            <div className="flex items-center gap-2 text-stone-800 mb-4">
+                              <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                <Tags className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <h3 className="font-bold text-xs uppercase tracking-wider">ট্যাগ ও ডিসকাউন্ট (Badges & Sale Promotions)</h3>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-white border border-stone-200/60 rounded-xl">
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="add-best" checked={newProduct.isBestSeller} onChange={(e) => setNewProduct({...newProduct, isBestSeller: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">বেস্ট সেলার</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="add-new" checked={newProduct.isNewArrival} onChange={(e) => setNewProduct({...newProduct, isNewArrival: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">নতুন কালেকশন</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="add-trend" checked={newProduct.isTrending} onChange={(e) => setNewProduct({...newProduct, isTrending: e.target.checked})} />
+                                <span className="text-[10px] font-bold text-stone-600 uppercase">ট্রেন্ডিং</span>
+                              </label>
+                              <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg hover:bg-stone-50 select-none text-orange-600 font-bold">
+                                <input type="checkbox" className="accent-orange-600 h-4 w-4" id="add-flash" checked={newProduct.isFlashSale} onChange={(e) => setNewProduct({...newProduct, isFlashSale: e.target.checked})} />
+                                <span className="text-[10px] uppercase">ফ্ল্যাশ সেল</span>
+                              </label>
+                            </div>
+
+                            {newProduct.isFlashSale && (
+                              <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl space-y-1.5 max-w-sm">
+                                <label className="block text-[10px] uppercase font-bold text-orange-600">ফ্ল্যাশ সেল ডিসকাউন্ট (%)</label>
+                                <input
+                                  type="number"
+                                  value={newProduct.flashSaleDiscount || 0}
+                                  onChange={(e) => setNewProduct({ ...newProduct, flashSaleDiscount: Number(e.target.value) })}
+                                  className="w-full h-10 px-3 rounded-lg bg-white border border-orange-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Submit / Cancel Buttons */}
+                          <div className="flex gap-4 pt-4 border-t border-stone-100">
+                            <button
+                              type="submit"
+                              className="flex-1 py-3 bg-[#F97316] hover:bg-orange-700 text-white font-bold rounded-xl text-xs tracking-wider uppercase cursor-pointer shadow-md shadow-orange-600/10 transition-all"
+                            >
+                              নতুন পণ্য তালিকায় যুক্ত করুন
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsAddingProduct(false)}
+                              className="px-8 py-3 border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 font-bold rounded-xl text-xs tracking-wider uppercase cursor-pointer transition-all"
+                            >
+                              বাতিল
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
                   </div>
-                )}
+                ) : null}
 
                 {/* Products List & Stock editor */}
                 <div className="space-y-3.5">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500">স্টোর ক্যাটালগ ইনভেন্টরি ({products.length})</h4>
-                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                  <div className="space-y-2.5">
                     {products.map((p) => (
                       <div key={p.id} className="flex items-center gap-4 p-3 rounded-sm border border-stone-200 bg-stone-50 text-xs text-left">
                         <img src={p.images[0]} className="w-10 h-10 object-cover rounded-sm border border-stone-200" />
@@ -1433,7 +1591,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 {/* Active Coupons list */}
                 <div className="space-y-3.5">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500">বর্তমানে রেজিস্টার করা কুপনসমূহ ({coupons.length})</h4>
-                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                  <div className="space-y-2.5">
                     {coupons.map((c) => (
                       <div key={c.code} className="flex items-center justify-between p-3.5 rounded-sm border border-stone-200 bg-stone-50 text-xs text-left">
                         <div className="space-y-1">
@@ -1466,7 +1624,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <span className="text-xs text-stone-500 font-mono">মোট {reviews.length} টি রিভিউ</span>
                 </div>
 
-                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  <div className="space-y-3">
                   {reviews.map((rev) => (
                     <div key={rev.id} className="p-3.5 rounded-sm border border-stone-200 bg-stone-50 space-y-2 text-xs text-left">
                       <div className="flex justify-between items-center">
@@ -1951,10 +2109,69 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               </div>
             )}
 
-          </div>
-
         </div>
       </div>
+
+      {/* Sticky Bottom Navigation Bar */}
+      {!isAddingProduct && !editingProduct && (
+        <div className="sticky bottom-0 left-0 right-0 bg-[#F97316] text-white border-t border-orange-600 shadow-[0_-4px_20px_rgba(249,115,22,0.3)] z-45 shrink-0 pb-safe rounded-t-2xl">
+          <div className="max-w-7xl mx-auto px-2 h-16 flex items-center justify-around relative">
+            {[
+              { id: 'dashboard', target: 'dashboard', label: language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard', icon: LayoutDashboard },
+              { id: 'orders', target: 'orders', label: language === 'bn' ? 'অর্ডারসমূহ' : 'Orders', icon: ShoppingBag, badge: orders.length },
+              { id: 'products', target: 'products', label: language === 'bn' ? 'পণ্যসমূহ' : 'Products', icon: Package, badge: products.length },
+              { id: 'content', target: 'coupons', label: language === 'bn' ? 'কন্টেন্ট' : 'Content', icon: HeartHandshake, badge: coupons.length + reviews.length + islamicQuotes.length, activeTabs: ['coupons', 'reviews', 'quotes'] },
+              { id: 'settings', target: 'hero', label: language === 'bn' ? 'সেটিংস' : 'Settings', icon: Settings, activeTabs: ['hero', 'settings', 'supabase'] }
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = item.activeTabs 
+                ? item.activeTabs.includes(activeTab)
+                : activeTab === item.target;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.target as any)}
+                  className="relative flex flex-col items-center justify-center flex-1 h-full py-1 px-1 transition-all group cursor-pointer"
+                >
+                  {/* Line Indicator Above Icon */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="adminNavLine"
+                      className="absolute top-1 w-3.5 h-[3px] bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+
+                  <div className="relative flex flex-col items-center justify-center space-y-1 mt-1">
+                    {/* Icon Container */}
+                    <div className="relative">
+                      <Icon 
+                        className={`w-5 h-5 text-white transition-all duration-300 ${
+                          isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'opacity-90 group-hover:opacity-100'
+                        }`} 
+                      />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-1.5 -right-2 bg-white text-orange-600 text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center border border-orange-600 z-20 shadow-xs">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Label */}
+                    <span className={`text-[9px] font-bold uppercase transition-all duration-300 ${
+                      isActive ? 'opacity-100 translate-y-0 text-white font-extrabold' : 'opacity-80 group-hover:opacity-100'
+                    }`}>
+                      {item.label}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
