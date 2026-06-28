@@ -37,16 +37,6 @@ export default function BottomNavigation({
       }
     },
     {
-      id: 'cart',
-      label: language === 'en' ? 'CART' : 'কার্ট',
-      icon: ShoppingBag,
-      action: () => {
-        setActiveTab('cart');
-        onOpenCart();
-      },
-      isCart: true
-    },
-    {
       id: 'search',
       label: language === 'en' ? 'SEARCH' : 'সার্চ',
       icon: Search,
@@ -60,6 +50,16 @@ export default function BottomNavigation({
           }
         }, 500);
       }
+    },
+    {
+      id: 'cart',
+      label: language === 'en' ? 'CART' : 'কার্ট',
+      icon: ShoppingBag,
+      action: () => {
+        setActiveTab('cart');
+        onOpenCart();
+      },
+      isCart: true
     },
     {
       id: 'account',

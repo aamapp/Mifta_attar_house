@@ -104,6 +104,9 @@ interface AppContextType {
     announcementBn: string;
   }>) => void;
 
+  // Reset App Data
+  resetAppData: () => void;
+
   // Supabase Integration Fields
   supabaseStatus: { connected: boolean; tables: { [key: string]: boolean } };
   syncingWithSupabase: boolean;
@@ -232,6 +235,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setSyncingWithSupabase(false);
     }
+  };
+
+  const resetAppData = () => {
+    localStorage.clear();
+    window.location.reload();
   };
 
   const syncAllToSupabase = async (): Promise<boolean> => {
@@ -974,6 +982,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         removeToast,
         websiteSettings,
         updateWebsiteSettings,
+        resetAppData,
         supabaseStatus,
         syncingWithSupabase,
         syncAllToSupabase,

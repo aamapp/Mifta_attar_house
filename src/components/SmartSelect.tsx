@@ -67,7 +67,11 @@ const SmartSelect: React.FC<SmartSelectProps> = ({ options, value, onChange, lab
         <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-gold-600' : ''}`} />
       </div>
       
-      <label className="absolute left-3 -top-2.5 px-1.5 bg-white text-[10px] font-bold text-gold-600 uppercase tracking-widest pointer-events-none">
+      <label className={`absolute left-3.5 px-1 bg-white text-[9px] font-bold uppercase tracking-widest transition-all pointer-events-none ${
+        selectedOption 
+          ? '-top-2 text-gold-600' 
+          : 'top-3.5 text-xs font-normal text-stone-300'
+      }`}>
         {label}
       </label>
 

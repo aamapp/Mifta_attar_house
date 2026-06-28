@@ -21,9 +21,11 @@ import {
   Plus,
   Trash2,
   Edit,
+  SquarePen,
   Check,
   Percent,
   RefreshCw,
+  MoreVertical,
   Bell,
   ShieldAlert,
   Database,
@@ -38,6 +40,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
+import { CATEGORIES } from '../data';
 import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage } from '../lib/supabase';
 
 interface AdminPanelProps {
@@ -57,6 +60,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setCoupons,
     reviews,
     deleteReview,
+    resetAppData,
     language,
     addToast,
     websiteSettings,
@@ -83,6 +87,21 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  const getCategoryName = (categoryId: string) => {
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    return language === 'en' ? (category?.name.en || categoryId) : (category?.name.bn || categoryId);
+  };
+
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      if (activeMenuId) setActiveMenuId(null);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [activeMenuId]);
 
   // Dynamic Website Custom Contents state
   const [editedSettings, setEditedSettings] = useState(() => websiteSettings);
@@ -692,38 +711,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                   {/* Sidebar Tools */}
                   <div className="lg:col-span-4 space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1 h-6 bg-gold-500" />
-                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-900">দ্রুত অ্যাকশন (Quick Tools)</h3>
-                      </div>
-                      <div className="grid grid-cols-1 gap-3">
-                        <button 
-                          onClick={() => setIsAddingProduct(true)}
-                          className="p-5 bg-stone-900 text-gold-500 rounded-sm flex items-center gap-4 hover:bg-black transition-all group shadow-lg"
-                        >
-                          <div className="h-10 w-10 rounded-sm bg-gold-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Plus className="w-5 h-5" />
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[11px] font-bold uppercase tracking-widest leading-none">নতুন পণ্য যোগ করুন</p>
-                            <p className="text-[9px] uppercase tracking-tighter text-gold-500/60 mt-1.5">Add New Product</p>
-                          </div>
-                        </button>
-                        <button 
-                          onClick={() => setActiveTab('settings')}
-                          className="p-5 bg-white border border-stone-200 text-stone-700 rounded-sm flex items-center gap-4 hover:border-gold-500 transition-all group shadow-sm"
-                        >
-                          <div className="h-10 w-10 rounded-sm bg-stone-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Settings className="w-5 h-5 text-stone-400" />
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[11px] font-bold uppercase tracking-widest leading-none">ওয়েবসাইট সেটিংস</p>
-                            <p className="text-[9px] uppercase tracking-tighter text-stone-400 mt-1.5">Website Configuration</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
+
 
                     {/* Stock Alert Mini Widget */}
                     <div className="p-6 bg-orange-50 border border-orange-100 rounded-sm space-y-4">
@@ -1005,7 +993,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="edit-p-name-en"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (English) *
                                     </label>
@@ -1023,7 +1011,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="edit-p-name-bn"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (বাংলা) *
                                     </label>
@@ -1059,7 +1047,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="edit-p-price"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       মূল্য (৳) *
                                     </label>
@@ -1077,7 +1065,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="edit-p-stock"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       স্টক পরিমাণ *
                                     </label>
@@ -1099,23 +1087,41 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-1.5">
-                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (English) *</label>
-                                <textarea
-                                  required
-                                  value={editingProduct.description.en}
-                                  onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, en: e.target.value } })}
-                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
-                                />
+                                <div className="relative">
+                                  <textarea
+                                    id="edit-p-desc-en"
+                                    required
+                                    placeholder=" "
+                                    value={editingProduct.description.en}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, en: e.target.value } })}
+                                    className="peer w-full h-28 p-3.5 pt-6 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 placeholder-transparent transition-all"
+                                  />
+                                  <label 
+                                    htmlFor="edit-p-desc-en"
+                                    className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none uppercase tracking-widest"
+                                  >
+                                    পণ্যের বিবরণ (English) *
+                                  </label>
+                                </div>
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (বাংলা) *</label>
-                                <textarea
-                                  required
-                                  value={editingProduct.description.bn}
-                                  onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, bn: e.target.value } })}
-                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
-                                />
+                                <div className="relative">
+                                  <textarea
+                                    id="edit-p-desc-bn"
+                                    required
+                                    placeholder=" "
+                                    value={editingProduct.description.bn}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, description: { ...editingProduct.description, bn: e.target.value } })}
+                                    className="peer w-full h-28 p-3.5 pt-6 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 placeholder-transparent transition-all"
+                                  />
+                                  <label 
+                                    htmlFor="edit-p-desc-bn"
+                                    className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none uppercase tracking-widest"
+                                  >
+                                    পণ্যের বিবরণ (বাংলা) *
+                                  </label>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1296,7 +1302,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="add-p-name-en"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (English) *
                                     </label>
@@ -1314,7 +1320,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="add-p-name-bn"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (বাংলা) *
                                     </label>
@@ -1350,7 +1356,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="add-p-price"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       মূল্য (৳) *
                                     </label>
@@ -1368,7 +1374,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     />
                                     <label 
                                       htmlFor="add-p-stock"
-                                      className="absolute left-3.5 top-1 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:top-1 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-placeholder-shown:left-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       স্টক পরিমাণ *
                                     </label>
@@ -1390,24 +1396,42 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-1.5">
-                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (English) *</label>
-                                <textarea
-                                  required
-                                  value={newProduct.description.en}
-                                  onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, en: e.target.value } })}
-                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
-                                />
+                                <div className="relative">
+                                  <textarea
+                                    id="add-p-desc-en"
+                                    required
+                                    placeholder=" "
+                                    value={newProduct.description.en}
+                                    onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, en: e.target.value } })}
+                                    className="peer w-full h-28 p-3.5 pt-6 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 placeholder-transparent transition-all"
+                                  />
+                                  <label 
+                                    htmlFor="add-p-desc-en"
+                                    className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none uppercase tracking-widest"
+                                  >
+                                    পণ্যের বিবরণ (English) *
+                                  </label>
+                                </div>
+
                               </div>
 
-                              <div className="space-y-1.5">
-                                <label className="block text-[10px] uppercase font-bold text-stone-500">পণ্যের বিবরণ (বাংলা) *</label>
+                              <div className="relative">
                                 <textarea
+                                  id="add-p-desc-bn"
                                   required
+                                  placeholder=" "
                                   value={newProduct.description.bn}
                                   onChange={(e) => setNewProduct({ ...newProduct, description: { ...newProduct.description, bn: e.target.value } })}
-                                  className="w-full h-28 p-3 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900"
+                                  className="peer w-full h-28 p-3.5 pt-6 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 placeholder-transparent transition-all"
                                 />
+                                <label 
+                                  htmlFor="add-p-desc-bn"
+                                  className="absolute left-3.5 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3.5 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-3.5 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none uppercase tracking-widest"
+                                >
+                                  পণ্যের বিবরণ (বাংলা) *
+                                </label>
                               </div>
+
                             </div>
                           </div>
 
@@ -1479,40 +1503,53 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500">স্টোর ক্যাটালগ ইনভেন্টরি ({products.length})</h4>
                   <div className="space-y-2.5">
                     {products.map((p) => (
-                      <div key={p.id} className="flex items-center gap-4 p-3 rounded-sm border border-stone-200 bg-stone-50 text-xs text-left">
+                      <div key={p.id} className="flex items-center gap-4 py-4 px-3 rounded-sm border border-stone-200 bg-stone-50 text-xs text-left">
                         <img src={p.images[0]} className="w-10 h-10 object-cover rounded-sm border border-stone-200" />
                         <div className="flex-1 min-w-0">
                           <h5 className="font-bold text-stone-950 truncate">{language === 'en' ? p.name.en : p.name.bn}</h5>
-                          <span className="text-[10px] text-gold-600 font-mono font-bold">৳{p.price} | Category: {p.category}</span>
+                          <p className="text-[10px] text-stone-500 font-bold uppercase">
+                            {language === 'en' ? 'Category' : 'ক্যাটাগরি'}: {getCategoryName(p.category)}
+                          </p>
+                          <span className="text-[10px] text-gold-600 font-mono font-bold">
+                            {language === 'en' ? 'Price' : 'মূল্য'}: {p.price} {language === 'en' ? '' : 'টাকা'}
+                          </span>
                         </div>
                         
                         {/* Stock Adjustment Input */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-stone-500 font-bold uppercase">Stock:</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[10px] text-stone-500 font-bold uppercase hidden sm:inline">Stock:</span>
                           <input
                             type="number"
                             value={p.stock}
                             onChange={(e) => handleUpdateStock(p.id, Number(e.target.value))}
-                            className="w-16 h-8 rounded-sm bg-white border border-stone-200 text-center font-bold font-mono text-stone-900 focus:outline-none focus:border-gold-500"
+                            className="w-14 h-8 rounded-sm bg-white border border-stone-200 text-center font-bold font-mono text-stone-900 focus:outline-none focus:border-gold-500"
                           />
                         </div>
 
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => setEditingProduct(p)}
-                          className="text-stone-400 hover:text-gold-600 p-2 cursor-pointer transition-colors"
-                          title="Edit Details"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteProduct(p.id)}
-                          className="text-stone-400 hover:text-red-600 p-2 cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === p.id ? null : p.id); }}
+                            className="text-stone-400 hover:text-stone-600 p-1"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {activeMenuId === p.id && (
+                            <div className="absolute right-0 top-8 z-10 w-28 bg-white border border-stone-200 shadow-lg rounded-sm py-1">
+                               <button 
+                                 onClick={() => { setEditingProduct(p); setActiveMenuId(null); }}
+                                 className="w-full text-left px-4 py-2 text-xs hover:bg-stone-100 flex items-center gap-2 text-stone-700"
+                               >
+                                 <SquarePen className="w-3 h-3" /> এডিট
+                               </button>
+                               <button
+                                 onClick={() => { handleDeleteProduct(p.id); setActiveMenuId(null); }}
+                                 className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                               >
+                                 <Trash2 className="w-3 h-3" /> ডিলিট
+                               </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

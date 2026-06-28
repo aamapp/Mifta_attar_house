@@ -46,7 +46,7 @@ export default function FeaturedCategories({ onSelectCategory }: FeaturedCategor
 
         {/* Categories Flex Container */}
         <div className="relative">
-          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory px-2">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory px-2 justify-start md:justify-center">
             {categories.map((category) => (
               <div
                 key={category.id}
