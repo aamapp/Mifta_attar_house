@@ -414,50 +414,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const local = localStorage.getItem('mifta_orders');
     if (local) return JSON.parse(local);
     
-    const initialOrders: Order[] = [
-      {
-        id: 'MFT-87293',
-        date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        customerName: 'Sajid Al Hasan',
-        phone: '01811223344',
-        address: 'Sector 4, Uttara',
-        district: 'Dhaka',
-        division: 'Dhaka',
-        items: [
-          { productId: 'white-oud', name: 'White Oud Premium Attar (6ml)', price: 450, quantity: 1, size: '6ml' },
-          { productId: 'cool-water', name: 'Cool Water Oceanic Attar (3ml)', price: 290, quantity: 2, size: '3ml' }
-        ],
-        subtotal: 1030,
-        discount: 103, // SUNNAH10 applied
-        shipping: 60,
-        total: 987,
-        couponCode: 'SUNNAH10',
-        paymentMethod: 'bkash',
-        paymentStatus: 'paid',
-        orderStatus: 'shipped',
-        trackingNumber: 'TRK-WHITE-987A'
-      },
-      {
-        id: 'MFT-12495',
-        date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        customerName: 'Kamrul Islam',
-        phone: '01998877665',
-        address: 'Halisahar',
-        district: 'Chattogram',
-        division: 'Chattogram',
-        items: [
-          { productId: 'luxury-gift-box', name: 'Mifta Royal Sunnah Gift Box', price: 1500, quantity: 1 }
-        ],
-        subtotal: 1500,
-        discount: 225, // FREEODOR applied
-        shipping: 120,
-        total: 1395,
-        couponCode: 'FREEODOR',
-        paymentMethod: 'cod',
-        paymentStatus: 'pending',
-        orderStatus: 'pending'
-      }
-    ];
+    const initialOrders: Order[] = [];
     return initialOrders;
   });
 
@@ -491,44 +448,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const local = localStorage.getItem('mifta_reviews');
     if (local) return JSON.parse(local);
     
-    return [
-      {
-        id: 'rev-1',
-        productId: 'white-oud',
-        userName: 'Sajid Al Hasan',
-        rating: 5,
-        comment: 'হোয়াইট উদের সুবাস এক কথায় অসাধারণ! ২৪ ঘণ্টারও বেশি সময় জামায় সুঘ্রাণ লেগে ছিল। বিশেষ করে সুতি পাঞ্জাবিতে অনেক ভালো ছড়ায়।',
-        date: '2026-06-24',
-        verified: true
-      },
-      {
-        id: 'rev-2',
-        productId: 'white-oud',
-        userName: 'Muinul Islam',
-        rating: 5,
-        comment: 'Highly recommended! Original Arabic raw feel. Extremely pleasant and soothing during prayers.',
-        date: '2026-06-25',
-        verified: true
-      },
-      {
-        id: 'rev-3',
-        productId: 'cool-water',
-        userName: 'Rakibul Islam',
-        rating: 5,
-        comment: 'এই গরমে কুল ওয়াটার সত্যিই প্রাণ জুড়ানো সুবাস দেয়। সালাত শেষ করার পরেও সুবাস পাওয়া যায়।',
-        date: '2026-06-22',
-        verified: true
-      },
-      {
-        id: 'rev-4',
-        productId: 'prophetic-honey',
-        userName: 'Abdur Rahman',
-        rating: 5,
-        comment: 'শতভাগ খাঁটি সরিষা ফুলের মধু। ঘনত্ব এবং সুবাস সত্যিই প্রমাণ করে যে এটি অর্গানিক ও ফ্রেশ। কালোজিরার সাথে অসাধারণ কাজ করে।',
-        date: '2026-06-20',
-        verified: true
-      }
-    ];
+    return [];
   });
 
   // Toasts
