@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Product, Coupon, Order, Review, IslamicQuote, HeroSlide } from '../types';
 import {
@@ -65,6 +65,13 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     addToast,
     websiteSettings,
     updateWebsiteSettings,
+    notifications,
+    addNotification,
+    requestNotificationPermission,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
+    setNotifications,
     supabaseStatus,
     syncingWithSupabase,
     syncAllToSupabase,
@@ -76,6 +83,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'quotes' | 'settings' | 'supabase' | 'hero'>('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   // Secure Lock System PIN code states
   const [pin, setPin] = useState('');
@@ -96,12 +105,16 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   // Close menu when clicking outside
   React.useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (activeMenuId) setActiveMenuId(null);
+      
+      if (showNotifications && notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
     };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [activeMenuId]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeMenuId, showNotifications]);
 
   // Dynamic Website Custom Contents state
   const [editedSettings, setEditedSettings] = useState(() => websiteSettings);
@@ -524,6 +537,115 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <span className="hidden xs:inline">{language === 'en' ? 'Lock' : 'লগআউট'}</span>
             </button>
 
+            <div className="relative z-50" ref={notificationRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Bell clicked! Current showNotifications:', showNotifications);
+                  setShowNotifications(!showNotifications);
+                }}
+                className="relative p-1.5 rounded-full border border-stone-200 bg-white text-stone-600 hover:text-gold-600 hover:border-gold-200 transition-all cursor-pointer shadow-xs z-50"
+                title={language === 'en' ? 'Notifications' : 'নোটিফিকেশন'}
+              >
+                <Bell className="w-4 h-4" />
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                    {notifications.filter(n => !n.isRead).length}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-2 w-80 max-h-[400px] bg-white border border-stone-200 rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col"
+                  >
+                    <div className="px-4 py-3 border-b border-stone-100 bg-stone-50 flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-stone-800 uppercase tracking-widest">
+                        {language === 'en' ? 'Notifications' : 'নোটিফিকেশন'}
+                      </h3>
+                      {notifications.some(n => !n.isRead) && (
+                        <button 
+                          onClick={() => markAllNotificationsAsRead()}
+                          className="text-[10px] font-bold text-gold-600 hover:underline"
+                        >
+                          {language === 'en' ? 'Mark all as read' : 'সবগুলো পঠিত হিসেবে চিহ্নিত করুন'}
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-stone-50">
+                      {notifications.length === 0 ? (
+                        <div className="py-12 text-center">
+                          <Bell className="w-8 h-8 text-stone-200 mx-auto mb-2 opacity-50" />
+                          <p className="text-[10px] text-stone-400 font-medium">
+                            {language === 'en' ? 'No notifications yet' : 'এখনো কোনো নোটিফিকেশন নেই'}
+                          </p>
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div 
+                            key={notification.id}
+                            className={`px-4 py-3 flex gap-3 transition-colors hover:bg-stone-50 group cursor-pointer ${!notification.isRead ? 'bg-gold-50/30' : ''}`}
+                            onClick={() => {
+                              markNotificationAsRead(notification.id);
+                              if (notification.type === 'new_order' && notification.referenceId) {
+                                setActiveTab('orders');
+                                setShowNotifications(false);
+                              }
+                            }}
+                          >
+                            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                              notification.type === 'new_order' ? 'bg-emerald-100 text-emerald-600' : 'bg-stone-100 text-stone-600'
+                            }`}>
+                              <ShoppingBag className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[11px] font-bold text-stone-900 leading-tight mb-0.5">
+                                {notification.title[language]}
+                              </p>
+                              <p className="text-[10px] text-stone-500 leading-normal line-clamp-2">
+                                {notification.message[language]}
+                              </p>
+                              <p className="text-[9px] text-stone-400 mt-1 font-medium">
+                                {new Date(notification.createdAt).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-US', {
+                                  hour: 'numeric',
+                                  minute: 'numeric',
+                                  hour12: true,
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteNotification(notification.id);
+                              }}
+                              className="shrink-0 opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-500 transition-all"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    {notifications.length > 0 && (
+                      <div className="p-2 border-t border-stone-100 bg-stone-50 text-center">
+                        <p className="text-[9px] text-stone-400 font-bold uppercase tracking-tighter">
+                          {language === 'en' ? 'Showing latest updates' : 'সর্বশেষ আপডেট দেখানো হচ্ছে'}
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Back / Close Shop Button */}
             <button
               onClick={onClose}
@@ -712,6 +834,47 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   {/* Sidebar Tools */}
                   <div className="lg:col-span-4 space-y-6">
 
+
+                    {/* Notification Settings Widget */}
+                    <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-sm space-y-4">
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <Bell className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">নোটিফিকেশন সেটআপ (Notification Setup)</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted' 
+                            ? 'bg-emerald-500 animate-pulse' 
+                            : 'bg-stone-300'
+                        }`} />
+                        <span className="text-[9px] font-bold text-stone-500 uppercase tracking-tighter">
+                          {typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted' 
+                            ? (language === 'en' ? 'Notifications Active' : 'নোটিফিকেশন সক্রিয়') 
+                            : (language === 'en' ? 'Notifications Inactive' : 'নোটিফিকেশন নিষ্ক্রিয়')}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-emerald-600/80 leading-relaxed font-medium">
+                        {language === 'en' 
+                          ? 'Enable browser notifications to receive real-time alerts for new orders on your device.' 
+                          : 'আপনার ডিভাইসে নতুন অর্ডারের জন্য রিয়েল-টাইম অ্যালার্ট পেতে ব্রাউজার নোটিফিকেশন চালু করুন।'}
+                      </p>
+                      <button 
+                        onClick={() => requestNotificationPermission()}
+                        className="w-full py-2.5 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
+                      >
+                        {language === 'en' ? 'Enable Notifications' : 'নোটিফিকেশন চালু করুন'}
+                      </button>
+                      <button 
+                        onClick={() => addNotification({
+                          title: { en: 'Test Notification', bn: 'টেস্ট নোটিফিকেশন' },
+                          message: { en: 'This is a test notification to verify your setup.', bn: 'আপনার সেটআপ যাচাই করার জন্য এটি একটি টেস্ট নোটিফিকেশন।' },
+                          type: 'system'
+                        })}
+                        className="w-full py-1.5 border border-emerald-200 text-emerald-600 text-[9px] font-bold uppercase tracking-widest rounded-sm hover:bg-emerald-100 transition-colors cursor-pointer"
+                      >
+                        {language === 'en' ? 'Send Test Notification' : 'টেস্ট নোটিফিকেশন পাঠান'}
+                      </button>
+                    </div>
 
                     {/* Stock Alert Mini Widget */}
                     <div className="p-6 bg-orange-50 border border-orange-100 rounded-sm space-y-4">

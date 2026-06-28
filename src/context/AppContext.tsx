@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote, HeroSlide } from '../types';
+import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote, HeroSlide, AppNotification } from '../types';
 import { PRODUCTS, CATEGORIES, INITIAL_COUPONS, ISLAMIC_QUOTES, HERO_SLIDES } from '../data';
 import {
   supabase,
@@ -20,6 +20,11 @@ import {
   deleteSupabaseReview,
   getSupabaseCoupons,
   saveSupabaseCoupon,
+  getSupabaseNotifications,
+  saveSupabaseNotification,
+  deleteSupabaseNotification,
+  markSupabaseNotificationAsRead,
+  markAllSupabaseNotificationsRead,
   checkSupabaseConnection
 } from '../lib/supabase';
 
@@ -81,6 +86,15 @@ interface AppContextType {
   toasts: { id: string; message: { en: string; bn: string }; type: 'success' | 'error' | 'info' }[];
   addToast: (msg: { en: string; bn: string }, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
+
+  // Real-time Notifications
+  notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => void;
+  requestNotificationPermission: () => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
+  deleteNotification: (id: string) => void;
+  setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>;
   
   // Dynamic Website Custom Contents
   websiteSettings: {
@@ -229,6 +243,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
           }
         }
+
+        // Load Notifications
+        if (status.tables.mifta_notifications) {
+          const dbNotifs = await getSupabaseNotifications();
+          if (dbNotifs && dbNotifs.length > 0) {
+            setNotifications(dbNotifs);
+            localStorage.setItem('mifta_notifications', JSON.stringify(dbNotifs));
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to refetch data from Supabase:', err);
@@ -338,6 +361,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Run connection check and initial fetch on mount
   useEffect(() => {
     refetchFromSupabase();
+
+    // Setup real-time subscription for notifications
+    const subscription = supabase
+      .channel('public:mifta_notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mifta_notifications' }, (payload) => {
+        const newNotif: AppNotification = {
+          id: payload.new.id,
+          title: payload.new.title,
+          message: payload.new.message,
+          type: payload.new.type,
+          referenceId: payload.new.reference_id,
+          isRead: payload.new.is_read,
+          createdAt: payload.new.created_at
+        };
+        
+        setNotifications(prev => {
+          if (prev.some(n => n.id === newNotif.id)) return prev;
+          const updated = [newNotif, ...prev];
+          localStorage.setItem('mifta_notifications', JSON.stringify(updated));
+          return updated;
+        });
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
 
@@ -432,6 +482,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     
     const initialOrders: Order[] = [];
     return initialOrders;
+  });
+
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    const local = localStorage.getItem('mifta_notifications');
+    return local ? JSON.parse(local) : [];
   });
 
   const [islamicQuotes, setIslamicQuotesState] = useState<IslamicQuote[]>(() => {
@@ -582,6 +637,72 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [theme]);
 
   // Toast controls
+  // Real-time Notifications Functions
+  const addNotification = async (notifData: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => {
+    const newNotif: AppNotification = {
+      ...notifData,
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      isRead: false
+    };
+
+    setNotifications(prev => {
+      const updated = [newNotif, ...prev];
+      localStorage.setItem('mifta_notifications', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Save to Supabase
+    await saveSupabaseNotification(newNotif);
+
+    // Trigger Browser/System Notification
+    if ('Notification' in window && window.Notification.permission === 'granted') {
+      new window.Notification(newNotif.title[language], {
+        body: newNotif.message[language],
+        icon: '/logo.png'
+      });
+    }
+  };
+
+  const requestNotificationPermission = () => {
+    // Note: For Android WebView integration, ensure you handle this call in your WebChromeClient
+    // and request Android's POST_NOTIFICATIONS permission.
+    if ('Notification' in window) {
+      window.Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          addToast({ en: 'Notifications enabled!', bn: 'নোটিফিকেশন সক্রিয় করা হয়েছে!' }, 'success');
+        }
+      });
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.map(n => n.id === id ? { ...n, isRead: true } : n);
+      localStorage.setItem('mifta_notifications', JSON.stringify(updated));
+      return updated;
+    });
+    await markSupabaseNotificationAsRead(id);
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    setNotifications(prev => {
+      const updated = prev.map(n => ({ ...n, isRead: true }));
+      localStorage.setItem('mifta_notifications', JSON.stringify(updated));
+      return updated;
+    });
+    await markAllSupabaseNotificationsRead();
+  };
+
+  const deleteNotification = async (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== id);
+      localStorage.setItem('mifta_notifications', JSON.stringify(updated));
+      return updated;
+    });
+    await deleteSupabaseNotification(id);
+  };
+
   const addToast = (msg: { en: string; bn: string }, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message: msg, type }]);
@@ -819,6 +940,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
 
+    // Trigger Admin Notification
+    addNotification({
+      title: { 
+        en: `New Order Received: ${newOrder.id}`, 
+        bn: `নতুন অর্ডার পাওয়া গেছে: ${newOrder.id}` 
+      },
+      message: { 
+        en: `A new order has been placed by ${newOrder.customerName} for ৳${newOrder.total}.`, 
+        bn: `${newOrder.customerName} মোট ৳${newOrder.total} টাকার একটি নতুন অর্ডার করেছেন।` 
+      },
+      type: 'new_order',
+      referenceId: newOrder.id
+    });
+
     // Background sync to Supabase
     if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
       saveSupabaseOrder(newOrder).catch((err) =>
@@ -982,6 +1117,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         removeToast,
         websiteSettings,
         updateWebsiteSettings,
+        notifications,
+        addNotification,
+        requestNotificationPermission,
+        markNotificationAsRead,
+        markAllNotificationsAsRead,
+        deleteNotification,
+        setNotifications,
         resetAppData,
         supabaseStatus,
         syncingWithSupabase,

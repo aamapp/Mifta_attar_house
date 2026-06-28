@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Product, Order, Review, Coupon } from '../types';
+import { Product, Order, Review, Coupon, AppNotification } from '../types';
 
 // Read values from Vite environment or fall back to the provided values directly
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
@@ -309,6 +309,95 @@ export async function saveSupabaseCoupon(coupon: Coupon) {
   }
 }
 
+// 5.5. NOTIFICATIONS HELPERS
+export async function getSupabaseNotifications(): Promise<AppNotification[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('mifta_notifications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!data) return null;
+
+    return data.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      message: row.message,
+      type: row.type,
+      referenceId: row.reference_id,
+      isRead: row.is_read,
+      createdAt: row.created_at
+    }));
+  } catch (err) {
+    console.warn('Supabase notifications fetch failed (Table may not exist yet):', err);
+    return null;
+  }
+}
+
+export async function saveSupabaseNotification(notif: AppNotification) {
+  try {
+    const { error } = await supabase
+      .from('mifta_notifications')
+      .upsert({
+        id: notif.id,
+        title: notif.title,
+        message: notif.message,
+        type: notif.type,
+        reference_id: notif.referenceId,
+        is_read: notif.isRead,
+        created_at: notif.createdAt
+      }, { onConflict: 'id' });
+    if (error) throw error;
+    return true;
+  } catch (err: any) {
+    console.error('Supabase notification upsert failed:', err.message || err);
+    return false;
+  }
+}
+
+export async function deleteSupabaseNotification(notifId: string) {
+  try {
+    const { error } = await supabase
+      .from('mifta_notifications')
+      .delete()
+      .eq('id', notifId);
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Supabase notification deletion failed:', err);
+    return false;
+  }
+}
+
+export async function markSupabaseNotificationAsRead(notifId: string) {
+  try {
+    const { error } = await supabase
+      .from('mifta_notifications')
+      .update({ is_read: true })
+      .eq('id', notifId);
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Supabase notification status update failed:', err);
+    return false;
+  }
+}
+
+export async function markAllSupabaseNotificationsRead() {
+  try {
+    const { error } = await supabase
+      .from('mifta_notifications')
+      .update({ is_read: true })
+      .eq('is_read', false);
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Supabase mark all notifications read failed:', err);
+    return false;
+  }
+}
+
 // 6. DB CONNECTION CHECK
 export async function checkSupabaseConnection(): Promise<{
   connected: boolean;
@@ -320,6 +409,7 @@ export async function checkSupabaseConnection(): Promise<{
     mifta_orders: await testTableAccess('mifta_orders'),
     mifta_reviews: await testTableAccess('mifta_reviews'),
     mifta_coupons: await testTableAccess('mifta_coupons'),
+    mifta_notifications: await testTableAccess('mifta_notifications'),
   };
 
   const connected = Object.values(tables).some((t) => t === true);
@@ -456,6 +546,21 @@ CREATE TABLE IF NOT EXISTS public.mifta_coupons (
 ALTER TABLE public.mifta_coupons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read coupons" ON public.mifta_coupons FOR SELECT USING (true);
 CREATE POLICY "Allow public write coupons" ON public.mifta_coupons FOR ALL USING (true);
+
+-- 5.5. Create mifta_notifications table
+CREATE TABLE IF NOT EXISTS public.mifta_notifications (
+  id TEXT PRIMARY KEY,
+  title JSONB NOT NULL,
+  message JSONB NOT NULL,
+  type TEXT NOT NULL,
+  reference_id TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.mifta_notifications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read notifications" ON public.mifta_notifications FOR SELECT USING (true);
+CREATE POLICY "Allow public write notifications" ON public.mifta_notifications FOR ALL USING (true);
 
 -- 6. Storage Bucket Setup
 INSERT INTO storage.buckets (id, name, public) 

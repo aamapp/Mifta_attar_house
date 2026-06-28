@@ -117,3 +117,13 @@ export interface HeroSlide {
   title: { en: string; bn: string };
   subtitle: { en: string; bn: string };
 }
+
+export interface AppNotification {
+  id: string;
+  title: { en: string; bn: string };
+  message: { en: string; bn: string };
+  type: 'new_order' | 'low_stock' | 'system' | 'new_review';
+  referenceId?: string; // e.g. order ID, product ID
+  isRead: boolean;
+  createdAt: string;
+}
