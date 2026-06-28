@@ -24,6 +24,55 @@ import { motion } from 'motion/react';
 import SmartSelect from './SmartSelect';
 import { locationData } from '../lib/locationData';
 
+const BkashIcon = ({ className = "w-7 h-7" }: { className?: string }) => {
+  const [hasError, setHasError] = useState(false);
+  return !hasError ? (
+    <img 
+      src="https://www.logo.wine/a/logo/BKash/BKash-Icon2-Logo.wine.svg" 
+      alt="bKash" 
+      className={`${className} object-contain shrink-0`} 
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+    />
+  ) : (
+    <svg viewBox="0 0 100 100" className={`${className} shrink-0`} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#E2136E"/>
+      <path d="M72.5 35.8L51.8 56.5H72.5V35.8Z" fill="white" fillOpacity="0.9"/>
+      <path d="M47.2 30.5L34.1 43.6L51.8 43.6L47.2 30.5Z" fill="white"/>
+      <path d="M34.1 43.6L19.5 58.2H43.6L34.1 43.6Z" fill="white" fillOpacity="0.8"/>
+      <path d="M51.8 43.6H34.1L43.6 53.1L51.8 43.6Z" fill="white" fillOpacity="0.95"/>
+      <path d="M51.8 56.5L62.3 67L72.5 56.5H51.8Z" fill="white" fillOpacity="0.85"/>
+      <path d="M51.8 43.6L51.8 56.5L72.5 56.5L51.8 43.6Z" fill="white"/>
+    </svg>
+  );
+};
+
+const NagadIcon = ({ className = "w-8 h-8" }: { className?: string }) => {
+  const [hasError, setHasError] = useState(false);
+  return !hasError ? (
+    <img 
+      src="https://www.logo.wine/a/logo/Nagad/Nagad-Vertical-Logo.wine.svg" 
+      alt="Nagad" 
+      className={`${className} object-contain shrink-0`} 
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+    />
+  ) : (
+    <svg viewBox="0 0 100 100" className={`${className} shrink-0`} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#FFFFFF"/>
+      <rect width="100" height="100" rx="22" stroke="#F15A24" strokeWidth="2" fill="none"/>
+      <defs>
+        <linearGradient id="nagadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F58220" />
+          <stop offset="100%" stopColor="#EE1C24" />
+        </linearGradient>
+      </defs>
+      <path d="M50 15C30.7 15 15 30.7 15 50C15 69.3 30.7 85 50 85C69.3 85 85 69.3 85 50C85 41.2 81.7 33.1 76.4 27C71.3 32 68 39.1 68 47C68 56.9 59.9 65 50 65C40.1 65 32 56.9 32 47C32 37.1 40.1 29 50 29C54.4 29 58.4 30.6 61.5 33.2C65.5 28.5 70.3 22.8 74.8 18.5C67.8 16.3 59.5 15 50 15Z" fill="url(#nagadGrad)"/>
+      <circle cx="50" cy="47" r="8" fill="#F58220"/>
+    </svg>
+  );
+};
+
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,7 +101,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     division: '',
     upazila: '',
     deliveryOption: 'outside', // 'dhaka' or 'outside'
-    paymentOption: 'cod' // 'cod', 'bkash', 'nagad', 'rocket'
+    paymentOption: 'cod' // 'cod', 'bkash', 'nagad'
   });
 
   // Online simulated payment state
@@ -340,12 +389,19 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                       <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider">
                         {language === 'en' ? 'Payment Method' : 'পেমেন্ট পদ্ধতি'}
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {[
-                          { id: 'cod', label: language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি', icon: <DollarSign className="w-4 h-4 text-emerald-500" /> },
-                          { id: 'bkash', label: language === 'en' ? 'bKash Wallet' : 'বিকাশ পেমেন্ট', icon: <div className="font-bold text-pink-500 text-xs">bKash</div> },
-                          { id: 'nagad', label: language === 'en' ? 'Nagad Pay' : 'নগদ পেমেন্ট', icon: <div className="font-bold text-orange-500 text-xs">Nagad</div> },
-                          { id: 'rocket', label: language === 'en' ? 'Rocket' : 'রকেট পেমেন্ট', icon: <div className="font-bold text-purple-500 text-xs">Rocket</div> }
+                          { id: 'cod', label: language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি', icon: <div className="w-14 h-14 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100"><DollarSign className="w-7 h-7 text-emerald-500" /></div> },
+                          { 
+                            id: 'bkash', 
+                            label: language === 'en' ? 'bKash Wallet' : 'বিকাশ পেমেন্ট', 
+                            icon: <BkashIcon className="w-14 h-14 rounded-lg" />
+                          },
+                          { 
+                            id: 'nagad', 
+                            label: language === 'en' ? 'Nagad Pay' : 'নগদ পেমেন্ট', 
+                            icon: <NagadIcon className="w-14 h-14 rounded-lg" />
+                          }
                         ].map((pay) => (
                           <label
                             key={pay.id}
@@ -467,7 +523,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-stone-200 group">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-[10px]">bk</div>
+                        <BkashIcon className="w-14 h-14 rounded-lg" />
                         <div>
                           <p className="text-[9px] text-stone-400 font-bold uppercase">bKash (Personal)</p>
                           <p className="text-sm font-mono font-bold text-stone-900">01773-915779</p>
@@ -480,7 +536,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
                     <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-stone-200 group">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-[10px]">ng</div>
+                        <NagadIcon className="w-14 h-14 rounded-lg" />
                         <div>
                           <p className="text-[9px] text-stone-400 font-bold uppercase">Nagad (Personal)</p>
                           <p className="text-sm font-mono font-bold text-stone-900">01773-915779</p>
