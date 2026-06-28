@@ -56,8 +56,11 @@ interface AppContextType {
     address: string;
     district: string;
     division: string;
+    upazila?: string;
     deliveryOption: string;
     paymentOption: string;
+    transactionId?: string;
+    advancePaidAmount?: number;
   }) => Order;
   updateOrderStatus: (orderId: string, status: Order['orderStatus']) => void;
   deleteOrder: (orderId: string) => void;
@@ -716,6 +719,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     upazila?: string;
     deliveryOption: string;
     paymentOption: string;
+    transactionId?: string;
+    advancePaidAmount?: number;
   }) => {
     const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     
@@ -756,6 +761,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       couponCode: activeCoupon?.code,
       paymentMethod: shippingDetails.paymentOption as Order['paymentMethod'],
       paymentStatus: shippingDetails.paymentOption === 'cod' ? 'pending' : 'paid',
+      transactionId: shippingDetails.transactionId,
+      advancePaidAmount: shippingDetails.advancePaidAmount,
       orderStatus: 'pending'
     };
 

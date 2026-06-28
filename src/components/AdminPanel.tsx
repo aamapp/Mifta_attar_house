@@ -725,6 +725,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           <p className="font-sans font-semibold text-stone-900">
                             পদ্ধতি: {ord.paymentMethod.toUpperCase()} | স্ট্যাটাস: {ord.paymentStatus === 'paid' ? 'পরিশোধিত' : 'বাকি'}
                           </p>
+                          {ord.transactionId && (
+                            <p className="font-sans text-[11px] text-emerald-600 font-bold">
+                              TXID: {ord.transactionId} {ord.advancePaidAmount ? `| অগ্রিম: ৳${ord.advancePaidAmount}` : ''}
+                            </p>
+                          )}
                           <p className="font-sans">সাবটোটাল: ৳{ord.subtotal} | ডিসকাউন্ট: ৳{ord.discount}</p>
                         </div>
                       </div>

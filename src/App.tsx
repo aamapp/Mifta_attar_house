@@ -308,7 +308,7 @@ export default function App() {
       <FloatingButtons />
 
       {/* 9. Mobile Bottom Navigation */}
-      {!adminOpen && (
+      {!adminOpen && !cartOpen && !accountOpen && !quickViewProduct && !checkoutOpen && (
         <BottomNavigation
           onOpenCart={() => {
             setAccountOpen(false);

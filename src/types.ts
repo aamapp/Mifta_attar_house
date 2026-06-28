@@ -100,6 +100,8 @@ export interface Order {
   couponCode?: string;
   paymentMethod: 'cod' | 'bkash' | 'nagad' | 'rocket';
   paymentStatus: 'pending' | 'paid';
+  transactionId?: string;
+  advancePaidAmount?: number;
   orderStatus: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   trackingNumber?: string;
 }

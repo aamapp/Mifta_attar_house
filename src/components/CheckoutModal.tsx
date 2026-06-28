@@ -62,6 +62,9 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
   const [paymentSubstep, setPaymentSubstep] = useState<'number' | 'otp' | 'pin'>('number');
 
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [manualTxId, setManualTxId] = useState('');
+  const [advanceAmount, setAdvanceAmount] = useState(0); // 0 = Only Delivery, 1 = Full Amount
+  const [hasPaidAdvance, setHasPaidAdvance] = useState(false);
 
   if (!isOpen) return null;
 
@@ -103,8 +106,6 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
         ...prev, 
         [name]: value, 
         upazila: '',
-        // If division is Dhaka but district is not Dhaka city core, user might still want to toggle, 
-        // but typically "Dhaka" means inside.
         deliveryOption: isDhakaDistrict ? 'dhaka' : prev.deliveryOption
       }));
     } else {
@@ -112,7 +113,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     }
   };
 
-  const handleProceedToPayment = (e: React.FormEvent) => {
+  const handleProceedToOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name.trim() === '' || formData.phone.trim() === '' || formData.address.trim() === '') {
       addToast(
@@ -122,40 +123,34 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
       return;
     }
 
-    if (formData.paymentOption === 'cod') {
-      // Direct success for Cash on Delivery
-      const order = placeOrder(formData);
-      setCompletedOrder(order);
-      setStep('success');
-    } else {
-      // Trigger MFS payment simulator
-      setStep('payment_process');
-      setPaymentSubstep('number');
-    }
+    // Go to payment step to show mandatory delivery charge instructions
+    setStep('payment_process');
   };
 
-  const handleSimulateMfsSubmit = () => {
-    if (paymentSubstep === 'number') {
-      if (mfsNumber.length < 11) {
-        addToast({ en: 'Invalid wallet number.', bn: 'সঠিক ওয়ালেট নম্বর প্রদান করুন।' }, 'error');
-        return;
-      }
-      setPaymentSubstep('otp');
+  const handleConfirmManualPayment = () => {
+    if (manualTxId.trim().length < 4) {
       addToast(
-        { en: 'OTP sent! Please enter simulated OTP (e.g., 123456)', bn: 'ওটিপি পাঠানো হয়েছে! ওটিপি লিখুন (যেমন: ১২৩৪৫৬)' },
-        'info'
+        { en: 'Please enter a valid Transaction ID.', bn: 'অনুগ্রহ করে সঠিক ট্রানজেকশন আইডি দিন।' },
+        'error'
       );
-    } else if (paymentSubstep === 'otp') {
-      setPaymentSubstep('pin');
-    } else {
-      // Payment Completed successfully!
-      const order = placeOrder({
-        ...formData,
-        paymentOption: formData.paymentOption
-      });
-      setCompletedOrder(order);
-      setStep('success');
+      return;
     }
+
+    if (!hasPaidAdvance) {
+      addToast(
+        { en: 'Please confirm you have sent the payment.', bn: 'অনুগ্রহ করে পেমেন্ট করেছেন তা নিশ্চিত করুন।' },
+        'error'
+      );
+      return;
+    }
+
+    const order = placeOrder({
+      ...formData,
+      transactionId: manualTxId,
+      advancePaidAmount: advanceAmount === 0 ? shipping : total
+    });
+    setCompletedOrder(order);
+    setStep('success');
   };
 
   const copyOrderTracking = () => {
@@ -163,6 +158,14 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     navigator.clipboard.writeText(completedOrder.id);
     addToast(
       { en: 'Order ID copied!', bn: 'অর্ডার আইডি কপি করা হয়েছে!' },
+      'success'
+    );
+  };
+
+  const copyNumber = (num: string) => {
+    navigator.clipboard.writeText(num);
+    addToast(
+      { en: 'Number copied!', bn: 'নম্বর কপি করা হয়েছে!' },
       'success'
     );
   };
@@ -198,7 +201,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
               </div>
             </div>
 
-            <form onSubmit={handleProceedToPayment} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <form onSubmit={handleProceedToOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Shipping info form - 7 Columns */}
               <div className="lg:col-span-7 space-y-4">
                 <h3 className="font-sans text-[10px] font-bold tracking-[0.15em] text-gold-600 uppercase">
@@ -415,109 +418,161 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   type="submit"
                   className="w-full py-4 rounded-sm bg-gold-500 hover:brightness-110 text-black font-extrabold text-xs tracking-widest uppercase shadow-xl cursor-pointer"
                 >
-                  {formData.paymentOption === 'cod'
-                    ? (language === 'en' ? 'CONFIRM ORDER (COD)' : 'অর্ডার নিশ্চিত করুন (ক্যাশ অন ডেলিভারি)')
-                    : (language === 'en' ? `PAY WITH ${formData.paymentOption.toUpperCase()}` : `${formData.paymentOption.toUpperCase()}-এ পেমেন্ট করুন`)}
+                  {language === 'en' ? 'PROCEED TO PAYMENT' : 'পেমেন্ট ধাপে এগিয়ে যান'}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Step 2: Interactive MFS simulated Gateway */}
+        {/* Step 2: Manual Payment Instructions & Verification */}
         {step === 'payment_process' && (
-          <div className="max-w-md mx-auto py-8 text-center space-y-6">
-            
-            {/* Custom Header matching active MFS */}
-            <div className={`p-4 rounded-sm border text-white font-bold tracking-widest uppercase ${
-              formData.paymentOption === 'bkash' ? 'bg-pink-600 border-pink-500' :
-              formData.paymentOption === 'nagad' ? 'bg-orange-600 border-orange-500' :
-              'bg-purple-600 border-purple-500'
-            }`}>
-              {formData.paymentOption.toUpperCase()} SECURED PAYMENT GATEWAY
+          <div className="max-w-2xl mx-auto py-4 text-left space-y-6">
+            <div className="flex items-center gap-3 border-b border-stone-200 pb-4">
+              <button 
+                onClick={() => setStep('info')}
+                className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-stone-500" />
+              </button>
+              <h2 className="font-serif text-xl font-bold text-stone-900 uppercase tracking-tight">
+                {language === 'en' ? 'Payment Verification' : 'পেমেন্ট ভেরিফিকেশন'}
+              </h2>
             </div>
 
-            <div className="p-6 rounded-sm border border-stone-200 bg-stone-50 space-y-4 text-left text-stone-850">
-              <div className="flex justify-between text-xs text-stone-500 mb-2">
-                <span>Paying to:</span>
-                <span className="font-bold text-stone-900">Mifta Attar House</span>
-              </div>
-              <div className="flex justify-between text-xs text-stone-500 pb-3 border-b border-stone-200">
-                <span>Amount:</span>
-                <span className="font-extrabold text-gold-600 font-mono text-lg">৳{total}</span>
-              </div>
-
-              {/* Sub-step A: Enter Number */}
-              {paymentSubstep === 'number' && (
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700">
-                    Enter your 11-digit mobile account number:
-                  </label>
-                  <input
-                    type="text"
-                    value={mfsNumber}
-                    onChange={(e) => setMfsNumber(e.target.value)}
-                    maxLength={11}
-                    className="w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-center font-bold tracking-widest text-lg focus:outline-none focus:border-gold-500 text-stone-900"
-                  />
-                  <div className="text-[10px] text-stone-500 flex items-start gap-1.5 leading-relaxed font-sans mt-2">
-                    <Info className="w-3.5 h-3.5 text-gold-600 shrink-0" />
-                    <span>This is a secure sandbox gateway simulator. Simply click submit to process. No real money is charged.</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Instructions Card */}
+              <div className="space-y-4">
+                <div className="p-4 rounded-sm bg-gold-50 border border-gold-200">
+                  <div className="flex items-start gap-3">
+                    <ShieldAlert className="w-5 h-5 text-gold-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-gold-900 uppercase mb-1">
+                        {language === 'en' ? 'Mandatory Advance Payment' : 'অগ্রিম পেমেন্ট বাধ্যতামূলক'}
+                      </h4>
+                      <p className="text-[10px] text-gold-800 leading-relaxed">
+                        {language === 'en' 
+                          ? `To confirm your order, you must pay at least the delivery charge (৳${shipping}) in advance. You can also pay the full amount (৳${total}) now.`
+                          : `অর্ডার নিশ্চিত করতে কমপক্ষে ডেলিভারি চার্জ (৳${shipping}) অগ্রিম প্রদান করতে হবে। আপনি চাইলে পূর্ণ মূল্য (৳${total}) এখনই পরিশোধ করতে পারেন।`}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* Sub-step B: Enter OTP */}
-              {paymentSubstep === 'otp' && (
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700">
-                    {language === 'en' ? 'Enter the 6-digit OTP verification code:' : '৬-ডিজিটের ওটিপি ভেরিফিকেশন কোড লিখুন:'}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="123456"
-                    value={mfsOtp}
-                    onChange={(e) => setMfsOtp(e.target.value)}
-                    maxLength={6}
-                    className="w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-center font-mono font-bold tracking-widest text-lg focus:outline-none focus:border-gold-500 text-stone-900 placeholder-stone-300"
-                  />
+                <div className="p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4">
+                  <h3 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest border-b border-stone-200 pb-2">
+                    {language === 'en' ? 'Payment Numbers' : 'পেমেন্ট নাম্বারসমূহ'}
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-stone-200 group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-[10px]">bk</div>
+                        <div>
+                          <p className="text-[9px] text-stone-400 font-bold uppercase">bKash (Personal)</p>
+                          <p className="text-sm font-mono font-bold text-stone-900">01773-915779</p>
+                        </div>
+                      </div>
+                      <button onClick={() => copyNumber('01773915779')} className="p-1.5 hover:bg-stone-100 rounded text-stone-400 hover:text-gold-600">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-stone-200 group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-[10px]">ng</div>
+                        <div>
+                          <p className="text-[9px] text-stone-400 font-bold uppercase">Nagad (Personal)</p>
+                          <p className="text-sm font-mono font-bold text-stone-900">01773-915779</p>
+                        </div>
+                      </div>
+                      <button onClick={() => copyNumber('01773915779')} className="p-1.5 hover:bg-stone-100 rounded text-stone-400 hover:text-gold-600">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <p className="text-[10px] text-stone-500 italic">
+                      {language === 'en' 
+                        ? '* Use "Send Money" option from your wallet.' 
+                        : '* আপনার ওয়ালেট থেকে "Send Money" অপশনটি ব্যবহার করুন।'}
+                    </p>
+                  </div>
                 </div>
-              )}
+              </div>
 
-              {/* Sub-step C: Enter PIN */}
-              {paymentSubstep === 'pin' && (
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700">
-                    {language === 'en' ? 'Enter your account PIN:' : 'আপনার অ্যাকাউন্টের পিন লিখুন:'}
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="••••"
-                    value={mfsPin}
-                    onChange={(e) => setMfsPin(e.target.value)}
-                    maxLength={4}
-                    className="w-full h-12 px-4 rounded-sm bg-white border border-stone-200 text-center font-mono font-bold tracking-widest text-lg focus:outline-none text-stone-900 placeholder-stone-300"
-                  />
+              {/* Verification Form Card */}
+              <div className="space-y-4">
+                <div className="p-5 rounded-sm border border-stone-200 bg-white shadow-sm space-y-4">
+                  <h3 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">
+                    {language === 'en' ? 'Payment Details' : 'পেমেন্টের তথ্য প্রদান করুন'}
+                  </h3>
+
+                  <div className="space-y-3">
+                    <label className="block">
+                      <span className="block text-[10px] font-bold text-stone-500 uppercase mb-1.5">
+                        {language === 'en' ? 'How much did you pay?' : 'আপনি কত টাকা পাঠিয়েছেন?'}
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button 
+                          onClick={() => setAdvanceAmount(0)}
+                          className={`py-2.5 px-3 rounded-sm border text-[10px] font-bold transition-all ${advanceAmount === 0 ? 'border-gold-500 bg-gold-500 text-black' : 'border-stone-200 bg-stone-50 text-stone-600'}`}
+                        >
+                          {language === 'en' ? `Delivery Charge (৳${shipping})` : `ডেলিভারি চার্জ (৳${shipping})`}
+                        </button>
+                        <button 
+                          onClick={() => setAdvanceAmount(1)}
+                          className={`py-2.5 px-3 rounded-sm border text-[10px] font-bold transition-all ${advanceAmount === 1 ? 'border-gold-500 bg-gold-500 text-black' : 'border-stone-200 bg-stone-50 text-stone-600'}`}
+                        >
+                          {language === 'en' ? `Full Amount (৳${total})` : `পূর্ণ মূল্য (৳${total})`}
+                        </button>
+                      </div>
+                    </label>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-500 uppercase mb-1.5">
+                        {language === 'en' ? 'Transaction ID / Last 4 Digits' : 'ট্রানজেকশন আইডি / শেষের ৪টি সংখ্যা'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 8XJ9K2L or 4587"
+                        value={manualTxId}
+                        onChange={(e) => setManualTxId(e.target.value)}
+                        className="w-full h-11 px-4 rounded-sm bg-stone-50 border border-stone-200 text-stone-900 font-mono font-bold text-sm focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+
+                    <label className="flex items-start gap-3 cursor-pointer group pt-2">
+                      <div className="relative flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={hasPaidAdvance}
+                          onChange={(e) => setHasPaidAdvance(e.target.checked)}
+                          className="w-4 h-4 rounded border-stone-300 text-gold-500 focus:ring-gold-500"
+                        />
+                      </div>
+                      <span className="text-[10px] text-stone-600 font-medium leading-relaxed group-hover:text-stone-900 transition-colors">
+                        {language === 'en' 
+                          ? 'I confirm that I have sent the advance amount and provided correct info.' 
+                          : 'আমি নিশ্চিত করছি যে আমি অগ্রিম টাকা পাঠিয়েছি এবং সঠিক তথ্য প্রদান করেছি।'}
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={handleConfirmManualPayment}
+                    className="w-full py-4 rounded-sm bg-stone-900 hover:bg-black text-white font-extrabold text-xs tracking-widest uppercase shadow-xl transition-all"
+                  >
+                    {language === 'en' ? 'SUBMIT ORDER FOR VERIFICATION' : 'অর্ডার ভেরিফিকেশনের জন্য পাঠান'}
+                  </button>
+                  
+                  <p className="text-[9px] text-center text-stone-400 mt-2">
+                    {language === 'en' 
+                      ? 'Our team will verify the payment and confirm your order shortly.' 
+                      : 'আমাদের টিম আপনার পেমেন্ট যাচাই করে শীঘ্রই অর্ডারটি কনফার্ম করবে।'}
+                  </p>
                 </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep('info')}
-                  className="flex-1 py-3 border border-stone-200 bg-white rounded-sm hover:bg-stone-100 text-stone-500 font-bold text-xs cursor-pointer"
-                >
-                  {language === 'en' ? 'CANCEL' : 'বাতিল করুন'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSimulateMfsSubmit}
-                  className="flex-1 py-3 bg-gold-500 hover:brightness-110 text-black rounded-sm font-bold text-xs tracking-wider cursor-pointer"
-                >
-                  {paymentSubstep === 'pin' 
-                    ? (language === 'en' ? 'CONFIRM & AUTHORIZE' : 'পেমেন্ট নিশ্চিত করুন') 
-                    : (language === 'en' ? 'SUBMIT' : 'জমা দিন')}
-                </button>
               </div>
             </div>
           </div>
@@ -530,12 +585,12 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
             
             <div className="space-y-2">
               <h2 className="font-serif text-2xl font-bold text-gold-600 tracking-wider">
-                {language === 'en' ? 'ALHAMDULILLAH! ORDER COMPLETED' : 'আলহামদুলিল্লাহ! অর্ডার সফল হয়েছে'}
+                {language === 'en' ? 'ALHAMDULILLAH! ORDER SUBMITTED' : 'আলহামদুলিল্লাহ! অর্ডার সাবমিট হয়েছে'}
               </h2>
               <p className="text-xs text-stone-500 font-sans max-w-sm mx-auto">
                 {language === 'en'
-                  ? 'Your transaction has been authorized securely. A packaging advisor is preparing your premium attar box.'
-                  : 'আমরা আপনার পেমেন্ট বা অর্ডার তথ্য পেয়েছি। চমৎকার প্যাকেজিংয়ের মাধ্যমে পণ্যটি আপনার ঠিকানায় পাঠাতে কাজ শুরু হয়েছে।'}
+                  ? 'Your order is currently under verification. Our team will verify your payment and update the status shortly.'
+                  : 'আপনার অর্ডারটি বর্তমানে ভেরিফিকেশনের অধীনে রয়েছে। আমাদের টিম পেমেন্ট যাচাই করে শীঘ্রই অর্ডারের অবস্থা আপডেট করবে।'}
               </p>
             </div>
 
