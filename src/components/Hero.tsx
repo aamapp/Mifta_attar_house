@@ -12,47 +12,19 @@ interface HeroProps {
   onFlashSale: () => void;
 }
 
-const images = [
-  {
-    url: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&q=80&w=1200",
-    titleEn: "Premium Attar Collection",
-    titleBn: "প্রিমিয়াম আতর কালেকশন",
-    subtitleEn: "Pure & Long Lasting",
-    subtitleBn: "শতভাগ খাঁটি ও দীর্ঘস্থায়ী"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=1200",
-    titleEn: "Luxury Fragrances",
-    titleBn: "বিলাসবহুল সুগন্ধি",
-    subtitleEn: "Imported from Dubai",
-    subtitleBn: "দুবাই থেকে আমদানিকৃত"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1200",
-    titleEn: "Floral Extracts",
-    titleBn: "ফ্লোরাল নির্যাস",
-    subtitleEn: "Essence of Nature",
-    subtitleBn: "প্রকৃতির সতেজ সুবাস"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1200",
-    titleEn: "Royal Oud Collection",
-    titleBn: "রয়্যাল উদ কালেকশন",
-    subtitleEn: "The King of Fragrances",
-    subtitleBn: "সুগন্ধির রাজা"
-  }
-];
-
 export default function Hero({ onExplore, onFlashSale }: HeroProps) {
-  const { language } = useApp();
+  const { language, heroSlides } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
+      setCurrentIndex((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
+
+  if (heroSlides.length === 0) return null;
 
   return (
     <section id="hero" className="w-full bg-white pb-4 pt-1">
@@ -71,8 +43,8 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
               className="absolute inset-0"
             >
               <img 
-                src={images[currentIndex].url} 
-                alt={language === 'en' ? images[currentIndex].titleEn : images[currentIndex].titleBn}
+                src={heroSlides[currentIndex].url} 
+                alt={language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
@@ -86,7 +58,7 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
                     transition={{ delay: 0.2 }}
                     className="text-white text-base sm:text-2xl md:text-3xl font-extrabold leading-tight"
                   >
-                    {language === 'en' ? images[currentIndex].titleEn : images[currentIndex].titleBn}
+                    {language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
                   </motion.h2>
                   <motion.p 
                     initial={{ y: 10, opacity: 0 }}
@@ -94,7 +66,7 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
                     transition={{ delay: 0.3 }}
                     className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium mt-0.5 sm:mt-1"
                   >
-                    {language === 'en' ? images[currentIndex].subtitleEn : images[currentIndex].subtitleBn}
+                    {language === 'en' ? heroSlides[currentIndex].subtitle.en : heroSlides[currentIndex].subtitle.bn}
                   </motion.p>
                   
                   <motion.div
@@ -114,7 +86,7 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
 
           {/* Indicator Dots */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-            {images.map((_, idx) => (
+            {heroSlides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={(e) => {
@@ -131,13 +103,13 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
           {/* Navigation Arrows (Desktop) */}
           <button 
             className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex hover:bg-black/40"
-            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length); }}
           >
             ←
           </button>
           <button 
             className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex hover:bg-black/40"
-            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % images.length); }}
+            onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % heroSlides.length); }}
           >
             →
           </button>

@@ -4,8 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote } from '../types';
-import { PRODUCTS, CATEGORIES, INITIAL_COUPONS, ISLAMIC_QUOTES } from '../data';
+import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote, HeroSlide } from '../types';
+import { PRODUCTS, CATEGORIES, INITIAL_COUPONS, ISLAMIC_QUOTES, HERO_SLIDES } from '../data';
 import {
   supabase,
   getSupabaseWebsiteSettings,
@@ -69,6 +69,10 @@ interface AppContextType {
   // Islamic Quotes
   islamicQuotes: IslamicQuote[];
   setIslamicQuotes: React.Dispatch<React.SetStateAction<IslamicQuote[]>>;
+  
+  // Hero Banners
+  heroSlides: HeroSlide[];
+  setHeroSlides: React.Dispatch<React.SetStateAction<HeroSlide[]>>;
   
   // Toast Notifications
   toasts: { id: string; message: { en: string; bn: string }; type: 'success' | 'error' | 'info' }[];
@@ -461,6 +465,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const local = localStorage.getItem('mifta_islamic_quotes');
     return local ? JSON.parse(local) : ISLAMIC_QUOTES;
   });
+
+  const [heroSlides, setHeroSlidesState] = useState<HeroSlide[]>(() => {
+    const local = localStorage.getItem('mifta_hero_slides');
+    return local ? JSON.parse(local) : HERO_SLIDES;
+  });
+
+  const setHeroSlides: React.Dispatch<React.SetStateAction<HeroSlide[]>> = (action) => {
+    setHeroSlidesState((prev) => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      localStorage.setItem('mifta_hero_slides', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const setIslamicQuotes: React.Dispatch<React.SetStateAction<IslamicQuote[]>> = (action) => {
     setIslamicQuotesState((prev) => {
@@ -981,6 +998,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         deleteReview,
         islamicQuotes,
         setIslamicQuotes,
+        heroSlides,
+        setHeroSlides,
         toasts,
         addToast,
         removeToast,

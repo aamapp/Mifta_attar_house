@@ -3,7 +3,34 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Product, Category, Coupon, IslamicQuote } from './types';
+import { Product, Category, Coupon, IslamicQuote, HeroSlide } from './types';
+
+export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 'slide-1',
+    url: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&q=80&w=1200",
+    title: { en: "Premium Attar Collection", bn: "প্রিমিয়াম আতর কালেকশন" },
+    subtitle: { en: "Pure & Long Lasting", bn: "শতভাগ খাঁটি ও দীর্ঘস্থায়ী" }
+  },
+  {
+    id: 'slide-2',
+    url: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=1200",
+    title: { en: "Luxury Fragrances", bn: "বিলাসবহুল সুগন্ধি" },
+    subtitle: { en: "Imported from Dubai", bn: "দুবাই থেকে আমদানিকৃত" }
+  },
+  {
+    id: 'slide-3',
+    url: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1200",
+    title: { en: "Floral Extracts", bn: "ফ্লোরাল নির্যাস" },
+    subtitle: { en: "Essence of Nature", bn: "প্রকৃতির সতেজ সুবাস" }
+  },
+  {
+    id: 'slide-4',
+    url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1200",
+    title: { en: "Royal Oud Collection", bn: "রয়্যাল উদ কালেকশন" },
+    subtitle: { en: "The King of Fragrances", bn: "সুগন্ধির রাজা" }
+  }
+];
 
 export const CATEGORIES: Category[] = [
   {

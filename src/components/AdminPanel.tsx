@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Product, Coupon, Order, Review, IslamicQuote } from '../types';
+import { Product, Coupon, Order, Review, IslamicQuote, HeroSlide } from '../types';
 import {
   X,
   LayoutDashboard,
@@ -64,10 +64,12 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     syncAllToSupabase,
     refetchFromSupabase,
     islamicQuotes,
-    setIslamicQuotes
+    setIslamicQuotes,
+    heroSlides,
+    setHeroSlides
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'quotes' | 'settings' | 'supabase'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'quotes' | 'settings' | 'supabase' | 'hero'>('dashboard');
 
   // Secure Lock System PIN code states
   const [pin, setPin] = useState('');
@@ -126,6 +128,58 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     quote: { en: '', bn: '' },
     source: { en: '', bn: '' }
   });
+
+  const [isAddingHero, setIsAddingHero] = useState(false);
+  const [newHeroSlide, setNewHeroSlide] = useState<Omit<HeroSlide, 'id'>>({
+    url: '',
+    title: { en: '', bn: '' },
+    subtitle: { en: '', bn: '' }
+  });
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      addToast({ en: 'Please select an image file.', bn: 'দয়া করে একটি ছবি ফাইল নির্বাচন করুন।' }, 'error');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const publicUrl = await uploadProductImage(file);
+      if (publicUrl) {
+        setNewHeroSlide({ ...newHeroSlide, url: publicUrl });
+        addToast({ en: 'Hero image uploaded!', bn: 'হিরো ইমেজ আপলোড হয়েছে!' }, 'success');
+      }
+    } catch (error) {
+      console.error(error);
+      addToast({ en: 'Upload failed.', bn: 'আপলোড ব্যর্থ হয়েছে।' }, 'error');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleAddHeroSlide = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newHeroSlide.url) {
+      addToast({ en: 'Image is required.', bn: 'ছবি দেওয়া আবশ্যক।' }, 'error');
+      return;
+    }
+    const added: HeroSlide = {
+      ...newHeroSlide,
+      id: 'slide-' + Math.random().toString(36).substring(2, 9)
+    };
+    setHeroSlides(prev => [...prev, added]);
+    setIsAddingHero(false);
+    setNewHeroSlide({ url: '', title: { en: '', bn: '' }, subtitle: { en: '', bn: '' } });
+    addToast({ en: 'New hero slide added!', bn: 'নতুন হিরো স্লাইড যোগ করা হয়েছে!' }, 'success');
+  };
+
+  const handleDeleteHeroSlide = (id: string) => {
+    setHeroSlides(prev => prev.filter(s => s.id !== id));
+    addToast({ en: 'Hero slide removed.', bn: 'হিরো স্লাইড মুছে ফেলা হয়েছে।' }, 'info');
+  };
 
   const handleLocalFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean = false) => {
     const file = e.target.files?.[0];
@@ -425,6 +479,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 { id: 'coupons', label: `কুপনসমূহ (${coupons.length})`, icon: <Tags className="w-4 h-4" /> },
                 { id: 'reviews', label: `রিভিউসমূহ (${reviews.length})`, icon: <MessageSquare className="w-4 h-4" /> },
                 { id: 'quotes', label: `ইসলামিক বাণী (${islamicQuotes.length})`, icon: <HeartHandshake className="w-4 h-4" /> },
+                { id: 'hero', label: `হিরো ব্যানার (${heroSlides.length})`, icon: <Image className="w-4 h-4" /> },
                 { id: 'settings', label: `ওয়েবসাইটের লেখা`, icon: <RefreshCw className="w-4 h-4" /> },
                 { id: 'supabase', label: `সুপাবেস ডাটাবেস`, icon: <Database className="w-4 h-4" /> }
               ].map((tab) => (
@@ -1608,6 +1663,123 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             <div className="text-[9px] font-bold text-gold-600 uppercase mb-1">বাংলা</div>
                             <p className="text-xs text-stone-800 font-sans">"{q.quote.bn}"</p>
                             <p className="text-[10px] text-stone-400 mt-1">— {q.source.bn}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'hero' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center mb-2 text-left">
+                  <h3 className="font-bold text-sm text-stone-900 uppercase tracking-widest">হিরো ব্যানার ম্যানেজমেন্ট</h3>
+                  <span className="text-[10px] text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded-sm uppercase font-bold">হোমপেজ স্লাইডার</span>
+                </div>
+
+                {/* Add New Slide Form */}
+                <form onSubmit={handleAddHeroSlide} className="p-4 sm:p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4 shadow-sm text-left">
+                  <div className="text-[10px] font-bold text-gold-600 uppercase tracking-widest border-b border-stone-200 pb-2 mb-2 flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    <span>নতুন স্লাইড যুক্ত করুন</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">ব্যানার ছবি *</label>
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-full">
+                          <input
+                            type="text"
+                            required
+                            placeholder="Image URL"
+                            value={newHeroSlide.url}
+                            onChange={(e) => setNewHeroSlide({...newHeroSlide, url: e.target.value})}
+                            className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
+                          />
+                        </div>
+                        <label className="shrink-0 h-10 px-4 bg-stone-900 text-gold-500 text-[10px] font-bold uppercase tracking-widest rounded-sm flex items-center justify-center cursor-pointer hover:bg-black transition-all">
+                          {isUploadingImage ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                          <input type="file" className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
+                        </label>
+                      </div>
+                      {newHeroSlide.url && (
+                        <div className="mt-2 h-32 w-full overflow-hidden rounded-sm border border-stone-200 bg-stone-100">
+                          <img src={newHeroSlide.url} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (ইংরেজি) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newHeroSlide.title.en}
+                        onChange={(e) => setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, en: e.target.value}})}
+                        className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
+                        placeholder="Premium Collection"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (বাংলা) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newHeroSlide.title.bn}
+                        onChange={(e) => setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, bn: e.target.value}})}
+                        className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
+                        placeholder="প্রিমিয়াম কালেকশন"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (ইংরেজি) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newHeroSlide.subtitle.en}
+                        onChange={(e) => setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, en: e.target.value}})}
+                        className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
+                        placeholder="Pure Fragrance"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (বাংলা) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newHeroSlide.subtitle.bn}
+                        onChange={(e) => setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, bn: e.target.value}})}
+                        className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
+                        placeholder="বিশুদ্ধ সুবাস"
+                      />
+                    </div>
+                  </div>
+                  
+                  <button type="submit" className="w-full py-3 bg-stone-900 text-gold-500 font-bold rounded-sm text-xs tracking-widest uppercase hover:bg-black transition-colors cursor-pointer">
+                    স্লাইড যুক্ত করুন
+                  </button>
+                </form>
+
+                {/* Slides List */}
+                <div className="space-y-4">
+                  <h4 className="font-bold text-[10px] uppercase tracking-widest text-stone-400 text-left">বর্তমান স্লাইড সমূহ ({heroSlides.length})</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {heroSlides.map((slide) => (
+                      <div key={slide.id} className="rounded-sm border border-stone-200 bg-white overflow-hidden group text-left">
+                        <div className="h-40 w-full relative overflow-hidden">
+                          <img src={slide.url} alt={slide.title.en} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <button
+                            onClick={() => handleDeleteHeroSlide(slide.id)}
+                            className="absolute top-2 right-2 p-1.5 rounded-sm bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-red-100 hover:bg-red-500 hover:text-white z-10 shadow-lg"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-3">
+                            <p className="text-white font-bold text-xs">{slide.title.bn}</p>
+                            <p className="text-white/70 text-[10px]">{slide.subtitle.bn}</p>
                           </div>
                         </div>
                       </div>

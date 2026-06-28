@@ -108,3 +108,10 @@ export interface IslamicQuote {
   quote: { en: string; bn: string };
   source: { en: string; bn: string };
 }
+
+export interface HeroSlide {
+  id: string;
+  url: string;
+  title: { en: string; bn: string };
+  subtitle: { en: string; bn: string };
+}
