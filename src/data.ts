@@ -5,7 +5,44 @@
 
 import { Product, Category, Coupon, IslamicQuote, HeroSlide } from './types';
 
-export const HERO_SLIDES: HeroSlide[] = [];
+export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 'slide-1',
+    url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1200',
+    title: {
+      en: 'Premium Royal Oud & Attar',
+      bn: 'প্রিমিয়াম রাজকীয় উদ ও আতর কালেকশন'
+    },
+    subtitle: {
+      en: '100% Alcohol-Free Long Lasting Sunnah Fragrances',
+      bn: '১০০% অ্যালকোহল মুক্ত সুন্নাহ সম্মত দীর্ঘস্থায়ী সুগন্ধি'
+    }
+  },
+  {
+    id: 'slide-2',
+    url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=1200',
+    title: {
+      en: 'Mifta Attar House Special',
+      bn: 'মিফতা আতর হাউসের বিশেষ আয়োজন'
+    },
+    subtitle: {
+      en: 'Experience the Purity & Elegance in Every Drop',
+      bn: 'প্রতিটি ফোঁটায় অনুভব করুন শতভাগ পবিত্রতা ও আভিজাত্য'
+    }
+  },
+  {
+    id: 'slide-3',
+    url: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=1200',
+    title: {
+      en: 'Pure Organic & Sunnah Products',
+      bn: 'খাঁটি অর্গানিক ও সুন্নাহ প্রোডাক্টস'
+    },
+    subtitle: {
+      en: 'Premium Kalojira Oil, Natural Honey & Gifts',
+      bn: 'প্রিমিয়াম কালোজিরা তেল, খাঁটি মধু এবং এক্সক্লুসিভ গিফট বক্স'
+    }
+  }
+];
 
 export const CATEGORIES: Category[] = [
   {

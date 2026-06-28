@@ -428,7 +428,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const [heroSlides, setHeroSlidesState] = useState<HeroSlide[]>(() => {
     const local = localStorage.getItem('mifta_hero_slides');
-    return local ? JSON.parse(local) : HERO_SLIDES;
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing mifta_hero_slides:', e);
+      }
+    }
+    return HERO_SLIDES;
   });
 
   const setHeroSlides: React.Dispatch<React.SetStateAction<HeroSlide[]>> = (action) => {

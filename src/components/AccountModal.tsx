@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { Product } from '../types';
 import {
   X,
+  ArrowLeft,
   User,
   ShoppingBag,
   Heart,
@@ -135,9 +136,35 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
   const wishlistedProducts = products.filter((p) => wishlist.includes(p.id));
 
   return (
-    <div className="fixed inset-0 z-50 bg-white text-stone-900 overflow-y-auto pb-safe">
-      <div className="relative min-h-screen w-full max-w-7xl mx-auto p-6 sm:p-12 pb-32 sm:pb-32">
-        
+    <div className="fixed inset-0 z-50 bg-white text-stone-900 flex flex-col h-screen overflow-hidden pb-safe">
+      {/* Top Sticky Header */}
+      <div className="sticky top-0 bg-white border-b border-stone-100 z-40 w-full shadow-xs shrink-0">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-lg text-stone-700 hover:text-stone-950 hover:bg-stone-50 transition-all font-sans font-bold text-sm sm:text-base cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 text-orange-600 shrink-0" />
+            <span className="font-extrabold text-stone-850 text-sm sm:text-base">{language === 'en' ? 'Back to Shop' : 'হোমে ফিরে যান'}</span>
+          </button>
+          
+          <h2 className="hidden sm:block font-serif text-xs uppercase tracking-widest font-bold text-stone-850">
+            {language === 'en' ? 'My Account' : 'আমার অ্যাকাউন্ট'}
+          </h2>
+          
+          <button
+            onClick={onClose}
+            className="p-1.5 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 hover:text-stone-950 hover:bg-stone-50 hover:scale-105 shadow-xs transition-all cursor-pointer"
+            title={language === 'en' ? 'Close' : 'বন্ধ করুন'}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="relative w-full max-w-7xl mx-auto p-6 sm:p-12 pb-32 sm:pb-32">
         {/* AUTHENTICATION SHIELD GATE (IF LOGGED OUT) */}
         {!user ? (
           <div className="max-w-md mx-auto py-6 space-y-6 text-center">
@@ -651,6 +678,7 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
           </div>
         )}
 
+        </div>
       </div>
     </div>
   );
