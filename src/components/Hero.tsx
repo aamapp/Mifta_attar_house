@@ -49,38 +49,44 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
                 referrerPolicy="no-referrer"
               />
               
-              {/* Glassmorphism Overlay - Slim and Transparent */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent flex items-center px-4 sm:px-8 md:px-12">
-                <div className="max-w-[75%] sm:max-w-md backdrop-blur-md bg-white/10 p-3 sm:p-5 rounded-xl border border-white/20 shadow-xl">
-                  <motion.h2 
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-white text-base sm:text-2xl md:text-3xl font-extrabold leading-tight"
-                  >
-                    {language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
-                  </motion.h2>
-                  <motion.p 
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium mt-0.5 sm:mt-1"
-                  >
-                    {language === 'en' ? heroSlides[currentIndex].subtitle.en : heroSlides[currentIndex].subtitle.bn}
-                  </motion.p>
-                  
-                  <motion.div
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="mt-2 sm:mt-4"
-                  >
-                    <span className="inline-block bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-[10px] sm:text-xs font-bold py-1 sm:py-1.5 px-3 sm:px-5 rounded-full transition-all transform active:scale-95">
-                      {language === 'en' ? 'Shop Now' : 'আজই অর্ডার করুন'}
-                    </span>
-                  </motion.div>
+              {/* Glassmorphism Overlay - Only if text exists */}
+              {(heroSlides[currentIndex].title.en || heroSlides[currentIndex].title.bn || heroSlides[currentIndex].subtitle.en || heroSlides[currentIndex].subtitle.bn) && (
+                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent flex items-center px-4 sm:px-8 md:px-12">
+                  <div className="max-w-[75%] sm:max-w-md backdrop-blur-md bg-white/10 p-3 sm:p-5 rounded-xl border border-white/20 shadow-xl">
+                    {(heroSlides[currentIndex].title.en || heroSlides[currentIndex].title.bn) && (
+                      <motion.h2 
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-white text-base sm:text-2xl md:text-3xl font-extrabold leading-tight"
+                      >
+                        {language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
+                      </motion.h2>
+                    )}
+                    {(heroSlides[currentIndex].subtitle.en || heroSlides[currentIndex].subtitle.bn) && (
+                      <motion.p 
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium mt-0.5 sm:mt-1"
+                      >
+                        {language === 'en' ? heroSlides[currentIndex].subtitle.en : heroSlides[currentIndex].subtitle.bn}
+                      </motion.p>
+                    )}
+                    
+                    <motion.div
+                      initial={{ y: 10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="mt-2 sm:mt-4"
+                    >
+                      <span className="inline-block bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-[10px] sm:text-xs font-bold py-1 sm:py-1.5 px-3 sm:px-5 rounded-full transition-all transform active:scale-95">
+                        {language === 'en' ? 'Shop Now' : 'আজই অর্ডার করুন'}
+                      </span>
+                    </motion.div>
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           </AnimatePresence>
 

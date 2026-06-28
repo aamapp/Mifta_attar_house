@@ -19,6 +19,7 @@ import {
   Briefcase,
   Plus,
   Trash2,
+  Edit,
   Check,
   Percent,
   RefreshCw,
@@ -130,13 +131,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   });
 
   const [isAddingHero, setIsAddingHero] = useState(false);
+  const [editingHeroSlide, setEditingHeroSlide] = useState<HeroSlide | null>(null);
   const [newHeroSlide, setNewHeroSlide] = useState<Omit<HeroSlide, 'id'>>({
     url: '',
     title: { en: '', bn: '' },
     subtitle: { en: '', bn: '' }
   });
 
-  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -149,7 +151,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     try {
       const publicUrl = await uploadProductImage(file);
       if (publicUrl) {
-        setNewHeroSlide({ ...newHeroSlide, url: publicUrl });
+        if (isEditing && editingHeroSlide) {
+          setEditingHeroSlide({ ...editingHeroSlide, url: publicUrl });
+        } else {
+          setNewHeroSlide({ ...newHeroSlide, url: publicUrl });
+        }
         addToast({ en: 'Hero image uploaded!', bn: 'হিরো ইমেজ আপলোড হয়েছে!' }, 'success');
       }
     } catch (error) {
@@ -174,6 +180,17 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setIsAddingHero(false);
     setNewHeroSlide({ url: '', title: { en: '', bn: '' }, subtitle: { en: '', bn: '' } });
     addToast({ en: 'New hero slide added!', bn: 'নতুন হিরো স্লাইড যোগ করা হয়েছে!' }, 'success');
+  };
+
+  const handleUpdateHeroSlide = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHeroSlide || !editingHeroSlide.url) {
+      addToast({ en: 'Image is required.', bn: 'ছবি দেওয়া আবশ্যক।' }, 'error');
+      return;
+    }
+    setHeroSlides(prev => prev.map(s => s.id === editingHeroSlide.id ? editingHeroSlide : s));
+    setEditingHeroSlide(null);
+    addToast({ en: 'Hero slide updated!', bn: 'হিরো স্লাইড আপডেট হয়েছে!' }, 'success');
   };
 
   const handleDeleteHeroSlide = (id: string) => {
@@ -1679,11 +1696,25 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <span className="text-[10px] text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded-sm uppercase font-bold">হোমপেজ স্লাইডার</span>
                 </div>
 
-                {/* Add New Slide Form */}
-                <form onSubmit={handleAddHeroSlide} className="p-4 sm:p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4 shadow-sm text-left">
-                  <div className="text-[10px] font-bold text-gold-600 uppercase tracking-widest border-b border-stone-200 pb-2 mb-2 flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    <span>নতুন স্লাইড যুক্ত করুন</span>
+                {/* Add/Edit Slide Form */}
+                <form 
+                  onSubmit={editingHeroSlide ? handleUpdateHeroSlide : handleAddHeroSlide} 
+                  className={`p-4 sm:p-5 rounded-sm border space-y-4 shadow-sm text-left transition-all ${editingHeroSlide ? 'border-gold-500 bg-gold-50/30' : 'border-stone-200 bg-stone-50'}`}
+                >
+                  <div className="flex justify-between items-center border-b border-stone-200 pb-2 mb-2">
+                    <div className="text-[10px] font-bold text-gold-600 uppercase tracking-widest flex items-center gap-2">
+                      {editingHeroSlide ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      <span>{editingHeroSlide ? 'স্লাইড এডিট করুন' : 'নতুন স্লাইড যুক্ত করুন'}</span>
+                    </div>
+                    {editingHeroSlide && (
+                      <button 
+                        type="button"
+                        onClick={() => setEditingHeroSlide(null)}
+                        className="text-[9px] uppercase font-bold text-stone-400 hover:text-stone-600"
+                      >
+                        বাতিল করুন
+                      </button>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1695,63 +1726,74 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             type="text"
                             required
                             placeholder="Image URL"
-                            value={newHeroSlide.url}
-                            onChange={(e) => setNewHeroSlide({...newHeroSlide, url: e.target.value})}
+                            value={editingHeroSlide ? editingHeroSlide.url : newHeroSlide.url}
+                            onChange={(e) => {
+                              if (editingHeroSlide) setEditingHeroSlide({...editingHeroSlide, url: e.target.value});
+                              else setNewHeroSlide({...newHeroSlide, url: e.target.value});
+                            }}
                             className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
                           />
                         </div>
                         <label className="shrink-0 h-10 px-4 bg-stone-900 text-gold-500 text-[10px] font-bold uppercase tracking-widest rounded-sm flex items-center justify-center cursor-pointer hover:bg-black transition-all">
                           {isUploadingImage ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                          <input type="file" className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleHeroImageUpload(e, !!editingHeroSlide)} />
                         </label>
                       </div>
-                      {newHeroSlide.url && (
+                      {(editingHeroSlide ? editingHeroSlide.url : newHeroSlide.url) && (
                         <div className="mt-2 h-32 w-full overflow-hidden rounded-sm border border-stone-200 bg-stone-100">
-                          <img src={newHeroSlide.url} alt="Preview" className="w-full h-full object-cover" />
+                          <img src={editingHeroSlide ? editingHeroSlide.url : newHeroSlide.url} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                       )}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (ইংরেজি) *</label>
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (ইংরেজি)</label>
                       <input
                         type="text"
-                        required
-                        value={newHeroSlide.title.en}
-                        onChange={(e) => setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, en: e.target.value}})}
+                        value={editingHeroSlide ? editingHeroSlide.title.en : newHeroSlide.title.en}
+                        onChange={(e) => {
+                          if (editingHeroSlide) setEditingHeroSlide({...editingHeroSlide, title: {...editingHeroSlide.title, en: e.target.value}});
+                          else setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, en: e.target.value}});
+                        }}
                         className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
                         placeholder="Premium Collection"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (বাংলা) *</label>
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">শিরোনাম (বাংলা)</label>
                       <input
                         type="text"
-                        required
-                        value={newHeroSlide.title.bn}
-                        onChange={(e) => setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, bn: e.target.value}})}
+                        value={editingHeroSlide ? editingHeroSlide.title.bn : newHeroSlide.title.bn}
+                        onChange={(e) => {
+                          if (editingHeroSlide) setEditingHeroSlide({...editingHeroSlide, title: {...editingHeroSlide.title, bn: e.target.value}});
+                          else setNewHeroSlide({...newHeroSlide, title: {...newHeroSlide.title, bn: e.target.value}});
+                        }}
                         className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
                         placeholder="প্রিমিয়াম কালেকশন"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (ইংরেজি) *</label>
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (ইংরেজি)</label>
                       <input
                         type="text"
-                        required
-                        value={newHeroSlide.subtitle.en}
-                        onChange={(e) => setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, en: e.target.value}})}
+                        value={editingHeroSlide ? editingHeroSlide.subtitle.en : newHeroSlide.subtitle.en}
+                        onChange={(e) => {
+                          if (editingHeroSlide) setEditingHeroSlide({...editingHeroSlide, subtitle: {...editingHeroSlide.subtitle, en: e.target.value}});
+                          else setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, en: e.target.value}});
+                        }}
                         className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
                         placeholder="Pure Fragrance"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (বাংলা) *</label>
+                      <label className="block text-[9px] uppercase font-bold text-stone-500">সাবটাইটেল (বাংলা)</label>
                       <input
                         type="text"
-                        required
-                        value={newHeroSlide.subtitle.bn}
-                        onChange={(e) => setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, bn: e.target.value}})}
+                        value={editingHeroSlide ? editingHeroSlide.subtitle.bn : newHeroSlide.subtitle.bn}
+                        onChange={(e) => {
+                          if (editingHeroSlide) setEditingHeroSlide({...editingHeroSlide, subtitle: {...editingHeroSlide.subtitle, bn: e.target.value}});
+                          else setNewHeroSlide({...newHeroSlide, subtitle: {...newHeroSlide.subtitle, bn: e.target.value}});
+                        }}
                         className="w-full h-10 px-3 rounded-sm border border-stone-200 bg-white text-xs focus:outline-none focus:border-gold-500"
                         placeholder="বিশুদ্ধ সুবাস"
                       />
@@ -1759,7 +1801,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   </div>
                   
                   <button type="submit" className="w-full py-3 bg-stone-900 text-gold-500 font-bold rounded-sm text-xs tracking-widest uppercase hover:bg-black transition-colors cursor-pointer">
-                    স্লাইড যুক্ত করুন
+                    {editingHeroSlide ? 'হিরো ব্যানার আপডেট করুন' : 'স্লাইড যুক্ত করুন'}
                   </button>
                 </form>
 
@@ -1768,18 +1810,26 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <h4 className="font-bold text-[10px] uppercase tracking-widest text-stone-400 text-left">বর্তমান স্লাইড সমূহ ({heroSlides.length})</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {heroSlides.map((slide) => (
-                      <div key={slide.id} className="rounded-sm border border-stone-200 bg-white overflow-hidden group text-left">
+                      <div key={slide.id} className={`rounded-sm border overflow-hidden group text-left transition-all ${editingHeroSlide?.id === slide.id ? 'border-gold-500 shadow-lg scale-[1.02]' : 'border-stone-200 bg-white'}`}>
                         <div className="h-40 w-full relative overflow-hidden">
                           <img src={slide.url} alt={slide.title.en} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <button
-                            onClick={() => handleDeleteHeroSlide(slide.id)}
-                            className="absolute top-2 right-2 p-1.5 rounded-sm bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-red-100 hover:bg-red-500 hover:text-white z-10 shadow-lg"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <button
+                              onClick={() => setEditingHeroSlide(slide)}
+                              className="p-1.5 rounded-sm bg-white text-stone-600 border border-stone-200 hover:bg-gold-500 hover:text-white hover:border-gold-500 transition-all cursor-pointer shadow-sm"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteHeroSlide(slide.id)}
+                              className="p-1.5 rounded-sm bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-3">
-                            <p className="text-white font-bold text-xs">{slide.title.bn}</p>
-                            <p className="text-white/70 text-[10px]">{slide.subtitle.bn}</p>
+                            <p className="text-white font-bold text-xs">{slide.title.bn || 'Untitled'}</p>
+                            <p className="text-white/70 text-[10px]">{slide.subtitle.bn || 'No subtitle'}</p>
                           </div>
                         </div>
                       </div>
