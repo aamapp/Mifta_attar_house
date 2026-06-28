@@ -308,26 +308,28 @@ export default function App() {
       <FloatingButtons />
 
       {/* 9. Mobile Bottom Navigation */}
-      <BottomNavigation
-        onOpenCart={() => {
-          setAccountOpen(false);
-          setCartOpen(true);
-        }}
-        onOpenAccount={() => {
-          setCartOpen(false);
-          setAccountOpen(true);
-        }}
-        onScrollToSection={(sectionId) => {
-          setCartOpen(false);
-          setAccountOpen(false);
-          if (sectionId === 'hero') {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            const el = document.getElementById(sectionId);
-            el?.scrollIntoView({ behavior: 'smooth' });
-          }
-        }}
-      />
+      {!adminOpen && (
+        <BottomNavigation
+          onOpenCart={() => {
+            setAccountOpen(false);
+            setCartOpen(true);
+          }}
+          onOpenAccount={() => {
+            setCartOpen(false);
+            setAccountOpen(true);
+          }}
+          onScrollToSection={(sectionId) => {
+            setCartOpen(false);
+            setAccountOpen(false);
+            if (sectionId === 'hero') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              const el = document.getElementById(sectionId);
+              el?.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+        />
+      )}
 
       {/* =========================================
           MODALS CHANNELS & DRAWER MANAGERS

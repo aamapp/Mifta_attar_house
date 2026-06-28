@@ -1813,18 +1813,18 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       <div key={slide.id} className={`rounded-sm border overflow-hidden group text-left transition-all ${editingHeroSlide?.id === slide.id ? 'border-gold-500 shadow-lg scale-[1.02]' : 'border-stone-200 bg-white'}`}>
                         <div className="h-40 w-full relative overflow-hidden">
                           <img src={slide.url} alt={slide.title.en} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <div className="absolute top-2 right-2 flex gap-1.5 z-10">
                             <button
                               onClick={() => setEditingHeroSlide(slide)}
-                              className="p-1.5 rounded-sm bg-white text-stone-600 border border-stone-200 hover:bg-gold-500 hover:text-white hover:border-gold-500 transition-all cursor-pointer shadow-sm"
+                              className="p-2 rounded-sm bg-white text-stone-600 border border-stone-200 hover:bg-gold-500 hover:text-white hover:border-gold-500 transition-all cursor-pointer shadow-md"
                             >
-                              <Edit className="w-3.5 h-3.5" />
+                              <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteHeroSlide(slide.id)}
-                              className="p-1.5 rounded-sm bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm"
+                              className="p-2 rounded-sm bg-white text-red-500 border border-stone-200 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-md"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-3">

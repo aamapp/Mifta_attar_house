@@ -16,8 +16,15 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
   const { language, heroSlides } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Safety check to ensure currentIndex is always within bounds
   useEffect(() => {
-    if (heroSlides.length === 0) return;
+    if (heroSlides.length > 0 && currentIndex >= heroSlides.length) {
+      setCurrentIndex(0);
+    }
+  }, [heroSlides.length, currentIndex]);
+
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
@@ -25,6 +32,9 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
   }, [heroSlides.length]);
 
   if (heroSlides.length === 0) return null;
+
+  const currentSlide = heroSlides[currentIndex];
+  if (!currentSlide) return null;
 
   return (
     <section id="hero" className="w-full bg-white pb-4 pt-1">
@@ -43,34 +53,34 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
               className="absolute inset-0"
             >
               <img 
-                src={heroSlides[currentIndex].url} 
-                alt={language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
+                src={currentSlide.url} 
+                alt={language === 'en' ? currentSlide.title.en : currentSlide.title.bn}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
               
               {/* Glassmorphism Overlay - Only if text exists */}
-              {(heroSlides[currentIndex].title.en || heroSlides[currentIndex].title.bn || heroSlides[currentIndex].subtitle.en || heroSlides[currentIndex].subtitle.bn) && (
+              {(currentSlide.title.en || currentSlide.title.bn || currentSlide.subtitle.en || currentSlide.subtitle.bn) && (
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent flex items-center px-4 sm:px-8 md:px-12">
                   <div className="max-w-[75%] sm:max-w-md backdrop-blur-md bg-white/10 p-3 sm:p-5 rounded-xl border border-white/20 shadow-xl">
-                    {(heroSlides[currentIndex].title.en || heroSlides[currentIndex].title.bn) && (
+                    {(currentSlide.title.en || currentSlide.title.bn) && (
                       <motion.h2 
                         initial={{ y: 10, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                         className="text-white text-base sm:text-2xl md:text-3xl font-extrabold leading-tight"
                       >
-                        {language === 'en' ? heroSlides[currentIndex].title.en : heroSlides[currentIndex].title.bn}
+                        {language === 'en' ? currentSlide.title.en : currentSlide.title.bn}
                       </motion.h2>
                     )}
-                    {(heroSlides[currentIndex].subtitle.en || heroSlides[currentIndex].subtitle.bn) && (
+                    {(currentSlide.subtitle.en || currentSlide.subtitle.bn) && (
                       <motion.p 
                         initial={{ y: 10, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.3 }}
                         className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium mt-0.5 sm:mt-1"
                       >
-                        {language === 'en' ? heroSlides[currentIndex].subtitle.en : heroSlides[currentIndex].subtitle.bn}
+                        {language === 'en' ? currentSlide.subtitle.en : currentSlide.subtitle.bn}
                       </motion.p>
                     )}
                     
