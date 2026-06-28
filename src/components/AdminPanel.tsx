@@ -79,7 +79,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     islamicQuotes,
     setIslamicQuotes,
     heroSlides,
-    setHeroSlides
+    setHeroSlides,
+    user
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'quotes' | 'settings' | 'supabase' | 'hero'>('dashboard');
@@ -873,6 +874,37 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         className="w-full py-1.5 border border-emerald-200 text-emerald-600 text-[9px] font-bold uppercase tracking-widest rounded-sm hover:bg-emerald-100 transition-colors cursor-pointer"
                       >
                         {language === 'en' ? 'Send Test Notification' : 'টেস্ট নোটিফিকেশন পাঠান'}
+                      </button>
+                      
+                      <button 
+                        onClick={async () => {
+                          if (!user) {
+                            addToast({ en: 'You must be logged in to test FCM.', bn: 'FCM টেস্ট করার জন্য আপনাকে লগইন করতে হবে।' }, 'error');
+                            return;
+                          }
+                          try {
+                            const res = await fetch('/api/send-push', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                userId: user.uid,
+                                title: 'FCM Test Success',
+                                body: 'Your Android device received the push notification successfully!'
+                              })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              addToast({ en: 'FCM Push Sent Successfully!', bn: 'FCM পুশ সফলভাবে পাঠানো হয়েছে!' }, 'success');
+                            } else {
+                              addToast({ en: `FCM Error: ${data.error}`, bn: `FCM ত্রুটি: ${data.error}` }, 'error');
+                            }
+                          } catch (e) {
+                            addToast({ en: 'Failed to trigger FCM push.', bn: 'FCM পুশ পাঠাতে ব্যর্থ হয়েছে।' }, 'error');
+                          }
+                        }}
+                        className="w-full py-1.5 border border-amber-200 text-amber-600 text-[9px] font-bold uppercase tracking-widest rounded-sm hover:bg-amber-100 transition-colors cursor-pointer"
+                      >
+                        {language === 'en' ? 'Test FCM Push (Android)' : 'FCM পুশ টেস্ট করুন (Android)'}
                       </button>
                     </div>
 

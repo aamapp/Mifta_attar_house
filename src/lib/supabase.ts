@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Product, Order, Review, Coupon, AppNotification } from '../types';
+import { Product, Order, Review, Coupon, AppNotification, UserProfile } from '../types';
 
 // Read values from Vite environment or fall back to the provided values directly
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
@@ -398,6 +398,78 @@ export async function markAllSupabaseNotificationsRead() {
   }
 }
 
+// 5.6. USER PROFILES & FCM HELPERS
+export async function getSupabaseUserProfile(uid: string): Promise<UserProfile | null> {
+  try {
+    const { data, error } = await supabase
+      .from('mifta_user_profiles')
+      .select('*')
+      .eq('uid', uid)
+      .single();
+    
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+      uid: data.uid,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      district: data.district,
+      division: data.division,
+      upazila: data.upazila,
+      photoURL: data.photo_url,
+      wishlist: data.wishlist || [],
+      recentlyViewed: data.recently_viewed || [],
+      fcmToken: data.fcm_token
+    };
+  } catch (err) {
+    console.warn('Supabase user profile fetch failed:', err);
+    return null;
+  }
+}
+
+export async function saveSupabaseUserProfile(profile: UserProfile) {
+  try {
+    const { error } = await supabase
+      .from('mifta_user_profiles')
+      .upsert({
+        uid: profile.uid,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        address: profile.address,
+        district: profile.district,
+        division: profile.division,
+        upazila: profile.upazila,
+        photo_url: profile.photoURL,
+        wishlist: profile.wishlist,
+        recently_viewed: profile.recentlyViewed,
+        fcm_token: profile.fcmToken
+      }, { onConflict: 'uid' });
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Supabase user profile upsert failed:', err);
+    return false;
+  }
+}
+
+export async function updateSupabaseFCMToken(uid: string, token: string) {
+  try {
+    const { error } = await supabase
+      .from('mifta_user_profiles')
+      .update({ fcm_token: token })
+      .eq('uid', uid);
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Supabase FCM token update failed:', err);
+    return false;
+  }
+}
+
 // 6. DB CONNECTION CHECK
 export async function checkSupabaseConnection(): Promise<{
   connected: boolean;
@@ -410,6 +482,7 @@ export async function checkSupabaseConnection(): Promise<{
     mifta_reviews: await testTableAccess('mifta_reviews'),
     mifta_coupons: await testTableAccess('mifta_coupons'),
     mifta_notifications: await testTableAccess('mifta_notifications'),
+    mifta_user_profiles: await testTableAccess('mifta_user_profiles'),
   };
 
   const connected = Object.values(tables).some((t) => t === true);
@@ -561,6 +634,27 @@ CREATE TABLE IF NOT EXISTS public.mifta_notifications (
 ALTER TABLE public.mifta_notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read notifications" ON public.mifta_notifications FOR SELECT USING (true);
 CREATE POLICY "Allow public write notifications" ON public.mifta_notifications FOR ALL USING (true);
+
+-- 5.6. Create mifta_user_profiles table
+CREATE TABLE IF NOT EXISTS public.mifta_user_profiles (
+  uid TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  address TEXT,
+  district TEXT,
+  division TEXT,
+  upazila TEXT,
+  photo_url TEXT,
+  wishlist JSONB DEFAULT '[]'::jsonb,
+  recently_viewed JSONB DEFAULT '[]'::jsonb,
+  fcm_token TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.mifta_user_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read profiles" ON public.mifta_user_profiles FOR SELECT USING (true);
+CREATE POLICY "Allow public write profiles" ON public.mifta_user_profiles FOR ALL USING (true);
 
 -- 6. Storage Bucket Setup
 INSERT INTO storage.buckets (id, name, public) 

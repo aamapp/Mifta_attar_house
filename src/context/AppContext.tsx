@@ -25,8 +25,22 @@ import {
   deleteSupabaseNotification,
   markSupabaseNotificationAsRead,
   markAllSupabaseNotificationsRead,
-  checkSupabaseConnection
+  checkSupabaseConnection,
+  getSupabaseUserProfile,
+  saveSupabaseUserProfile,
+  updateSupabaseFCMToken
 } from '../lib/supabase';
+import {
+  saveFirebaseUserProfile,
+  updateFirebaseFCMToken,
+  getFirebaseUserProfile
+} from '../lib/firebase-helpers';
+
+declare global {
+  interface Window {
+    receiveFCMTokenFromAndroid: (token: string | null) => void;
+  }
+}
 
 interface AppContextType {
   language: Language;
@@ -96,6 +110,9 @@ interface AppContextType {
   deleteNotification: (id: string) => void;
   setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>;
   
+  // FCM Token
+  fcmToken: string | null;
+
   // Dynamic Website Custom Contents
   websiteSettings: {
     heroTitleEn: string;
@@ -489,6 +506,44 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return local ? JSON.parse(local) : [];
   });
 
+  const [fcmToken, setFcmToken] = useState<string | null>(() => {
+    return localStorage.getItem('fcm_token_cache');
+  });
+
+  // Global interface for Android WebView to pass FCM token
+  useEffect(() => {
+    window.receiveFCMTokenFromAndroid = (token: string | null) => {
+      console.log('Received FCM Token from Android:', token);
+      if (token) {
+        setFcmToken(token);
+        localStorage.setItem('fcm_token_cache', token);
+      }
+    };
+
+    return () => {
+      // @ts-ignore
+      delete window.receiveFCMTokenFromAndroid;
+    };
+  }, []);
+
+  // Update FCM token in database when user is logged in
+  useEffect(() => {
+    if (user && fcmToken && user.uid !== 'mifta-guest-user') {
+      if (user.fcmToken !== fcmToken) {
+        // Update Supabase
+        updateSupabaseFCMToken(user.uid, fcmToken).catch(err => 
+          console.error('Error syncing FCM token to Supabase:', err)
+        );
+        // Update Firebase Firestore
+        updateFirebaseFCMToken(user.uid, fcmToken).catch(err =>
+          console.error('Error syncing FCM token to Firebase:', err)
+        );
+        // Also update local state
+        setUser(prev => prev ? { ...prev, fcmToken } : null);
+      }
+    }
+  }, [user?.uid, fcmToken]);
+
   const [islamicQuotes, setIslamicQuotesState] = useState<IslamicQuote[]>(() => {
     const local = localStorage.getItem('mifta_islamic_quotes');
     return local ? JSON.parse(local) : ISLAMIC_QUOTES;
@@ -854,9 +909,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       name,
       email,
       wishlist: [],
-      recentlyViewed: []
+      recentlyViewed: [],
+      fcmToken: fcmToken || undefined
     };
     setUser(newUser);
+    
+    // Sync to Supabase
+    saveSupabaseUserProfile(newUser);
+    // Sync to Firebase
+    saveFirebaseUserProfile(newUser);
+
     addToast(
       { en: `Welcome back, ${name}!`, bn: `আবারো স্বাগতম, ${name}!` },
       'success'
@@ -873,7 +935,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateProfile = (profile: Partial<UserProfile>) => {
-    setUser((prev) => (prev ? { ...prev, ...profile } : null));
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...profile };
+      // Sync to Supabase
+      saveSupabaseUserProfile(updated);
+      // Sync to Firebase
+      saveFirebaseUserProfile(updated);
+      return updated;
+    });
     addToast(
       { en: 'Profile updated successfully.', bn: 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে।' },
       'success'
@@ -1124,6 +1194,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         markAllNotificationsAsRead,
         deleteNotification,
         setNotifications,
+        fcmToken,
         resetAppData,
         supabaseStatus,
         syncingWithSupabase,

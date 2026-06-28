@@ -75,6 +75,7 @@ export interface UserProfile {
   photoURL?: string;
   wishlist: string[]; // product IDs
   recentlyViewed: string[]; // product IDs
+  fcmToken?: string;
 }
 
 export interface Order {
