@@ -183,6 +183,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           if (settings) {
             setWebsiteSettings(settings);
             localStorage.setItem('mifta_website_settings', JSON.stringify(settings));
+            // Sync hero slides state if they are saved in settings
+            if (settings.heroSlides && Array.isArray(settings.heroSlides) && settings.heroSlides.length > 0) {
+              setHeroSlidesState(settings.heroSlides);
+              localStorage.setItem('mifta_hero_slides', JSON.stringify(settings.heroSlides));
+            }
           }
         }
 
@@ -438,6 +443,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error parsing mifta_hero_slides:', e);
       }
     }
+    // Try falling back to the heroSlides embedded in local website settings if any
+    const localSettings = localStorage.getItem('mifta_website_settings');
+    if (localSettings) {
+      try {
+        const parsedSettings = JSON.parse(localSettings);
+        if (parsedSettings && parsedSettings.heroSlides && Array.isArray(parsedSettings.heroSlides) && parsedSettings.heroSlides.length > 0) {
+          return parsedSettings.heroSlides;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
     return HERO_SLIDES;
   });
 
@@ -445,6 +462,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setHeroSlidesState((prev) => {
       const next = typeof action === 'function' ? action(prev) : action;
       localStorage.setItem('mifta_hero_slides', JSON.stringify(next));
+
+      // Synchronize embedded heroSlides into websiteSettings
+      setWebsiteSettings((prevSettings: any) => {
+        const updated = { ...prevSettings, heroSlides: next };
+        localStorage.setItem('mifta_website_settings', JSON.stringify(updated));
+
+        // Sync to Supabase in background
+        if (supabaseStatus.connected && supabaseStatus.tables.mifta_website_settings) {
+          saveSupabaseWebsiteSettings(updated).catch((err) =>
+            console.error('Error background syncing website settings with hero slides:', err)
+          );
+        }
+        return updated;
+      });
+
       return next;
     });
   };
