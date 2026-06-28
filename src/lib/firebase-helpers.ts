@@ -21,13 +21,13 @@ export async function updateFirebaseFCMToken(uid: string, token: string) {
   if (!db) return false;
   try {
     const userRef = doc(db, "mifta_user_profiles", uid);
-    await updateDoc(userRef, {
+    // Use setDoc with merge: true instead of updateDoc to ensure it works even if doc doesn't exist
+    await setDoc(userRef, {
       fcmToken: token,
       updatedAt: new Date().toISOString()
-    });
+    }, { merge: true });
     return true;
   } catch (err) {
-    // If doc doesn't exist, we might need to create it, but usually update is fine if profile was created
     console.error("Firebase FCM token update failed:", err);
     return false;
   }

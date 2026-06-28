@@ -76,8 +76,15 @@ async function startServer() {
       }
 
       if (!fcmToken) {
-        return res.status(404).json({ error: "FCM token not found for user." });
+        console.error(`FCM Token not found for user: ${userId}`);
+        return res.status(404).json({ 
+          success: false,
+          error: "TOKEN_NOT_FOUND",
+          details: "ডাটাবেসে এই ইউজারের জন্য কোনো FCM Token পাওয়া যায়নি। অ্যান্ড্রয়েড অ্যাপ থেকে টোকেনটি ঠিকমতো সিঙ্ক হয়েছে কিনা চেক করুন।" 
+        });
       }
+
+      console.log(`Attempting to send FCM notification to token: ${fcmToken.substring(0, 15)}...`);
 
       // 3. Send notification via Firebase Admin SDK (V1 API)
       const message = {
@@ -88,15 +95,27 @@ async function startServer() {
         data: data || {},
         token: fcmToken,
         android: {
+          priority: 'high' as const,
           notification: {
             clickAction: "OPEN_ACTIVITY_1",
-            sound: "default"
+            sound: "default",
+            channelId: "default_channel_id" // Make sure this matches Android side
           }
         }
       };
 
-      const response = await getMessaging().send(message);
-      res.json({ success: true, messageId: response });
+      try {
+        const response = await getMessaging().send(message);
+        console.log("Successfully sent message:", response);
+        res.json({ success: true, messageId: response });
+      } catch (fcmError: any) {
+        console.error("FCM Send Error:", fcmError);
+        res.status(500).json({ 
+          success: false, 
+          error: "FCM_SEND_FAILED", 
+          details: fcmError.message || "ফায়ারবেস সার্ভারে মেসেজ পাঠাতে ব্যর্থ হয়েছে।" 
+        });
+      }
     } catch (error: any) {
       console.error("Push Notification error:", error);
       res.status(500).json({ error: error.message || "Failed to send push notification." });

@@ -896,7 +896,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             if (data.success) {
                               addToast({ en: 'FCM Push Sent Successfully!', bn: 'FCM পুশ সফলভাবে পাঠানো হয়েছে!' }, 'success');
                             } else {
-                              addToast({ en: `FCM Error: ${data.error}`, bn: `FCM ত্রুটি: ${data.error}` }, 'error');
+                              const detailMsg = data.details ? ` (${data.details})` : '';
+                              addToast({ 
+                                en: `FCM Error: ${data.error}${detailMsg}`, 
+                                bn: `FCM ত্রুটি: ${data.error}${detailMsg}` 
+                              }, 'error');
                             }
                           } catch (e) {
                             addToast({ en: 'Failed to trigger FCM push.', bn: 'FCM পুশ পাঠাতে ব্যর্থ হয়েছে।' }, 'error');
