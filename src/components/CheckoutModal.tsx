@@ -134,7 +134,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     }
   }
 
-  const shipping = formData.deliveryOption === 'dhaka' ? 60 : 120;
+  const shipping = formData.deliveryOption === 'dhaka' ? 80 : 160;
   const total = subtotal - discount + shipping;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -363,7 +363,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                             className="text-gold-500 focus:ring-0"
                           />
                           <div className="text-xs">
-                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Dhaka (৳60)' : 'ঢাকার ভিতরে (৳৬০)'}</span>
+                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Dhaka (৳80)' : 'ঢাকার ভিতরে (৳৮০)'}</span>
                             <span className="text-stone-500">{language === 'en' ? '1-2 Days Delivery' : '১-২ দিনে ডেলিভারি'}</span>
                           </div>
                         </label>
@@ -377,7 +377,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                             className="text-gold-500 focus:ring-0"
                           />
                           <div className="text-xs">
-                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Outside Dhaka (৳120)' : 'ঢাকার বাইরে (৳১২০)'}</span>
+                            <span className="font-bold block text-stone-900">{language === 'en' ? 'Outside Dhaka (৳160)' : 'ঢাকার বাইরে (৳১৬০)'}</span>
                             <span className="text-stone-500">{language === 'en' ? '3-5 Days Delivery' : '৩-৫ দিনে ডেলিভারি'}</span>
                           </div>
                         </label>

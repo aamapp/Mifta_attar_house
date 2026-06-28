@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { UserProfile } from "../types";
 
 export async function saveFirebaseUserProfile(profile: UserProfile) {
+  if (!db) return false;
   try {
     const userRef = doc(db, "mifta_user_profiles", profile.uid);
     await setDoc(userRef, {
@@ -17,6 +18,7 @@ export async function saveFirebaseUserProfile(profile: UserProfile) {
 }
 
 export async function updateFirebaseFCMToken(uid: string, token: string) {
+  if (!db) return false;
   try {
     const userRef = doc(db, "mifta_user_profiles", uid);
     await updateDoc(userRef, {
@@ -32,6 +34,7 @@ export async function updateFirebaseFCMToken(uid: string, token: string) {
 }
 
 export async function getFirebaseUserProfile(uid: string): Promise<UserProfile | null> {
+  if (!db) return null;
   try {
     const userRef = doc(db, "mifta_user_profiles", uid);
     const docSnap = await getDoc(userRef);
