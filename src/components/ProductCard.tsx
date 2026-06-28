@@ -64,7 +64,7 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
       </div>
 
       {/* Product Information */}
-      <div className="flex-1 p-4 flex flex-col justify-between space-y-3 bg-white border-t border-gray-50">
+      <div className="flex-1 p-4 flex flex-col justify-between space-y-1 bg-white border-t border-gray-50">
         <div className="space-y-1">
           {/* Product Title */}
           <h3
@@ -92,22 +92,6 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
               {language === 'en' ? 'Save' : 'সেইভ'} ৳{product.originalPrice - product.price}
             </div>
           )}
-        </div>
-
-        {/* Primary Action Button */}
-        <div className="pt-2">
-          <button
-            onClick={() => onBuyNow(product)}
-            disabled={outOfStock}
-            className={`w-full py-2 px-3 text-xs font-semibold rounded transition-all font-sans flex items-center justify-center gap-2 cursor-pointer border ${
-              outOfStock
-                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-white border-orange-500 text-orange-500 hover:bg-orange-50 active:bg-orange-100'
-            }`}
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span>{language === 'en' ? 'Add To Cart' : 'কার্টে যোগ করুন'}</span>
-          </button>
         </div>
       </div>
     </motion.div>
