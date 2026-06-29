@@ -33,7 +33,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   // Free shipping threshold
-  const freeShippingThreshold = 1200;
+  const freeShippingThreshold = 1500;
   const isFreeShipping = subtotal >= freeShippingThreshold;
   const amountNeededForFreeShipping = freeShippingThreshold - subtotal;
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
@@ -48,7 +48,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
     }
   }
 
-  const shipping = subtotal === 0 ? 0 : isFreeShipping ? 0 : 60;
+  const shipping = subtotal === 0 ? 0 : isFreeShipping ? 0 : 80;
   const total = subtotal - discount + shipping;
 
   const handleApplyCoupon = (e: React.FormEvent) => {

@@ -13,11 +13,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
  */
 async function testTableAccess(tableName: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from(tableName).select('id').limit(1);
+    // Use select('*') instead of select('id') because some tables (like user_profiles) might not have an 'id' column
+    const { error } = await supabase.from(tableName).select('*').limit(1);
     if (error && (error.code === 'PGRST116' || error.message.includes('does not exist') || error.message.includes('404'))) {
       return false;
     }
-    return !error;
+    // A 400 error about a column not existing shouldn't mean the table is missing, 
+    // but for simplicity we return false if there's any error indicating access issues
+    if (error) {
+      console.warn(`Supabase access check for ${tableName}:`, error.message);
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }

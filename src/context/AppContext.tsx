@@ -976,7 +976,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Shipping cost
-    const shipping = shippingDetails.deliveryOption === 'dhaka' ? 80 : 160;
+    const isFreeShipping = subtotal >= 1500 && shippingDetails.deliveryOption === 'dhaka';
+    const shipping = isFreeShipping ? 0 : (shippingDetails.deliveryOption === 'dhaka' ? 80 : 160);
     const total = subtotal - discount + shipping;
 
     const newOrder: Order = {

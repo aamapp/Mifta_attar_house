@@ -59,9 +59,16 @@ export default {
           });
         }
 
-        // 1. Initialize Supabase - Check if URL exists
-        if (!env.VITE_SUPABASE_URL) {
-          return new Response(JSON.stringify({ error: "VITE_SUPABASE_URL is missing in Worker environment." }), { 
+        // 1. Initialize Supabase - Better logging for missing envs
+        if (!env.VITE_SUPABASE_URL || (!env.SUPABASE_SERVICE_ROLE_KEY && !env.VITE_SUPABASE_ANON_KEY)) {
+          const missing = [];
+          if (!env.VITE_SUPABASE_URL) missing.push("VITE_SUPABASE_URL");
+          if (!env.SUPABASE_SERVICE_ROLE_KEY && !env.VITE_SUPABASE_ANON_KEY) missing.push("SUPABASE_KEY");
+          
+          return new Response(JSON.stringify({ 
+            error: "SUPABASE_CONFIG_MISSING", 
+            details: `Missing environment variables: ${missing.join(", ")}. Please check Cloudflare settings.` 
+          }), { 
             status: 500,
             headers: { "Content-Type": "application/json" }
           });

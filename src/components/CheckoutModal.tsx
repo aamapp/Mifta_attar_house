@@ -134,7 +134,8 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     }
   }
 
-  const shipping = formData.deliveryOption === 'dhaka' ? 80 : 160;
+  const isFreeShipping = subtotal >= 1500 && formData.deliveryOption === 'dhaka';
+  const shipping = subtotal === 0 ? 0 : isFreeShipping ? 0 : (formData.deliveryOption === 'dhaka' ? 80 : 160);
   const total = subtotal - discount + shipping;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
