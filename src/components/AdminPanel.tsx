@@ -83,6 +83,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     user
   } = useApp();
 
+  const isAndroidApp = typeof window !== 'undefined' && (window as any).Android;
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'coupons' | 'reviews' | 'quotes' | 'settings' | 'supabase' | 'hero'>('dashboard');
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -287,7 +289,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   if (!isAdminLoggedIn) {
     const handleLoginSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (pin.trim() === 'mifta786') {
+      if (pin.trim() === 'mifta@786#admin') {
         localStorage.setItem('mifta_admin_logged_in', 'true');
         setIsAdminLoggedIn(true);
         addToast(
@@ -308,12 +310,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-905/75 backdrop-blur-md">
         <div className="relative max-w-md w-full rounded-sm border border-gold-500/30 bg-white p-6 sm:p-8 shadow-2xl text-stone-900 text-center space-y-6">
           
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-sm border border-stone-200 text-stone-400 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 cursor-pointer transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {!isAndroidApp && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-1.5 rounded-sm border border-stone-200 text-stone-400 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 cursor-pointer transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
 
           <div className="flex flex-col items-center space-y-3">
             <div className="h-14 w-14 rounded-sm border border-gold-500 bg-gold-500/10 flex items-center justify-center animate-pulse">
@@ -337,7 +341,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <input
                 type="password"
                 required
-                placeholder={language === 'en' ? 'e.g. mifta786' : 'যেমন: mifta786'}
+                placeholder={language === 'en' ? 'Enter Secret Key' : 'সিক্রেট কোড দিন'}
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 className="w-full h-11 px-4 rounded-sm border border-stone-300 bg-stone-50 text-stone-900 focus:bg-white text-sm focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 font-mono text-center tracking-widest placeholder:tracking-normal"
@@ -352,8 +356,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             </button>
           </form>
 
-          <div className="pt-2 border-t border-stone-150 text-[11px] text-gold-600/80 font-semibold bg-gold-500/5 py-1.5 rounded-sm">
-            {language === 'en' ? '🔑 Admin Security Code: mifta786' : '🔑 অ্যাডমিন সিকিউরিটি কোড: mifta786'}
+          <div className="pt-2 border-t border-stone-150 text-[11px] text-stone-400 font-medium">
+            {language === 'en' ? 'Protected by Mifta Security' : 'মিফতা সিকিউরিটি দ্বারা সুরক্ষিত'}
           </div>
         </div>
       </div>

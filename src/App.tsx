@@ -32,10 +32,12 @@ export default function App() {
     removeToast
   } = useApp();
 
+  const isAndroidApp = typeof window !== 'undefined' && (window as any).Android;
+
   // Active Modals state toggles
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(isAndroidApp ? true : false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -127,6 +129,18 @@ export default function App() {
     if (sortBy === 'rating') return b.rating - a.rating;
     return 0; // default
   });
+
+  if (isAndroidApp) {
+    return (
+      <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
+        <AdminPanel
+          isOpen={true}
+          onClose={() => {}}
+        />
+        <Toast />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative pb-14 md:pb-0 pt-16">
