@@ -77,19 +77,36 @@ export default {
         const { createClient } = await import("@supabase/supabase-js");
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 2. Fetch user's FCM token from Supabase
-        const { data: profile, error: profileError } = await supabase
-          .from('mifta_user_profiles')
-          .select('fcm_token')
-          .eq('uid', userId)
-          .maybeSingle();
+        // 2. Fetch user's FCM token(s) from Supabase
+        let tokens: string[] = [];
+        if (userId === 'ADMINS') {
+          // Fetch all tokens for broadcast (simple admin notification)
+          const { data: profiles, error: profileError } = await supabase
+            .from('mifta_user_profiles')
+            .select('fcm_token')
+            .not('fcm_token', 'is', null);
+          
+          if (!profileError && profiles) {
+            tokens = profiles.map(p => p.fcm_token).filter(t => !!t);
+          }
+        } else {
+          const { data: profile, error: profileError } = await supabase
+            .from('mifta_user_profiles')
+            .select('fcm_token')
+            .eq('uid', userId)
+            .maybeSingle();
 
-        if (profileError || !profile?.fcm_token) {
-          console.error(`Token not found for user: ${userId}. Error:`, profileError?.message || "No token in profile");
+          if (!profileError && profile?.fcm_token) {
+            tokens = [profile.fcm_token];
+          }
+        }
+
+        if (tokens.length === 0) {
+          console.error(`Token not found for user: ${userId}`);
           return new Response(JSON.stringify({ 
             success: false,
             error: "TOKEN_NOT_FOUND",
-            details: `FCM token not found in Supabase for user ID: ${userId}. Please log in to the Android app with this account first.` 
+            details: `FCM token not found in Supabase for ${userId}.` 
           }), { 
             status: 404,
             headers: { "Content-Type": "application/json" }
@@ -124,46 +141,52 @@ export default {
           scopes: ["https://www.googleapis.com/auth/cloud-platform"]
         });
 
-        const tokens = await jwtClient.authorize();
-        const accessToken = tokens.access_token;
+        const authTokens = await jwtClient.authorize();
+        const accessToken = authTokens.access_token;
 
         // 4. Send notification via FCM v1 API
-        const fcmResponse = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: {
-              token: profile.fcm_token,
-              notification: {
-                title,
-                body: msgBody
+        const results = [];
+        for (const targetToken of tokens) {
+          try {
+            const fcmResponse = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
               },
-              data: data || {},
-              android: {
-                priority: 'high',
-                notification: {
-                  click_action: "OPEN_ACTIVITY_1",
-                  sound: "default",
-                  channel_id: "default_channel_id"
+              body: JSON.stringify({
+                message: {
+                  token: targetToken,
+                  notification: {
+                    title,
+                    body: msgBody
+                  },
+                  data: data || {},
+                  android: {
+                    priority: 'high',
+                    notification: {
+                      click_action: "OPEN_ACTIVITY_1",
+                      sound: "default",
+                      channel_id: "default_channel_id"
+                    }
+                  }
                 }
-              }
-            }
-          })
-        });
-
-        const fcmResult = await fcmResponse.json() as any;
-        
-        if (!fcmResponse.ok) {
-          return new Response(JSON.stringify({ success: false, error: "FCM_SEND_FAILED", details: JSON.stringify(fcmResult) }), { 
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-          });
+              })
+            });
+            const resData = await fcmResponse.json() as any;
+            results.push({ token: targetToken, success: fcmResponse.ok, result: resData });
+          } catch (e) {
+            results.push({ token: targetToken, success: false, error: String(e) });
+          }
         }
 
-        return new Response(JSON.stringify({ success: true, messageId: fcmResult.name }), {
+        const successCount = results.filter(r => r.success).length;
+
+        return new Response(JSON.stringify({ 
+          success: successCount > 0, 
+          message: `Sent to ${successCount} of ${tokens.length} devices.`,
+          details: results
+        }), {
           headers: { "Content-Type": "application/json" }
         });
 

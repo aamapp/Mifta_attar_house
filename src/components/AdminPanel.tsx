@@ -844,12 +844,12 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </div>
                       <div className="flex items-center gap-2 mb-2">
                         <div className={`w-2 h-2 rounded-full ${
-                          typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted' 
+                          (typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') || (typeof window !== 'undefined' && (window as any).Android)
                             ? 'bg-emerald-500 animate-pulse' 
                             : 'bg-stone-300'
                         }`} />
                         <span className="text-[9px] font-bold text-stone-500 uppercase tracking-tighter">
-                          {typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted' 
+                          {(typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') || (typeof window !== 'undefined' && (window as any).Android)
                             ? (language === 'en' ? 'Notifications Active' : 'নোটিফিকেশন সক্রিয়') 
                             : (language === 'en' ? 'Notifications Inactive' : 'নোটিফিকেশন নিষ্ক্রিয়')}
                         </span>

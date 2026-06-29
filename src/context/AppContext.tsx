@@ -1011,6 +1011,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
 
+    // Trigger FCM Push for Admin
+    fetch('https://miftaattarhouse.mamun30yr.workers.dev/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: 'ADMINS',
+        title: language === 'en' ? 'New Order Received!' : 'নতুন অর্ডার এসেছে!',
+        body: language === 'en' 
+          ? `Order for ৳${newOrder.total} from ${newOrder.customerName}`
+          : `${newOrder.customerName} এর কাছ থেকে ৳${newOrder.total} টাকার অর্ডার এসেছে।`,
+        orderId: newOrder.id
+      })
+    }).catch(err => console.error("Auto-push error:", err));
+
     // Trigger Admin Notification
     addNotification({
       title: { 
