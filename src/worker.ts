@@ -203,13 +203,25 @@ export default {
     // If not an API call, try to serve from assets.
     // If asset not found, serve index.html for SPA routing.
     if (env.ASSETS) {
-      const response = await env.ASSETS.fetch(request.clone());
-      
-      if (response.status === 404 && !url.pathname.startsWith('/api/')) {
-        return env.ASSETS.fetch(new URL('/index.html', url.origin));
+      try {
+        const response = await env.ASSETS.fetch(request.clone());
+        
+        // If asset not found or 404, and it's not an API call, serve index.html
+        if ((response.status === 404 || response.status === 403) && !url.pathname.startsWith('/api/')) {
+          const isFile = url.pathname.split('/').pop()?.includes('.');
+          if (!isFile) {
+            return env.ASSETS.fetch(new URL('/index.html', url.origin));
+          }
+        }
+        
+        return response;
+      } catch (e) {
+        // Fallback for SPA routing if fetch fails
+        if (!url.pathname.startsWith('/api/')) {
+          return env.ASSETS.fetch(new URL('/index.html', url.origin));
+        }
+        throw e;
       }
-      
-      return response;
     }
     
     return new Response("Not Found", { status: 404 });
