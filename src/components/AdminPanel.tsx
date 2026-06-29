@@ -41,7 +41,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
 import { CATEGORIES } from '../data';
-import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage } from '../lib/supabase';
+import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage, saveSupabaseUserProfile } from '../lib/supabase';
+import { saveFirebaseUserProfile } from '../lib/firebase-helpers';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -80,7 +81,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setIslamicQuotes,
     heroSlides,
     setHeroSlides,
-    user
+    user,
+    fcmToken
   } = useApp();
 
   const isAndroidApp = typeof window !== 'undefined' && (window as any).Android;
@@ -296,6 +298,20 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         );
         // Force Header component to update
         window.dispatchEvent(new Event('storage'));
+        
+        // Save FCM token for Admin to allow push notifications to admin
+        if (fcmToken) {
+          const adminProfile = {
+            uid: 'admin',
+            name: 'Mifta Admin',
+            email: 'admin@mifta.com',
+            wishlist: [],
+            recentlyViewed: [],
+            fcmToken: fcmToken
+          };
+          saveSupabaseUserProfile(adminProfile).catch(console.error);
+          saveFirebaseUserProfile(adminProfile).catch(console.error);
+        }
       } else {
         addToast(
           { en: 'Incorrect security key! Access Denied.', bn: 'ভুল নিরাপত্তা কোড! প্রবেশাধিকার অস্বীকৃত।' },
