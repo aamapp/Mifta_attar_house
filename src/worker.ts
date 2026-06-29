@@ -85,10 +85,11 @@ export default {
           .maybeSingle();
 
         if (profileError || !profile?.fcm_token) {
+          console.error(`Token not found for user: ${userId}. Error:`, profileError?.message || "No token in profile");
           return new Response(JSON.stringify({ 
             success: false,
             error: "TOKEN_NOT_FOUND",
-            details: profileError ? profileError.message : "FCM token not found in Supabase for this user." 
+            details: `FCM token not found in Supabase for user ID: ${userId}. Please log in to the Android app with this account first.` 
           }), { 
             status: 404,
             headers: { "Content-Type": "application/json" }
