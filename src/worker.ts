@@ -200,7 +200,7 @@ export default {
     }
     
     // Handle SPA routing for Admin Control
-    if (url.pathname === '/admin-control' || url.pathname === '/admin-control/') {
+    if (url.pathname.toLowerCase().startsWith('/admin-control')) {
       if (env.ASSETS) {
         return env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), request));
       }

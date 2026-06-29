@@ -35,7 +35,6 @@ export default function App() {
   // Active Modals state toggles
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -55,10 +54,8 @@ export default function App() {
   // Hidden admin triggers: URL Hash change and Keyboard shortcut
   React.useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === '#admin') {
-        setAdminOpen(true);
-        // Clear hash to hide the trace
-        window.history.replaceState(null, '', ' ');
+      if (window.location.hash === '#admin' || window.location.hash === '#admin-control') {
+        window.location.href = '/admin-control';
       }
     };
 
@@ -66,7 +63,7 @@ export default function App() {
       // Ctrl + Alt + A
       if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
-        setAdminOpen(true);
+        window.location.href = '/admin-control';
       }
     };
 
@@ -97,7 +94,7 @@ export default function App() {
 
   // Lock body scroll when any modal is open
   React.useEffect(() => {
-    const isAnyModalOpen = cartOpen || accountOpen || adminOpen || checkoutOpen || !!quickViewProduct;
+    const isAnyModalOpen = cartOpen || accountOpen || checkoutOpen || !!quickViewProduct;
     if (isAnyModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -106,7 +103,7 @@ export default function App() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [cartOpen, accountOpen, adminOpen, checkoutOpen, quickViewProduct]);
+  }, [cartOpen, accountOpen, checkoutOpen, quickViewProduct]);
 
   // Filtration logic
   const filteredProducts = products.filter((product) => {
@@ -128,8 +125,9 @@ export default function App() {
     return 0; // default
   });
 
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isAdminRoute = currentPath === '/admin-control' || currentPath === '/admin-control/';
+  const isAdminRoute = typeof window !== 'undefined' && 
+    (window.location.pathname.toLowerCase().startsWith('/admin-control') || 
+     window.location.hash.toLowerCase().includes('admin-control'));
 
   if (isAdminRoute) {
     return (
@@ -152,7 +150,9 @@ export default function App() {
       <Header
         onOpenCart={() => setCartOpen(true)}
         onOpenAccount={() => setAccountOpen(true)}
-        onOpenAdmin={() => setAdminOpen(true)}
+        onOpenAdmin={() => {
+          if (typeof window !== 'undefined') window.location.href = '/admin-control';
+        }}
         onSelectProduct={(p) => setQuickViewProduct(p)}
         onScrollToSection={(sectionId) => {
           setCartOpen(false);
@@ -319,13 +319,15 @@ export default function App() {
       <IslamicQuoteSection />
 
       {/* 7. Footer segment */}
-      <Footer onAdminToggle={() => setAdminOpen(true)} />
+      <Footer onAdminToggle={() => {
+        if (typeof window !== 'undefined') window.location.href = '/admin-control';
+      }} />
 
       {/* 8. Floating Back to Top / Advisor Chat module */}
       <FloatingButtons />
 
       {/* 9. Mobile Bottom Navigation */}
-      {!adminOpen && !cartOpen && !accountOpen && !quickViewProduct && !checkoutOpen && (
+      {!cartOpen && !accountOpen && !quickViewProduct && !checkoutOpen && (
         <BottomNavigation
           onOpenCart={() => {
             setAccountOpen(false);
@@ -388,11 +390,7 @@ export default function App() {
         onSelectProduct={(p) => setQuickViewProduct(p)}
       />
 
-      {/* Administrative System Portal */}
-      <AdminPanel
-        isOpen={adminOpen}
-        onClose={() => setAdminOpen(false)}
-      />
+      {/* Administrative System Portal Removed from here, moved to separate route handling above */}
 
       {/* Global Toasts Alerts Overlay Stack */}
       <Toast />
