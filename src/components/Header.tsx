@@ -104,14 +104,11 @@ export default function Header({
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Logo Brand */}
+            {/* Logo Brand */}
           <div
             onClick={() => onScrollToSection('hero')}
-            onDoubleClick={() => {
-              if (typeof window !== 'undefined') window.location.href = '/admin-control';
-            }}
             className="flex items-center gap-3 cursor-pointer shrink-0"
-            title={language === 'en' ? 'Mifta Attar House (Double click logo for admin access)' : 'মিফতা আতর হাউস (অ্যাডমিন প্যানেলের জন্য লোগোতে ডাবল ক্লিক করুন)'}
+            title={language === 'en' ? 'Mifta Attar House' : 'মিফতা আতর হাউস'}
           >
             <img src="/logo.png" alt="Mifta Attar House" className="h-14 w-auto object-contain" />
             <div className="flex flex-col justify-center">
@@ -229,9 +226,7 @@ export default function Header({
             {/* Admin Dashboard (Visible only when logged in as admin) */}
             {isAdmin && (
               <button
-                onClick={() => {
-                  if (typeof window !== 'undefined') window.location.href = '/admin-control';
-                }}
+                onClick={onOpenAdmin}
                 className="hidden md:flex p-2 text-gray-700 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-all relative cursor-pointer"
                 title={language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
               >
@@ -389,7 +384,7 @@ export default function Header({
             {isAdmin && (
               <button
                 onClick={() => {
-                  if (typeof window !== 'undefined') window.location.href = '/admin-control';
+                  onOpenAdmin();
                   setMobileMenuOpen(false);
                 }}
                 className="col-span-1 flex items-center justify-center gap-2 py-2.5 rounded-md border border-orange-500 bg-orange-50 font-bold text-orange-600 cursor-pointer"

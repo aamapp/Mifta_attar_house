@@ -38,6 +38,24 @@ export default function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
+  const isAdminRoute = typeof window !== 'undefined' && 
+    (window.location.hash.toLowerCase().includes('admin-control') || 
+     window.location.pathname.toLowerCase().includes('admin-control'));
+
+  if (isAdminRoute) {
+    return (
+      <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
+        <AdminPanel
+          isOpen={true}
+          onClose={() => {
+            if (typeof window !== 'undefined') window.location.href = '/';
+          }}
+        />
+        <Toast />
+      </div>
+    );
+  }
+
   // Instant direct buy product reference
   const [directCheckoutProduct, setDirectCheckoutProduct] = useState<{
     product: Product;
@@ -51,33 +69,16 @@ export default function App() {
   const [priceRange, setPriceRange] = useState<number>(3000);
   const [sortBy, setSortBy] = useState<'default' | 'price-low' | 'price-high' | 'rating'>('default');
 
-  // Hidden admin triggers: URL Hash change and Keyboard shortcut
+  // Hidden admin triggers: URL Hash change listener
+  const [, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
   React.useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === '#admin' || window.location.hash === '#admin-control') {
-        window.location.href = '/admin-control';
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl + Alt + A
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        window.location.href = '/admin-control';
-      }
+      setHash(window.location.hash);
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('keydown', handleKeyDown);
-
-    // Initial check on load
-    if (window.location.hash === '#admin') {
-      handleHashChange();
-    }
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -125,24 +126,6 @@ export default function App() {
     return 0; // default
   });
 
-  const isAdminRoute = typeof window !== 'undefined' && 
-    (window.location.pathname.toLowerCase().includes('admin-control') || 
-     window.location.hash.toLowerCase().includes('admin-control'));
-
-  if (isAdminRoute) {
-    return (
-      <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
-        <AdminPanel
-          isOpen={true}
-          onClose={() => {
-            if (typeof window !== 'undefined') window.location.href = '/';
-          }}
-        />
-        <Toast />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative pb-14 md:pb-0 pt-16">
       
@@ -151,7 +134,7 @@ export default function App() {
         onOpenCart={() => setCartOpen(true)}
         onOpenAccount={() => setAccountOpen(true)}
         onOpenAdmin={() => {
-          if (typeof window !== 'undefined') window.location.href = '/admin-control';
+          if (typeof window !== 'undefined') window.location.hash = 'admin-control';
         }}
         onSelectProduct={(p) => setQuickViewProduct(p)}
         onScrollToSection={(sectionId) => {
@@ -320,7 +303,7 @@ export default function App() {
 
       {/* 7. Footer segment */}
       <Footer onAdminToggle={() => {
-        if (typeof window !== 'undefined') window.location.href = '/admin-control';
+        if (typeof window !== 'undefined') window.location.hash = 'admin-control';
       }} />
 
       {/* 8. Floating Back to Top / Advisor Chat module */}
@@ -388,9 +371,12 @@ export default function App() {
         isOpen={accountOpen}
         onClose={() => setAccountOpen(false)}
         onSelectProduct={(p) => setQuickViewProduct(p)}
+        onAdminAccess={() => {
+          if (typeof window !== 'undefined') window.location.hash = 'admin-control';
+        }}
       />
 
-      {/* Administrative System Portal Removed from here, moved to separate route handling above */}
+      {/* Administrative System Portal handled by isAdminRoute check above */}
 
       {/* Global Toasts Alerts Overlay Stack */}
       <Toast />

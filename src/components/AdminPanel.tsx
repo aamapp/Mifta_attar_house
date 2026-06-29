@@ -637,7 +637,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               </AnimatePresence>
             </div>
 
-            {/* Back / Close Shop Button Removed */}
+            {/* Back / Close Shop Button */}
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-all cursor-pointer text-[10px] font-bold uppercase tracking-wider"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{language === 'en' ? 'Back' : 'ফিরে যান'}</span>
+            </button>
           </div>
         </div>
       </div>

@@ -154,15 +154,7 @@ export default function Footer({ onAdminToggle }: FooterProps) {
                   : 'আমরা ক্যাশ অন ডেলিভারিসহ বিকাশ, নগদ ও রকেটের মাধ্যমে পেমেন্ট গ্রহণ করি।'}
               </p>
               
-              {/* Secret Admin trigger - Removed from footer to keep separated URL */}
-              {/* 
-              <button
-                onClick={onAdminToggle}
-                className="text-[10px] uppercase font-bold tracking-widest text-stone-400 hover:text-gold-500 border border-emerald-800 hover:border-gold-500/30 bg-emerald-900 px-2.5 py-1 rounded-sm transition-colors cursor-pointer block"
-              >
-                {language === 'en' ? 'ADMIN ACCESS' : 'অ্যাডমিন প্যানেল'}
-              </button>
-              */}
+              {/* Secret Admin trigger - Removed for security */}
             </div>
           </div>
 

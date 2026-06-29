@@ -33,9 +33,10 @@ interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectProduct: (p: Product) => void;
+  onAdminAccess?: () => void;
 }
 
-export default function AccountModal({ isOpen, onClose, onSelectProduct }: AccountModalProps) {
+export default function AccountModal({ isOpen, onClose, onSelectProduct, onAdminAccess }: AccountModalProps) {
   const {
     user,
     orders,
@@ -116,6 +117,18 @@ export default function AccountModal({ isOpen, onClose, onSelectProduct }: Accou
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (authEmail.trim() === '') return;
+
+    // SECRET ADMIN LOGIN CHECK
+    if (authEmail.trim().toLowerCase() === 'admin@mifta.com' && authPassword === 'mifta@786#admin') {
+      onClose();
+      if (onAdminAccess) onAdminAccess();
+      addToast({ 
+        en: 'Secret Admin Portal Accessed!', 
+        bn: 'সিক্রেট অ্যাডমিন পোর্টাল অ্যাক্সেস করা হয়েছে!' 
+      }, 'success');
+      return;
+    }
+
     loginUser(authEmail, authMode === 'signup' ? authName : undefined);
     setIsLoggedIn(true);
   };
