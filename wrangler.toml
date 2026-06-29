@@ -5,6 +5,14 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 VITE_SUPABASE_URL = "https://wyouwojqsujhofsivywe.supabase.co"
+FIREBASE_PROJECT_ID = "bondhunet-336ef"
+FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-fbsvc@bondhunet-336ef.iam.gserviceaccount.com"
+VITE_FIREBASE_PROJECT_ID = "bondhunet-336ef"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "474912047529"
+# নিচের কী-গুলো আপনার ড্যাশবোর্ড থেকে সম্পূর্ণ কপি করে বসাতে হতে পারে
+GEMINI_API_KEY = "AIzaSyBhNAypZ-coe0vOzUeDMJ6e0zjz-M8zcxo" 
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjQ4MTA4OSwiZXhwIjoyMDk4MDU3MDg5fQ.NA44RwVE3DmZmj3973GDaXfTDYjafa6hjtX0u3TERHI"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODEwODksImV4cCI6MjA5ODA1NzA4OX0.DAgyGWRrzksDY13wfwOuBkcp1q6nPHU8C2ShfclFYY0"
 
 [assets]
 directory = "dist"

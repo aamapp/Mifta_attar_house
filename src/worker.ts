@@ -60,11 +60,14 @@ export default {
         }
 
         // 1. Initialize Supabase - Better logging for missing envs
-        if (!env.VITE_SUPABASE_URL || (!env.SUPABASE_SERVICE_ROLE_KEY && !env.VITE_SUPABASE_ANON_KEY)) {
+        const supabaseUrl = env.VITE_SUPABASE_URL;
+        const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.VITE_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
           console.error("Supabase configuration is missing in environment.");
           return new Response(JSON.stringify({ 
             error: "SUPABASE_CONFIG_MISSING", 
-            details: "Supabase URL or Key is missing in Cloudflare environment variables." 
+            details: "Supabase URL or Key is missing in Cloudflare environment variables. Please ensure they are set in the dashboard." 
           }), { 
             status: 500,
             headers: { "Content-Type": "application/json" }
@@ -72,7 +75,7 @@ export default {
         }
 
         const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.VITE_SUPABASE_ANON_KEY || "");
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         // 2. Fetch user's FCM token from Supabase
         const { data: profile, error: profileError } = await supabase
