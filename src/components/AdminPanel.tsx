@@ -405,23 +405,34 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   };
 
   // Add Product Handler
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newProduct.name.en.trim() === '' || newProduct.name.bn.trim() === '') {
       addToast({ en: 'Product titles are required.', bn: 'পণ্যের নাম দেওয়া আবশ্যক।' }, 'error');
       return;
     }
+
     const added: Product = {
       ...newProduct,
       id: 'prod-' + Math.random().toString(36).substring(2, 9),
       rating: 4.8,
       reviewsCount: 1
     };
+
+    // Use a temporary toast to show it's saving
+    const toastId = Math.random().toString(36).substring(2, 9);
+    addToast({ en: 'Saving product...', bn: 'পণ্য সংরক্ষণ করা হচ্ছে...' }, 'info');
+
     setProducts((prev) => [added, ...prev]);
-    addToast(
-      { en: `Added product ${added.name.en}!`, bn: `নতুন পণ্য ${added.name.bn} যোগ করা হয়েছে!` },
-      'success'
-    );
+    
+    // We wait a bit to simulate a more solid save feel
+    setTimeout(() => {
+      addToast(
+        { en: `Alhamdulillah! Product "${added.name[language]}" added successfully.`, bn: `আলহামদুলিল্লাহ! "${added.name[language]}" পণ্যটি সফলভাবে যুক্ত হয়েছে।` },
+        'success'
+      );
+    }, 800);
+
     setNewProduct({
       name: { en: '', bn: '' },
       category: 'oud',
@@ -442,6 +453,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       isFlashSale: false,
       flashSaleDiscount: 0
     });
+    setIsAddingProduct(false);
   };
 
   // Delete Product
@@ -1047,6 +1059,43 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {activeTab === 'products' && (
               <div className="space-y-6">
                 
+                {/* Cloud Sync Status & Manual Refetch Control */}
+                <div className="p-4 rounded-xl border border-gold-500/20 bg-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${supabaseStatus.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                      {supabaseStatus.connected ? <Database className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-stone-800 uppercase tracking-widest leading-none">
+                        {language === 'en' ? 'Cloud Database Sync' : 'ক্লাউড ডাটাবেস সিঙ্ক'}
+                      </h4>
+                      <p className="text-[10px] text-stone-500 mt-1 font-medium">
+                        {supabaseStatus.connected 
+                          ? (language === 'en' ? 'Your changes are automatically saved to cloud.' : 'আপনার সকল পরিবর্তন স্বয়ংক্রিয়ভাবে ক্লাউডে সংরক্ষিত হচ্ছে।')
+                          : (language === 'en' ? 'Sync is offline. Data stays in local storage.' : 'সিঙ্ক অফলাইন। ডাটা শুধুমাত্র এই ডিভাইসে সেভ হবে।')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={refetchFromSupabase}
+                      disabled={syncingWithSupabase}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${syncingWithSupabase ? 'animate-spin' : ''}`} />
+                      <span>{language === 'en' ? 'Force Refresh' : 'রিফ্রেশ করুন'}</span>
+                    </button>
+                    <button
+                      onClick={syncAllToSupabase}
+                      disabled={syncingWithSupabase}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gold-500 text-black text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      <span>{language === 'en' ? 'Backup All' : 'ব্যাকআপ নিন'}</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Add New Product Button */}
                 {!editingProduct && !isAddingProduct && (
                   <button

@@ -377,7 +377,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Run connection check and initial fetch on mount
   useEffect(() => {
-    refetchFromSupabase();
+    const initFetch = async () => {
+      const status = await checkSupabaseConnection();
+      setSupabaseStatus(status);
+      
+      // Only refetch automatically if local storage is empty OR if it's the very first time
+      const localProducts = localStorage.getItem('mifta_products');
+      const hasLocalData = localProducts && JSON.parse(localProducts).length > 0;
+      
+      if (!hasLocalData) {
+        await refetchFromSupabase();
+      }
+    };
+    
+    initFetch();
 
     // Setup real-time subscription for notifications
     const subscription = supabase
@@ -420,14 +433,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       
       // Sync to Supabase in background
       if (supabaseStatus.connected && supabaseStatus.tables.mifta_products) {
-        // Find deleted products
+        // We only want to sync what actually changed to avoid massive background loops
+        // 1. Handle deletions
         const deleted = prev.filter(p => !next.some(n => n.id === p.id));
         deleted.forEach(p => {
           deleteSupabaseProduct(p.id).catch(e => console.error("Error background deleting product:", e));
         });
         
-        // Find added or updated products
-        next.forEach(p => {
+        // 2. Handle additions and updates
+        // Find products that are in next but NOT in prev OR have changed
+        const changedOrNew = next.filter(n => {
+          const p = prev.find(old => old.id === n.id);
+          return !p || JSON.stringify(p) !== JSON.stringify(n);
+        });
+
+        changedOrNew.forEach(p => {
           saveSupabaseProduct(p).catch(e => console.error("Error background saving product:", e));
         });
       }
