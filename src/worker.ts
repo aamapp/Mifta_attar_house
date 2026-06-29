@@ -103,7 +103,16 @@ export default {
         const projectId = env.FIREBASE_PROJECT_ID;
 
         if (!clientEmail || !privateKey || !projectId) {
-          return new Response(JSON.stringify({ error: "Firebase credentials missing in environment." }), { 
+          const missing = [];
+          if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
+          if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
+          if (!projectId) missing.push("FIREBASE_PROJECT_ID");
+          
+          console.error("Firebase credentials missing in environment:", missing.join(", "));
+          return new Response(JSON.stringify({ 
+            error: "FIREBASE_CREDENTIALS_MISSING", 
+            details: `Missing environment variables: ${missing.join(", ")}. Please check wrangler.toml or Cloudflare Dashboard.` 
+          }), { 
             status: 500,
             headers: { "Content-Type": "application/json" }
           });
