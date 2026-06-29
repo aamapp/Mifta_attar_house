@@ -199,6 +199,13 @@ export default {
       }
     }
     
+    // Handle SPA routing for Admin Control
+    if (url.pathname === '/admin-control' || url.pathname === '/admin-control/') {
+      if (env.ASSETS) {
+        return env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), request));
+      }
+    }
+
     // Fallback to static assets (handled by Cloudflare Workers Assets)
     // If env.ASSETS is not available, it might be deployed without assets configured correctly.
     if (env.ASSETS) {

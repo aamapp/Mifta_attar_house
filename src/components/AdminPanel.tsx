@@ -527,21 +527,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               {supabaseStatus.connected ? 'Live' : 'Offline'}
             </span>
             
-            {/* Logout / Lock system */}
-            <button
-              onClick={() => {
-                localStorage.removeItem('mifta_admin_logged_in');
-                setIsAdminLoggedIn(false);
-                addToast({ en: 'Logged out of admin panel.', bn: 'অ্যাডমিন প্যানেল থেকে সফলভাবে লগআউট করা হয়েছে।' }, 'info');
-                window.dispatchEvent(new Event('storage'));
-              }}
-              className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 rounded-lg border border-red-100 flex items-center gap-1 cursor-pointer transition-all"
-              title={language === 'en' ? 'Lock Admin Panel' : 'লগআউট করুন'}
-            >
-              <X className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">{language === 'en' ? 'Lock' : 'লগআউট'}</span>
-            </button>
-
+            {/* Notifications button */}
             <div className="relative z-50" ref={notificationRef}>
               <button
                 onClick={(e) => {
@@ -651,14 +637,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               </AnimatePresence>
             </div>
 
-            {/* Back / Close Shop Button */}
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full border border-stone-200 bg-white text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-all cursor-pointer shadow-xs"
-              title={language === 'en' ? 'Back to Shop' : 'হোমে ফিরে যান'}
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {/* Back / Close Shop Button Removed */}
           </div>
         </div>
       </div>

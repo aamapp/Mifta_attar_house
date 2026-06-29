@@ -32,12 +32,10 @@ export default function App() {
     removeToast
   } = useApp();
 
-  const isAndroidApp = typeof window !== 'undefined' && (window as any).Android;
-
   // Active Modals state toggles
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(isAndroidApp ? true : false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -130,12 +128,17 @@ export default function App() {
     return 0; // default
   });
 
-  if (isAndroidApp) {
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isAdminRoute = currentPath === '/admin-control' || currentPath === '/admin-control/';
+
+  if (isAdminRoute) {
     return (
       <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
         <AdminPanel
           isOpen={true}
-          onClose={() => {}}
+          onClose={() => {
+            if (typeof window !== 'undefined') window.location.href = '/';
+          }}
         />
         <Toast />
       </div>
