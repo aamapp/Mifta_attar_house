@@ -61,13 +61,10 @@ export default {
 
         // 1. Initialize Supabase - Better logging for missing envs
         if (!env.VITE_SUPABASE_URL || (!env.SUPABASE_SERVICE_ROLE_KEY && !env.VITE_SUPABASE_ANON_KEY)) {
-          const missing = [];
-          if (!env.VITE_SUPABASE_URL) missing.push("VITE_SUPABASE_URL");
-          if (!env.SUPABASE_SERVICE_ROLE_KEY && !env.VITE_SUPABASE_ANON_KEY) missing.push("SUPABASE_KEY");
-          
+          console.error("Supabase configuration is missing in environment.");
           return new Response(JSON.stringify({ 
             error: "SUPABASE_CONFIG_MISSING", 
-            details: `Missing environment variables: ${missing.join(", ")}. Please check Cloudflare settings.` 
+            details: "Supabase URL or Key is missing in Cloudflare environment variables." 
           }), { 
             status: 500,
             headers: { "Content-Type": "application/json" }
