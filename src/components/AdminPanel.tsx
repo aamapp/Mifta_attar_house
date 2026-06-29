@@ -937,23 +937,18 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                               {/* Purchased Items List */}
                               <div className="bg-stone-100 p-2.5 rounded-sm border border-stone-200 text-[11px] space-y-2 text-stone-800">
                                 {ord.items.map((item, index) => {
-                                  console.log("Debug: item index=", index, "productId=", item.productId);
                                   const product = products.find((p) => p.id === item.productId);
                                   const productImage = product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
                                   
                                   return (
                                     <div key={index} className="flex items-center justify-between gap-3 bg-white p-2 border border-stone-200 rounded-sm">
                                       <div className="flex items-center gap-3">
-                                        <div className="w-16 h-16 rounded-sm bg-stone-100 flex-shrink-0 border border-stone-200">
-                                          <img 
-                                            src={productImage} 
-                                            alt={item.name} 
-                                            className="w-full h-full object-cover" 
-                                          />
+                                        <div className="w-16 h-16 rounded-sm overflow-hidden bg-stone-100 flex-shrink-0 border border-stone-200">
+                                          <img src={productImage} alt={item.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex flex-col">
                                           <span className="font-bold text-stone-900 leading-tight">{item.name}</span>
-                                          <span className="text-[10px] text-stone-500">ID: {item.productId} | {item.size ? `সাইজ: ${item.size}` : 'সাইজ: N/A'} <span className="mx-1 opacity-50">|</span> <span className="font-mono">Qty: {item.quantity}</span></span>
+                                          <span className="text-[10px] text-stone-500">{item.size ? `সাইজ: ${item.size}` : 'সাইজ: N/A'} <span className="mx-1 opacity-50">|</span> <span className="font-mono">Qty: {item.quantity}</span></span>
                                         </div>
                                       </div>
                                       <span className="font-mono font-bold text-stone-900">৳{item.price * item.quantity}</span>
