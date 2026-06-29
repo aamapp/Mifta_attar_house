@@ -381,13 +381,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const status = await checkSupabaseConnection();
       setSupabaseStatus(status);
       
-      // Only refetch automatically if local storage is empty OR if it's the very first time
-      const localProducts = localStorage.getItem('mifta_products');
-      const hasLocalData = localProducts && JSON.parse(localProducts).length > 0;
-      
-      if (!hasLocalData) {
-        await refetchFromSupabase();
-      }
+      // Always refetch to ensure we have the latest data (orders, etc.) on app start
+      await refetchFromSupabase();
     };
     
     initFetch();
@@ -415,8 +410,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })
       .subscribe();
 
+    // Setup real-time subscription for orders
+    const orderSubscription = supabase
+      .channel('public:mifta_orders_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mifta_orders' }, async () => {
+        const dbOrders = await getSupabaseOrders();
+        if (dbOrders) {
+           setOrders(dbOrders);
+           localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
+        }
+      })
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
+      orderSubscription.unsubscribe();
     };
   }, []);
 
