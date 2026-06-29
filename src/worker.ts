@@ -59,23 +59,29 @@ export default {
           });
         }
 
-        // 1. Initialize Supabase
+        // 1. Initialize Supabase - Check if URL exists
+        if (!env.VITE_SUPABASE_URL) {
+          return new Response(JSON.stringify({ error: "VITE_SUPABASE_URL is missing in Worker environment." }), { 
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+
         const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.VITE_SUPABASE_ANON_KEY);
+        const supabase = createClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.VITE_SUPABASE_ANON_KEY || "");
 
         // 2. Fetch user's FCM token from Supabase
         const { data: profile, error: profileError } = await supabase
           .from('mifta_user_profiles')
           .select('fcm_token')
           .eq('uid', userId)
-          .single();
+          .maybeSingle();
 
         if (profileError || !profile?.fcm_token) {
-          console.error("Profile fetch error or no token:", profileError);
           return new Response(JSON.stringify({ 
             success: false,
             error: "TOKEN_NOT_FOUND",
-            details: "FCM token not found in Supabase." 
+            details: profileError ? profileError.message : "FCM token not found in Supabase for this user." 
           }), { 
             status: 404,
             headers: { "Content-Type": "application/json" }
