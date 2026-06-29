@@ -199,17 +199,17 @@ export default {
       }
     }
     
-    // Handle SPA routing for Admin Control
-    if (url.pathname.toLowerCase().startsWith('/admin-control')) {
-      if (env.ASSETS) {
-        return env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), request));
-      }
-    }
-
-    // Fallback to static assets (handled by Cloudflare Workers Assets)
-    // If env.ASSETS is not available, it might be deployed without assets configured correctly.
+    // Standard SPA routing fallback: 
+    // If not an API call, try to serve from assets.
+    // If asset not found, serve index.html for SPA routing.
     if (env.ASSETS) {
-      return env.ASSETS.fetch(request);
+      const response = await env.ASSETS.fetch(request.clone());
+      
+      if (response.status === 404 && !url.pathname.startsWith('/api/')) {
+        return env.ASSETS.fetch(new URL('/index.html', url.origin));
+      }
+      
+      return response;
     }
     
     return new Response("Not Found", { status: 404 });

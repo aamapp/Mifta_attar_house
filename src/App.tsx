@@ -126,7 +126,7 @@ export default function App() {
   });
 
   const isAdminRoute = typeof window !== 'undefined' && 
-    (window.location.pathname.toLowerCase().startsWith('/admin-control') || 
+    (window.location.pathname.toLowerCase().includes('admin-control') || 
      window.location.hash.toLowerCase().includes('admin-control'));
 
   if (isAdminRoute) {
