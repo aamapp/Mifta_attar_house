@@ -223,18 +223,6 @@ export default function Header({
               <span>{language === 'en' ? 'বাংলা' : 'EN'}</span>
             </button>
 
-            {/* Admin Dashboard (Visible only when logged in as admin) */}
-            {isAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="hidden md:flex p-2 text-gray-700 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-all relative cursor-pointer"
-                title={language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
-              >
-                <Settings className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-orange-500" />
-              </button>
-            )}
-
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
@@ -380,19 +368,6 @@ export default function Header({
               <span>{language === 'en' ? 'Account' : 'আমার অ্যাকাউন্ট'}</span>
             </button>
 
-            {/* Admin Dashboard */}
-            {isAdmin && (
-              <button
-                onClick={() => {
-                  onOpenAdmin();
-                  setMobileMenuOpen(false);
-                }}
-                className="col-span-1 flex items-center justify-center gap-2 py-2.5 rounded-md border border-orange-500 bg-orange-50 font-bold text-orange-600 cursor-pointer"
-              >
-                <Settings className="w-4 h-4 text-orange-600" />
-                <span>{language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}</span>
-              </button>
-            )}
           </div>
         </div>
       )}

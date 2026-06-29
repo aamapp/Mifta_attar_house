@@ -370,6 +370,27 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const pendingOrdersCount = orders.filter((o) => o.orderStatus === 'pending').length;
   const outOfStockProductsCount = products.filter((p) => p.stock <= 0).length;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const pastCustomers = new Set<string>();
+  const todayCustomers = new Set<string>();
+
+  orders.forEach(o => {
+    const orderDate = new Date(o.date);
+    if (orderDate < today) {
+      pastCustomers.add(o.phone);
+    } else {
+      todayCustomers.add(o.phone);
+    }
+  });
+
+  let newCustomersTodayCount = 0;
+  todayCustomers.forEach(phone => {
+    if (!pastCustomers.has(phone)) {
+      newCustomersTodayCount++;
+    }
+  });
+
   // Add Coupon Handler
   const handleAddCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -668,7 +689,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <button
                     key={subTab.id}
                     onClick={() => setActiveTab(subTab.id as any)}
-                    className={`relative flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
+                    className={`relative flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-[9.5px] sm:text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
                       isSubActive ? 'text-white' : 'text-stone-600 hover:text-stone-900'
                     }`}
                   >
@@ -704,7 +725,6 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               {[
                 { id: 'hero', label: language === 'bn' ? 'হিরো ব্যানার' : 'Hero Banners', count: heroSlides.length, icon: Image },
                 { id: 'settings', label: language === 'bn' ? 'ওয়েবসাইটের লেখা' : 'Website Content', icon: RefreshCw },
-                { id: 'supabase', label: language === 'bn' ? 'সুপাবেস ডাটাবেস' : 'Database Setup', icon: Database },
               ].map((subTab) => {
                 const Icon = subTab.icon;
                 const isSubActive = activeTab === subTab.id;
@@ -712,7 +732,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <button
                     key={subTab.id}
                     onClick={() => setActiveTab(subTab.id as any)}
-                    className={`relative flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
+                    className={`relative flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-[9.5px] sm:text-xs font-bold tracking-wide transition-all cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
                       isSubActive ? 'text-white' : 'text-stone-600 hover:text-stone-900'
                     }`}
                   >
@@ -750,25 +770,25 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {activeTab === 'dashboard' && (
               <div className="space-y-8">
                 {/* Metrics Grid - Modern Bento Design */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
-                    { label: 'মোট রাজস্ব', value: `৳${totalRevenue.toLocaleString()}`, sub: '+১৫% গত সপ্তাহ', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'সক্রিয় অর্ডার', value: orders.filter(o => o.orderStatus !== 'delivered').length, sub: '৫টি প্রসেসিং হচ্ছে', icon: ShoppingBag, color: 'text-gold-600', bg: 'bg-gold-50' },
-                    { label: 'মোট কাস্টমার', value: '২৮৪', sub: '+১২ নতুন আজ', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'স্টক অ্যালার্ট', value: products.filter(p => p.stock < 10).length, sub: 'রিফিল প্রয়োজন', icon: Package, color: 'text-orange-600', bg: 'bg-orange-50' },
+                    { label: language === 'en' ? 'Total Income' : 'মোট আয়', value: `৳${totalRevenue.toLocaleString()}`, sub: language === 'en' ? 'Lifetime' : 'সর্বমোট', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', badgeColor: 'text-emerald-600', badgeBg: 'bg-emerald-50' },
+                    { label: language === 'en' ? 'Active Orders' : 'সক্রিয় অর্ডার', value: orders.filter(o => o.orderStatus !== 'delivered' && o.orderStatus !== 'cancelled').length.toString(), sub: language === 'en' ? `${pendingOrdersCount} Pending` : `${pendingOrdersCount}টি পেন্ডিং`, icon: ShoppingBag, color: 'text-gold-600', bg: 'bg-gold-50', badgeColor: 'text-gold-600', badgeBg: 'bg-gold-50' },
+                    { label: language === 'en' ? 'Total Customers' : 'মোট কাস্টমার', value: new Set(orders.map(o => o.phone)).size.toString(), sub: language === 'en' ? `+${newCustomersTodayCount} New Today` : `+${newCustomersTodayCount} নতুন আজ`, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', badgeColor: 'text-blue-600', badgeBg: 'bg-blue-50' },
+                    { label: language === 'en' ? 'Stock Alerts' : 'স্টক অ্যালার্ট', value: outOfStockProductsCount.toString(), sub: language === 'en' ? 'Stock Out' : 'স্টক আউট', icon: Package, color: 'text-orange-600', bg: 'bg-orange-50', badgeColor: outOfStockProductsCount > 0 ? 'text-red-600' : 'text-emerald-600', badgeBg: outOfStockProductsCount > 0 ? 'bg-red-50' : 'bg-emerald-50' },
                   ].map((stat, i) => (
                     <motion.div 
                       key={i}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="p-6 bg-white border border-stone-200 rounded-sm shadow-sm group hover:border-gold-500/30 transition-all cursor-default"
+                      className="p-4 sm:p-5 bg-white border border-stone-200 rounded-sm shadow-sm group hover:border-gold-500/30 transition-all cursor-default"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className={`p-2.5 rounded-sm ${stat.bg} ${stat.color}`}>
                           <stat.icon className="w-5 h-5" />
                         </div>
-                        <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">
+                        <div className={`text-[10px] font-bold ${stat.badgeColor} ${stat.badgeBg} px-1.5 py-0.5 rounded-sm uppercase tracking-tighter`}>
                           {stat.sub}
                         </div>
                       </div>
@@ -782,7 +802,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   {/* Recent Activity Section */}
-                  <div className="lg:col-span-8 space-y-4">
+                  <div className="lg:col-span-12 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-1 h-6 bg-gold-500" />
@@ -822,106 +842,6 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           কোন অর্ডার পাওয়া যায়নি
                         </div>
                       )}
-                    </div>
-                  </div>
-
-                  {/* Sidebar Tools */}
-                  <div className="lg:col-span-4 space-y-6">
-
-
-                    {/* Notification Settings Widget */}
-                    <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-sm space-y-4">
-                      <div className="flex items-center gap-2 text-emerald-700">
-                        <Bell className="w-4 h-4" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">নোটিফিকেশন সেটআপ (Notification Setup)</span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          (typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') || (typeof window !== 'undefined' && (window as any).Android)
-                            ? 'bg-emerald-500 animate-pulse' 
-                            : 'bg-stone-300'
-                        }`} />
-                        <span className="text-[9px] font-bold text-stone-500 uppercase tracking-tighter">
-                          {(typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'granted') || (typeof window !== 'undefined' && (window as any).Android)
-                            ? (language === 'en' ? 'Notifications Active' : 'নোটিফিকেশন সক্রিয়') 
-                            : (language === 'en' ? 'Notifications Inactive' : 'নোটিফিকেশন নিষ্ক্রিয়')}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-emerald-600/80 leading-relaxed font-medium">
-                        {language === 'en' 
-                          ? 'Enable browser notifications to receive real-time alerts for new orders on your device.' 
-                          : 'আপনার ডিভাইসে নতুন অর্ডারের জন্য রিয়েল-টাইম অ্যালার্ট পেতে ব্রাউজার নোটিফিকেশন চালু করুন।'}
-                      </p>
-                      <button 
-                        onClick={() => requestNotificationPermission()}
-                        className="w-full py-2.5 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer"
-                      >
-                        {language === 'en' ? 'Enable Notifications' : 'নোটিফিকেশন চালু করুন'}
-                      </button>
-                      <button 
-                        onClick={() => addNotification({
-                          title: { en: 'Test Notification', bn: 'টেস্ট নোটিফিকেশন' },
-                          message: { en: 'This is a test notification to verify your setup.', bn: 'আপনার সেটআপ যাচাই করার জন্য এটি একটি টেস্ট নোটিফিকেশন।' },
-                          type: 'system'
-                        })}
-                        className="w-full py-1.5 border border-emerald-200 text-emerald-600 text-[9px] font-bold uppercase tracking-widest rounded-sm hover:bg-emerald-100 transition-colors cursor-pointer"
-                      >
-                        {language === 'en' ? 'Send Test Notification' : 'টেস্ট নোটিফিকেশন পাঠান'}
-                      </button>
-                      
-                      <button 
-                        onClick={async () => {
-                          if (!user) {
-                            addToast({ en: 'You must be logged in to test FCM.', bn: 'FCM টেস্ট করার জন্য আপনাকে লগইন করতে হবে।' }, 'error');
-                            return;
-                          }
-                          try {
-                            const res = await fetch('/api/send-push', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                userId: user.uid,
-                                title: 'FCM Test Success',
-                                body: 'Your Android device received the push notification successfully!'
-                              })
-                            });
-                            const data = await res.json();
-                            if (data.success) {
-                              addToast({ en: 'FCM Push Sent Successfully!', bn: 'FCM পুশ সফলভাবে পাঠানো হয়েছে!' }, 'success');
-                            } else {
-                              const detailMsg = data.details ? ` (${data.details})` : '';
-                              addToast({ 
-                                en: `FCM Error: ${data.error}${detailMsg}`, 
-                                bn: `FCM ত্রুটি: ${data.error}${detailMsg}` 
-                              }, 'error');
-                            }
-                          } catch (e) {
-                            addToast({ en: 'Failed to trigger FCM push.', bn: 'FCM পুশ পাঠাতে ব্যর্থ হয়েছে।' }, 'error');
-                          }
-                        }}
-                        className="w-full py-1.5 border border-amber-200 text-amber-600 text-[9px] font-bold uppercase tracking-widest rounded-sm hover:bg-amber-100 transition-colors cursor-pointer"
-                      >
-                        {language === 'en' ? 'Test FCM Push (Android)' : 'FCM পুশ টেস্ট করুন (Android)'}
-                      </button>
-                    </div>
-
-                    {/* Stock Alert Mini Widget */}
-                    <div className="p-6 bg-orange-50 border border-orange-100 rounded-sm space-y-4">
-                      <div className="flex items-center gap-2 text-orange-700">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">স্টক ওয়ার্নিং (Stock Warning)</span>
-                      </div>
-                      <div className="space-y-3">
-                        {products.filter(p => p.stock < 5).slice(0, 3).map(p => (
-                          <div key={p.id} className="flex justify-between items-center text-[11px]">
-                            <span className="text-stone-600 font-bold truncate pr-4">{language === 'bn' ? p.name.bn : p.name.en}</span>
-                            <span className="text-orange-600 font-mono font-bold shrink-0">{p.stock}টি অবশিষ্ট</span>
-                          </div>
-                        ))}
-                        {products.filter(p => p.stock < 5).length === 0 && (
-                          <p className="text-[10px] text-stone-400 text-center uppercase py-2">সকল পণ্যের পর্যাপ্ত স্টক আছে</p>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1057,43 +977,6 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {activeTab === 'products' && (
               <div className="space-y-6">
                 
-                {/* Cloud Sync Status & Manual Refetch Control */}
-                <div className="p-4 rounded-xl border border-gold-500/20 bg-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${supabaseStatus.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                      {supabaseStatus.connected ? <Database className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-stone-800 uppercase tracking-widest leading-none">
-                        {language === 'en' ? 'Cloud Database Sync' : 'ক্লাউড ডাটাবেস সিঙ্ক'}
-                      </h4>
-                      <p className="text-[10px] text-stone-500 mt-1 font-medium">
-                        {supabaseStatus.connected 
-                          ? (language === 'en' ? 'Your changes are automatically saved to cloud.' : 'আপনার সকল পরিবর্তন স্বয়ংক্রিয়ভাবে ক্লাউডে সংরক্ষিত হচ্ছে।')
-                          : (language === 'en' ? 'Sync is offline. Data stays in local storage.' : 'সিঙ্ক অফলাইন। ডাটা শুধুমাত্র এই ডিভাইসে সেভ হবে।')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={refetchFromSupabase}
-                      disabled={syncingWithSupabase}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${syncingWithSupabase ? 'animate-spin' : ''}`} />
-                      <span>{language === 'en' ? 'Force Refresh' : 'রিফ্রেশ করুন'}</span>
-                    </button>
-                    <button
-                      onClick={syncAllToSupabase}
-                      disabled={syncingWithSupabase}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gold-500 text-black text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      <span>{language === 'en' ? 'Backup All' : 'ব্যাকআপ নিন'}</span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* Add New Product Button */}
                 {!editingProduct && !isAddingProduct && (
                   <button
@@ -1129,6 +1012,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </div>
                       <button
                         type="submit"
+                        form="edit-product-form"
                         className="px-6 py-1.5 bg-[#F97316] hover:bg-[#F97316]/90 rounded-xl text-[10px] font-bold uppercase tracking-wider text-white cursor-pointer transition-all"
                       >
                         সেইভ
@@ -1137,7 +1021,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                     <div className="w-full pb-32">
                       <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
-                        <form onSubmit={handleSaveEditProduct} className="space-y-6">
+                        <form id="edit-product-form" onSubmit={handleSaveEditProduct} className="space-y-6">
                           
                           {/* 1. Image & Primary Info Section */}
                           <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs">
@@ -1218,11 +1102,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={editingProduct.name.en}
                                       onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, en: e.target.value } })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="edit-p-name-en"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (English) *
                                     </label>
@@ -1236,11 +1120,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={editingProduct.name.bn}
                                       onChange={(e) => setEditingProduct({ ...editingProduct, name: { ...editingProduct.name, bn: e.target.value } })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="edit-p-name-bn"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (বাংলা) *
                                     </label>
@@ -1272,11 +1156,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={editingProduct.price}
                                       onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="edit-p-price"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       মূল্য (৳) *
                                     </label>
@@ -1290,11 +1174,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={editingProduct.stock}
                                       onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="edit-p-stock"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       স্টক পরিমাণ *
                                     </label>
@@ -1435,6 +1319,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </div>
                       <button
                         type="submit"
+                        form="add-product-form"
                         className="px-6 py-1.5 bg-[#F97316] hover:bg-[#F97316]/90 rounded-xl text-[10px] font-bold uppercase tracking-wider text-white cursor-pointer transition-all"
                       >
                         সেইভ
@@ -1443,7 +1328,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                     <div className="w-full pb-32">
                       <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
-                        <form onSubmit={(e) => {
+                        <form id="add-product-form" onSubmit={(e) => {
                           handleAddProduct(e);
                           setIsAddingProduct(false);
                         }} className="space-y-6">
@@ -1527,11 +1412,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={newProduct.name.en}
                                       onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, en: e.target.value } })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="add-p-name-en"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (English) *
                                     </label>
@@ -1545,11 +1430,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={newProduct.name.bn}
                                       onChange={(e) => setNewProduct({ ...newProduct, name: { ...newProduct.name, bn: e.target.value } })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-medium placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="add-p-name-bn"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       পণ্যের নাম (বাংলা) *
                                     </label>
@@ -1581,11 +1466,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={newProduct.price}
                                       onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="add-p-price"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       মূল্য (৳) *
                                     </label>
@@ -1599,11 +1484,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       placeholder=" "
                                       value={newProduct.stock}
                                       onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 pt-5 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
                                     />
                                     <label 
                                       htmlFor="add-p-stock"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-4.5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
                                     >
                                       স্টক পরিমাণ *
                                     </label>
@@ -2166,28 +2051,45 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <span className="text-[10px] text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded-sm uppercase font-bold">হোমপেজ স্লাইডার</span>
                 </div>
 
-                {/* Add/Edit Slide Form */}
-                <form 
-                  onSubmit={editingHeroSlide ? handleUpdateHeroSlide : handleAddHeroSlide} 
-                  className={`p-4 sm:p-5 rounded-sm border space-y-4 shadow-sm text-left transition-all ${editingHeroSlide ? 'border-gold-500 bg-gold-50/30' : 'border-stone-200 bg-stone-50'}`}
-                >
-                  <div className="flex justify-between items-center border-b border-stone-200 pb-2 mb-2">
-                    <div className="text-[10px] font-bold text-gold-600 uppercase tracking-widest flex items-center gap-2">
-                      {editingHeroSlide ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                      <span>{editingHeroSlide ? 'স্লাইড এডিট করুন' : 'নতুন স্লাইড যুক্ত করুন'}</span>
+                {/* Add New Slide Button */}
+                {!editingHeroSlide && !isAddingHero && (
+                  <button
+                    onClick={() => setIsAddingHero(true)}
+                    className="w-full py-4 border-2 border-dashed border-gold-500/30 rounded-sm bg-gold-500/5 hover:bg-gold-500/10 text-gold-600 flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-gold-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Plus className="w-6 h-6" />
                     </div>
-                    {editingHeroSlide && (
-                      <button 
-                        type="button"
-                        onClick={() => setEditingHeroSlide(null)}
-                        className="text-[9px] uppercase font-bold text-stone-400 hover:text-stone-600"
-                      >
-                        বাতিল করুন
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <span className="text-[11px] font-bold uppercase tracking-widest">নতুন স্লাইড যুক্ত করুন (Add New Slide)</span>
+                  </button>
+                )}
+
+                {/* Add/Edit Slide Form */}
+                {(editingHeroSlide || isAddingHero) && (
+                  <form 
+                    onSubmit={editingHeroSlide ? handleUpdateHeroSlide : handleAddHeroSlide} 
+                    className={`p-4 sm:p-5 rounded-sm border space-y-4 shadow-sm text-left transition-all ${editingHeroSlide ? 'border-gold-500 bg-gold-50/30' : 'border-stone-200 bg-stone-50'}`}
+                  >
+                    <div className="flex justify-between items-center border-b border-stone-200 pb-2 mb-4">
+                      <div className="flex items-center gap-3">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setEditingHeroSlide(null);
+                            setIsAddingHero(false);
+                          }}
+                          className="p-1.5 rounded-full border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-colors cursor-pointer flex items-center justify-center bg-white"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <div className="text-[11px] font-bold text-gold-600 uppercase tracking-widest flex items-center gap-2">
+                          {editingHeroSlide ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          <span>{editingHeroSlide ? 'স্লাইড এডিট করুন' : 'নতুন স্লাইড যুক্ত করুন'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1 sm:col-span-2">
                       <label className="block text-[9px] uppercase font-bold text-stone-500">ব্যানার ছবি *</label>
                       <div className="flex items-center gap-3">
@@ -2274,8 +2176,10 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     {editingHeroSlide ? 'হিরো ব্যানার আপডেট করুন' : 'স্লাইড যুক্ত করুন'}
                   </button>
                 </form>
+                )}
 
                 {/* Slides List */}
+                {!editingHeroSlide && !isAddingHero && (
                 <div className="space-y-4">
                   <h4 className="font-bold text-[10px] uppercase tracking-widest text-stone-400 text-left">বর্তমান স্লাইড সমূহ ({heroSlides.length})</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2306,113 +2210,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {activeTab === 'supabase' && (
-              <div className="space-y-6 text-stone-900 text-left">
-                {/* Connection Status Card */}
-                <div className="p-5 rounded-sm border border-stone-200 bg-stone-50 space-y-4">
-                  <div className="text-xs font-bold text-gold-600 uppercase tracking-widest flex items-center gap-1.5 border-b border-stone-200 pb-2">
-                    <Database className="w-4 h-4" />
-                    <span>সুপাবেস ডাটাবেস ইন্টিগ্রেশন স্ট্যাটাস</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                    <div className="space-y-1">
-                      <div className="text-xs text-stone-500 font-sans font-bold">ডাটাবেস কানেকশন</div>
-                      <div className="flex items-center gap-2">
-                        {supabaseStatus.connected ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            কানেক্টেড ও সচল
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-600 border border-red-500/20">
-                            <AlertTriangle className="w-3.5 h-3.5" />
-                            অফলাইন মোড (লোকাল স্টোরেজ ব্যবহার হচ্ছে)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={refetchFromSupabase}
-                        disabled={syncingWithSupabase}
-                        className="px-4 py-2 bg-stone-800 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5 transition-all"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${syncingWithSupabase ? 'animate-spin' : ''}`} />
-                        <span>{syncingWithSupabase ? 'সিঙ্ক হচ্ছে...' : 'সুপাবেস থেকে ডাটা আনুন'}</span>
-                      </button>
-
-                      <button
-                        onClick={syncAllToSupabase}
-                        disabled={syncingWithSupabase}
-                        className="px-4 py-2 bg-gold-500 hover:brightness-110 text-black text-xs font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5 transition-all"
-                      >
-                        <Server className="w-3.5 h-3.5" />
-                        <span>লোকাল ডাটা সুপাবেসে পাঠান</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Individual Tables Status */}
-                  <div className="pt-3">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 mb-2">টেবিল সিঙ্ক ভেরিফিকেশন চেক</div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                      {Object.entries(supabaseStatus.tables).map(([tableName, exists]) => (
-                        <div key={tableName} className="p-2.5 rounded-sm border border-stone-200 bg-white flex flex-col justify-between space-y-1 text-center">
-                          <span className="text-[10px] font-mono text-stone-600 font-bold break-all">{tableName}</span>
-                          <span className={`inline-block mx-auto text-[9px] font-bold uppercase tracking-wider ${
-                            exists ? 'text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-sm' : 'text-stone-450 bg-stone-100 px-1.5 py-0.5 rounded-sm'
-                          }`}>
-                            {exists ? 'সিঙ্কড' : 'পাওয়া যায়নি'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* SQL Schema Setup Guide */}
-                <div className="p-5 rounded-sm border border-stone-200 bg-white space-y-4">
-                  <div className="flex items-center justify-between border-b border-stone-150 pb-2">
-                    <div className="text-xs font-bold text-stone-800 uppercase tracking-widest flex items-center gap-1.5">
-                      <Server className="w-4 h-4 text-gold-600" />
-                      <span>সুপাবেস SQL স্কিমা সেটআপ</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(SUPABASE_SQL_CREATION_QUERY);
-                        addToast(
-                          { en: 'SQL Schema copied to clipboard successfully!', bn: 'SQL স্কিমা সফলভাবে ক্লিপবোর্ডে কপি করা হয়েছে!' },
-                          'success'
-                        );
-                      }}
-                      className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-[10px] font-bold uppercase tracking-wider rounded-sm flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <Copy className="w-3 h-3" />
-                      <span>SQL কোড কপি করুন</span>
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-stone-500 leading-relaxed font-sans">
-                    {language === 'en'
-                      ? 'To fully connect Supabase, you must run the following SQL script inside your Supabase project\'s SQL Editor to create all required database tables, enable Row Level Security (RLS) policies, and grant public permissions.'
-                      : 'সুপাবেস কানেকশন সফল করতে হলে আপনার Supabase ড্যাশবোর্ডের SQL Editor-এ গিয়ে নিচের কোডটি রান করতে হবে। এটি প্রয়োজনীয় টেবিল, RLS সিকিউরিটি পলিসি এবং পাবলিক পারমিশন তৈরি করবে।'}
-                  </p>
-
-                  <div className="relative">
-                    <pre className="p-4 bg-stone-900 text-stone-200 font-mono text-[10px] rounded-sm overflow-x-auto overflow-y-auto max-h-60 leading-relaxed scrollbar-thin scrollbar-thumb-stone-700">
-                      <code>{SUPABASE_SQL_CREATION_QUERY}</code>
-                    </pre>
-                  </div>
-
-                  <div className="p-3 bg-gold-500/5 border border-gold-500/20 rounded-sm text-xs text-gold-800/95 font-medium leading-relaxed font-sans">
-                    💡 <strong>প্রো টিপ:</strong> SQL সেটআপ সম্পন্ন করার পর, উপরের <strong>"লোকাল ডাটা সুপাবেসে পাঠান"</strong> বাটনে ক্লিক করুন যাতে আপনার বর্তমান প্রোডাক্ট ও অর্ডারগুলো অনলাইনে সেভ হয়ে যায়!
-                  </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -2428,7 +2226,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               { id: 'orders', target: 'orders', label: language === 'bn' ? 'অর্ডারসমূহ' : 'Orders', icon: ShoppingBag, badge: orders.length },
               { id: 'products', target: 'products', label: language === 'bn' ? 'পণ্যসমূহ' : 'Products', icon: Package, badge: products.length },
               { id: 'content', target: 'coupons', label: language === 'bn' ? 'কন্টেন্ট' : 'Content', icon: HeartHandshake, badge: coupons.length + reviews.length + islamicQuotes.length, activeTabs: ['coupons', 'reviews', 'quotes'] },
-              { id: 'settings', target: 'hero', label: language === 'bn' ? 'সেটিংস' : 'Settings', icon: Settings, activeTabs: ['hero', 'settings', 'supabase'] }
+              { id: 'settings', target: 'hero', label: language === 'bn' ? 'সেটিংস' : 'Settings', icon: Settings, activeTabs: ['hero', 'settings'] }
             ].map((item) => {
               const Icon = item.icon;
               const isActive = item.activeTabs 
