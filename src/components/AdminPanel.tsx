@@ -102,6 +102,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   const getCategoryName = (categoryId: string) => {
     const category = CATEGORIES.find(c => c.id === categoryId);
@@ -874,115 +875,145 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                 <div className="space-y-3">
                   {orders.map((ord) => (
-                    <div key={ord.id} className="p-4 rounded-sm border border-stone-200 bg-stone-50 space-y-3 text-xs">
-                      <div className="flex flex-wrap justify-between items-center gap-2 border-b border-stone-200 pb-2">
-                        <div>
+                    <div key={ord.id} className="rounded-sm border border-stone-200 bg-stone-50 text-xs overflow-hidden">
+                      <div 
+                        className="flex flex-wrap justify-between items-center gap-2 p-4 cursor-pointer hover:bg-stone-100 transition-colors"
+                        onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
+                      >
+                        <div className="flex items-center gap-2">
                           <span className="font-bold text-gold-600 font-mono text-sm">{ord.id}</span>
-                          <span className="text-stone-500 ml-2 font-mono">
+                          <span className="text-stone-500 font-mono hidden sm:inline-block">
                             {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            <span className="mx-1.5 opacity-30">|</span>
-                            <span className="text-gold-600 font-bold">
-                              {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
                           </span>
                         </div>
                         
-                        {/* Order status dispatchers */}
-                        <div className="flex items-center gap-1.5">
-                          {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((st) => (
-                            <button
-                              key={st}
-                              onClick={() => updateOrderStatus(ord.id, st as any)}
-                              className={`px-2 py-1 rounded-sm text-[9px] font-bold uppercase transition-all cursor-pointer ${
-                                ord.orderStatus === st
-                                  ? 'bg-gold-500 text-black font-extrabold'
-                                  : 'border border-stone-200 hover:bg-stone-100 text-stone-500'
-                              }`}
-                            >
-                              {st}
-                            </button>
-                          ))}
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-1 rounded-sm text-[9px] font-bold uppercase border ${
+                            ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                            ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                            ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
+                            'bg-gold-50 text-gold-600 border-gold-200'
+                          }`}>
+                            {ord.orderStatus}
+                          </span>
+                          <span className="text-sm font-black font-mono tracking-tighter text-stone-900">৳{ord.total}</span>
+                          <svg className={`w-4 h-4 text-stone-400 transition-transform ${expandedOrderId === ord.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-stone-600">
-                        <div className="space-y-1">
-                          <span className="block text-[10px] text-stone-500 font-bold uppercase">কাস্টমারের বিবরণ</span>
-                          <p className="font-sans font-semibold text-stone-900">
-                            {ord.customerName} ({ord.phone})
-                          </p>
-                          <p className="font-sans text-stone-600">{ord.address}, {ord.district}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <span className="block text-[10px] text-stone-500 font-bold uppercase">পেমেন্টের বিবরণ</span>
-                          <p className="font-sans font-semibold text-stone-900">
-                            পদ্ধতি: {ord.paymentMethod.toUpperCase()} | স্ট্যাটাস: {ord.paymentStatus === 'paid' ? 'পরিশোধিত' : 'বাকি'}
-                          </p>
-                          {ord.transactionId && (
-                            <p className="font-sans text-[11px] text-emerald-600 font-bold">
-                              TXID: {ord.transactionId} {ord.advancePaidAmount ? `| অগ্রিম: ৳${ord.advancePaidAmount}` : ''}
-                            </p>
-                          )}
-                          <p className="font-sans">সাবটোটাল: ৳{ord.subtotal} | ডিসকাউন্ট: ৳{ord.discount}</p>
-                        </div>
-                      </div>
-
-                      {/* Purchased Items List */}
-                      <div className="bg-stone-100 p-2.5 rounded-sm border border-stone-200 text-[11px] space-y-1 text-stone-800">
-                        {ord.items.map((item, index) => (
-                          <div key={index} className="flex justify-between text-stone-700">
-                            <span>• {item.name} {item.size ? `(${item.size})` : ''} x {item.quantity}</span>
-                            <span className="font-mono text-stone-500">৳{item.price * item.quantity}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-3 gap-4 border-t border-stone-200">
-                        <div className="flex flex-wrap gap-2 flex-1">
-                          {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((st) => (
-                            <button
-                              key={st}
-                              onClick={() => updateOrderStatus(ord.id, st as any)}
-                              className={`px-3 py-1.5 rounded-sm text-[9px] font-bold uppercase transition-all cursor-pointer border ${
-                                ord.orderStatus === st
-                                  ? 'bg-gold-500 border-gold-500 text-black'
-                                  : 'border-stone-200 hover:bg-stone-100 text-stone-500 bg-white'
-                              }`}
-                            >
-                              {st}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <div className="flex-1 sm:w-40 relative">
-                            <input
-                              type="text"
-                              value={ord.trackingNumber || ''}
-                              onChange={(e) => {
-                                const newOrders = orders.map(o => o.id === ord.id ? {...o, trackingNumber: e.target.value} : o);
-                                setOrders(newOrders);
-                              }}
-                              placeholder="TRACKING #"
-                              className="w-full h-8 px-2 pl-7 rounded-sm border border-stone-200 text-[10px] font-mono font-bold focus:outline-none focus:border-gold-500"
-                            />
-                            <Truck className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-stone-400" />
-                          </div>
-                          
-                          <button
-                            onClick={() => deleteOrder(ord.id)}
-                            className="p-2 rounded-sm border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm"
-                            title="Delete Permanently"
+                      <AnimatePresence>
+                        {expandedOrderId === ord.id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="border-t border-stone-200"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                            <div className="p-4 space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-stone-600">
+                                <div className="space-y-1">
+                                  <span className="block text-[10px] text-stone-500 font-bold uppercase">কাস্টমারের বিবরণ</span>
+                                  <p className="font-sans font-semibold text-stone-900">
+                                    {ord.customerName} ({ord.phone})
+                                  </p>
+                                  <p className="font-sans text-stone-600">{ord.address}, {ord.district}</p>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="block text-[10px] text-stone-500 font-bold uppercase">পেমেন্টের বিবরণ</span>
+                                  <p className="font-sans font-semibold text-stone-900">
+                                    পদ্ধতি: {ord.paymentMethod.toUpperCase()} | স্ট্যাটাস: {ord.paymentStatus === 'paid' ? 'পরিশোধিত' : 'বাকি'}
+                                  </p>
+                                  {ord.transactionId && (
+                                    <p className="font-sans text-[11px] text-emerald-600 font-bold">
+                                      TXID: {ord.transactionId} {ord.advancePaidAmount ? `| অগ্রিম: ৳${ord.advancePaidAmount}` : ''}
+                                    </p>
+                                  )}
+                                  <p className="font-sans">সাবটোটাল: ৳{ord.subtotal} | ডিসকাউন্ট: ৳{ord.discount}</p>
+                                </div>
+                              </div>
 
-                      <div className="flex justify-between items-center bg-stone-900 text-gold-500 px-3 py-2 rounded-sm">
-                        <span className="text-[10px] font-bold uppercase tracking-widest">মোট পরিশোধযোগ্য</span>
-                        <span className="text-sm font-black font-mono tracking-tighter">৳{ord.total}</span>
-                      </div>
+                              {/* Purchased Items List */}
+                              <div className="bg-stone-100 p-2.5 rounded-sm border border-stone-200 text-[11px] space-y-2 text-stone-800">
+                                {ord.items.map((item, index) => {
+                                  console.log("Debug: item index=", index, "productId=", item.productId);
+                                  const product = products.find((p) => p.id === item.productId);
+                                  const productImage = product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
+                                  
+                                  return (
+                                    <div key={index} className="flex items-center justify-between gap-3 bg-white p-2 border border-stone-200 rounded-sm">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-16 h-16 rounded-sm bg-stone-100 flex-shrink-0 border border-stone-200">
+                                          <img 
+                                            src={productImage} 
+                                            alt={item.name} 
+                                            className="w-full h-full object-cover" 
+                                          />
+                                        </div>
+                                        <div className="flex flex-col">
+                                          <span className="font-bold text-stone-900 leading-tight">{item.name}</span>
+                                          <span className="text-[10px] text-stone-500">ID: {item.productId} | {item.size ? `সাইজ: ${item.size}` : 'সাইজ: N/A'} <span className="mx-1 opacity-50">|</span> <span className="font-mono">Qty: {item.quantity}</span></span>
+                                        </div>
+                                      </div>
+                                      <span className="font-mono font-bold text-stone-900">৳{item.price * item.quantity}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-3 gap-4 border-t border-stone-200">
+                                <div className="flex flex-wrap gap-2 flex-1">
+                                  {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((st) => (
+                                    <button
+                                      key={st}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateOrderStatus(ord.id, st as any);
+                                      }}
+                                      className={`px-3 py-1.5 rounded-sm text-[9px] font-bold uppercase transition-all cursor-pointer border ${
+                                        ord.orderStatus === st
+                                          ? 'bg-gold-500 border-gold-500 text-black'
+                                          : 'border-stone-200 hover:bg-stone-100 text-stone-500 bg-white'
+                                      }`}
+                                    >
+                                      {st}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                  <div className="flex-1 sm:w-40 relative">
+                                    <input
+                                      type="text"
+                                      value={ord.trackingNumber || ''}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        const newOrders = orders.map(o => o.id === ord.id ? {...o, trackingNumber: e.target.value} : o);
+                                        setOrders(newOrders);
+                                      }}
+                                      placeholder="TRACKING #"
+                                      className="w-full h-8 px-2 pl-7 rounded-sm border border-stone-200 text-[10px] font-mono font-bold focus:outline-none focus:border-gold-500"
+                                    />
+                                    <Truck className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-stone-400" />
+                                  </div>
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteOrder(ord.id);
+                                    }}
+                                    className="p-2 rounded-sm border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm"
+                                    title="Delete Permanently"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ))}
                 </div>

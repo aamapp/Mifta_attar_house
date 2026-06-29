@@ -228,7 +228,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Load Products
         if (status.tables.mifta_products) {
           const dbProducts = await getSupabaseProducts();
-          if (dbProducts && dbProducts.length > 0) {
+          if (dbProducts) {
             setRawProducts(dbProducts);
             localStorage.setItem('mifta_products', JSON.stringify(dbProducts));
           }
@@ -237,7 +237,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Load Coupons
         if (status.tables.mifta_coupons) {
           const dbCoupons = await getSupabaseCoupons();
-          if (dbCoupons && dbCoupons.length > 0) {
+          if (dbCoupons) {
             setRawCoupons(dbCoupons);
             localStorage.setItem('mifta_coupons', JSON.stringify(dbCoupons));
           }
@@ -246,7 +246,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Load Reviews
         if (status.tables.mifta_reviews) {
           const dbReviews = await getSupabaseReviews();
-          if (dbReviews && dbReviews.length > 0) {
+          if (dbReviews) {
             setReviews(dbReviews);
             localStorage.setItem('mifta_reviews', JSON.stringify(dbReviews));
           }
@@ -255,7 +255,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Load Orders
         if (status.tables.mifta_orders) {
           const dbOrders = await getSupabaseOrders();
-          if (dbOrders && dbOrders.length > 0) {
+          if (dbOrders) {
             setOrders(dbOrders);
             localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
           }
@@ -264,7 +264,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // Load Notifications
         if (status.tables.mifta_notifications) {
           const dbNotifs = await getSupabaseNotifications();
-          if (dbNotifs && dbNotifs.length > 0) {
+          if (dbNotifs) {
             setNotifications(dbNotifs);
             localStorage.setItem('mifta_notifications', JSON.stringify(dbNotifs));
           }
@@ -1086,28 +1086,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateOrderStatus = (orderId: string, status: Order['orderStatus']) => {
-    setOrders((prev) => {
-      const next = prev.map((ord) =>
-        ord.id === orderId
-          ? {
-              ...ord,
-              orderStatus: status,
-              paymentStatus: status === 'delivered' ? 'paid' : ord.paymentStatus,
-              trackingNumber: status === 'shipped' && !ord.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : ord.trackingNumber
-            }
-          : ord
-      );
+    let updatedOrder: Order | undefined;
 
-      // Background sync to Supabase
-      const updatedOrder = next.find((o) => o.id === orderId);
+    setOrders((prev) => {
+      const next = prev.map((ord) => {
+        if (ord.id === orderId) {
+          const updated = {
+            ...ord,
+            orderStatus: status,
+            paymentStatus: status === 'delivered' ? 'paid' : ord.paymentStatus,
+            trackingNumber: status === 'shipped' && !ord.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : ord.trackingNumber
+          };
+          updatedOrder = updated;
+          return updated;
+        }
+        return ord;
+      });
+      return next;
+    });
+
+    // Background sync to Supabase outside state updater
+    // Give state a tiny bit of time to update locally before saving, though not strictly required
+    setTimeout(() => {
       if (updatedOrder && supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
         saveSupabaseOrder(updatedOrder).catch((err) =>
           console.error('Error background syncing order status:', err)
         );
       }
-
-      return next;
-    });
+    }, 0);
 
     addToast(
       {
@@ -1119,20 +1125,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteOrder = (orderId: string) => {
-    setOrders((prev) => {
-      const next = prev.filter((ord) => ord.id !== orderId);
+    // Background sync to Supabase
+    if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+      supabase
+        .from('mifta_orders')
+        .delete()
+        .eq('id', orderId)
+        .then(({ error }) => { if (error) console.error('Error background deleting order from Supabase:', error); });
+    }
 
-      // Background sync to Supabase
-      if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-        supabase
-          .from('mifta_orders')
-          .delete()
-          .eq('id', orderId)
-          .then(({ error }) => { if (error) console.error('Error background deleting order from Supabase:', error); });
-      }
-
-      return next;
-    });
+    setOrders((prev) => prev.filter((ord) => ord.id !== orderId));
 
     addToast(
       { en: `Order ${orderId} has been deleted.`, bn: `অর্ডার ${orderId} মুছে ফেলা হয়েছে।` },
@@ -1166,18 +1168,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteReview = (reviewId: string) => {
-    setReviews((prev) => {
-      const next = prev.filter((rev) => rev.id !== reviewId);
+    // Background sync to Supabase
+    if (supabaseStatus.connected && supabaseStatus.tables.mifta_reviews) {
+      deleteSupabaseReview(reviewId).catch((err) =>
+        console.error('Error background deleting review from Supabase:', err)
+      );
+    }
 
-      // Background sync to Supabase
-      if (supabaseStatus.connected && supabaseStatus.tables.mifta_reviews) {
-        deleteSupabaseReview(reviewId).catch((err) =>
-          console.error('Error background deleting review from Supabase:', err)
-        );
-      }
-
-      return next;
-    });
+    setReviews((prev) => prev.filter((rev) => rev.id !== reviewId));
 
     addToast(
       { en: 'Review deleted.', bn: 'পর্যালোচনা মুছে ফেলা হয়েছে।' },
