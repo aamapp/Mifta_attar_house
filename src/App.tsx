@@ -42,20 +42,6 @@ export default function App() {
     (window.location.hash.toLowerCase().includes('admin-control') || 
      window.location.pathname.toLowerCase().includes('admin-control'));
 
-  if (isAdminRoute) {
-    return (
-      <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
-        <AdminPanel
-          isOpen={true}
-          onClose={() => {
-            if (typeof window !== 'undefined') window.location.href = '/';
-          }}
-        />
-        <Toast />
-      </div>
-    );
-  }
-
   // Instant direct buy product reference
   const [directCheckoutProduct, setDirectCheckoutProduct] = useState<{
     product: Product;
@@ -105,6 +91,20 @@ export default function App() {
       document.body.style.overflow = 'unset';
     };
   }, [cartOpen, accountOpen, checkoutOpen, quickViewProduct]);
+
+  if (isAdminRoute) {
+    return (
+      <div className="min-h-screen bg-gray-900 font-sans selection:bg-orange-500 selection:text-white antialiased overflow-x-hidden relative">
+        <AdminPanel
+          isOpen={true}
+          onClose={() => {
+            if (typeof window !== 'undefined') window.location.href = '/';
+          }}
+        />
+        <Toast />
+      </div>
+    );
+  }
 
   // Filtration logic
   const filteredProducts = products.filter((product) => {
