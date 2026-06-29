@@ -38,8 +38,21 @@ export default function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
+  // Hidden admin triggers: URL Hash change listener
+  const [hash, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      setHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   const isAdminRoute = typeof window !== 'undefined' && 
-    (window.location.hash.toLowerCase().includes('admin-control') || 
+    (hash.toLowerCase().includes('admin-control') || 
      window.location.pathname.toLowerCase().includes('admin-control'));
 
   // Instant direct buy product reference
@@ -54,19 +67,6 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<number>(3000);
   const [sortBy, setSortBy] = useState<'default' | 'price-low' | 'price-high' | 'rating'>('default');
-
-  // Hidden admin triggers: URL Hash change listener
-  const [, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '');
-  React.useEffect(() => {
-    const handleHashChange = () => {
-      setHash(window.location.hash);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
 
   // Triggering instant Buy Now button from cards or details
   const handleBuyNow = (product: Product, quantity = 1, size = '6ml') => {
@@ -98,7 +98,10 @@ export default function App() {
         <AdminPanel
           isOpen={true}
           onClose={() => {
-            if (typeof window !== 'undefined') window.location.href = '/';
+            if (typeof window !== 'undefined') {
+              window.location.hash = '';
+              setHash('');
+            }
           }}
         />
         <Toast />
