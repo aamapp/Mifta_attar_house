@@ -122,6 +122,29 @@ async function startServer() {
     }
   });
 
+  // Secure Delete Order Endpoint (Bypasses Client RLS limits using Service Role Key)
+  app.delete("/api/orders/:id", async (req, res) => {
+    try {
+      const orderId = req.params.id;
+      console.log(`Received secure request to delete order: ${orderId}`);
+
+      const { error } = await supabase
+        .from('mifta_orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error deleting order from Supabase:', error);
+        return res.status(500).json({ success: false, error: error.message });
+      }
+
+      res.json({ success: true, message: `Order ${orderId} successfully deleted.` });
+    } catch (error: any) {
+      console.error('Delete order endpoint error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {

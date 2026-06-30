@@ -1196,23 +1196,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return updated;
     });
 
-    // Background sync to Supabase
-    if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-      const { error } = await supabase
-        .from('mifta_orders')
-        .delete()
-        .eq('id', orderId);
+    try {
+      // 1. First try to delete via our secure server-side proxy API
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) {
-        console.error('Error deleting order from Supabase:', error);
-        // Rollback state & local storage
-        setOrders(rolledBackOrders);
-        localStorage.setItem('mifta_orders', JSON.stringify(rolledBackOrders));
-        addToast(
-          { en: `Failed to delete order ${orderId}.`, bn: `অর্ডার ${orderId} মুছে ফেলা ব্যর্থ হয়েছে।` },
-          'error'
-        );
-        return;
+      if (!response.ok) {
+        throw new Error(`Server status: ${response.status}`);
+      }
+
+      const resData = await response.json();
+      if (!resData.success) {
+        throw new Error(resData.error || 'Server deletion failed');
+      }
+
+      console.log(`Order ${orderId} deleted successfully via secure server-side API.`);
+    } catch (apiErr) {
+      console.warn('Server-side delete API failed, falling back to direct Supabase client:', apiErr);
+
+      // 2. Fallback to direct client-side delete if API fails
+      if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+        const { error } = await supabase
+          .from('mifta_orders')
+          .delete()
+          .eq('id', orderId);
+
+        if (error) {
+          console.error('Error deleting order directly from Supabase:', error);
+          // Rollback state & local storage
+          setOrders(rolledBackOrders);
+          localStorage.setItem('mifta_orders', JSON.stringify(rolledBackOrders));
+          addToast(
+            { en: `Failed to delete order ${orderId}.`, bn: `অর্ডার ${orderId} মুছে ফেলা ব্যর্থ হয়েছে।` },
+            'error'
+          );
+          return;
+        }
       }
     }
 
