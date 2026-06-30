@@ -659,7 +659,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Update FCM token in database when user is logged in
   useEffect(() => {
     if (user && fcmToken && user.uid !== 'mifta-guest-user') {
-      if (user.fcmToken !== fcmToken) {
+      const tokensArray = user.fcmToken ? user.fcmToken.split(',') : [];
+      if (!tokensArray.includes(fcmToken)) {
         // Update Supabase
         updateSupabaseFCMToken(user.uid, fcmToken).catch(err => 
           console.error('Error syncing FCM token to Supabase:', err)
@@ -669,7 +670,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error syncing FCM token to Firebase:', err)
         );
         // Also update local state
-        setUser(prev => prev ? { ...prev, fcmToken } : null);
+        setUser(prev => prev ? { ...prev, fcmToken: user.fcmToken ? `${user.fcmToken},${fcmToken}` : fcmToken } : null);
       }
     }
   }, [user?.uid, fcmToken]);

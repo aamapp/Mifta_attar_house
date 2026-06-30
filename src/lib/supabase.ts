@@ -590,9 +590,29 @@ export async function saveSupabaseUserProfile(profile: UserProfile) {
 
 export async function updateSupabaseFCMToken(uid: string, token: string) {
   try {
+    const { data: profile } = await supabase
+      .from('mifta_user_profiles')
+      .select('fcm_token')
+      .eq('uid', uid)
+      .single();
+
+    let tokens: string[] = [];
+    if (profile && profile.fcm_token) {
+      tokens = profile.fcm_token.split(',').filter((t: string) => t.trim() !== '');
+    }
+    
+    if (!tokens.includes(token)) {
+      tokens.push(token);
+    }
+
+    // Keep the last 10 tokens to avoid overflowing the text field over time
+    if (tokens.length > 10) {
+      tokens = tokens.slice(tokens.length - 10);
+    }
+
     const { error } = await supabase
       .from('mifta_user_profiles')
-      .update({ fcm_token: token })
+      .update({ fcm_token: tokens.join(',') })
       .eq('uid', uid);
     if (error) throw error;
     return true;

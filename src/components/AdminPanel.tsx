@@ -44,8 +44,34 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
 import { CATEGORIES } from '../data';
+import { locationData } from '../lib/locationData';
 import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage, saveSupabaseUserProfile } from '../lib/supabase';
 import { saveFirebaseUserProfile } from '../lib/firebase-helpers';
+
+function getLocalizedLocation(division: string | undefined, district: string | undefined, upazila: string | undefined, lang: 'en' | 'bn') {
+  if (!division) return { divName: '', distName: '', upaName: '' };
+  
+  let divName = division;
+  let distName = district || '';
+  let upaName = upazila || '';
+
+  const divData = locationData.divisions[division];
+  if (divData) {
+    divName = divData[lang] || division;
+    if (district && divData.districts[district]) {
+      const distData = divData.districts[district];
+      distName = distData[lang] || district;
+      if (upazila && distData.upazilas) {
+        const upaData = distData.upazilas.find(u => u.en === upazila || u.bn === upazila);
+        if (upaData) {
+          upaName = upaData[lang] || upazila;
+        }
+      }
+    }
+  }
+
+  return { divName, distName, upaName };
+}
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -712,7 +738,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         </h4>
                         <button
                           onClick={() => {
-                            const fullText = `নাম: ${ord.customerName}\nমোবাইল: ${ord.phone}\nঠিকানা: ${ord.address}\nবিভাগ/জেলা/উপজেলা: ${ord.division} / ${ord.district}${ord.upazila ? ` / ${ord.upazila}` : ''}`;
+                            const loc = getLocalizedLocation(ord.division, ord.district, ord.upazila, language);
+                            const fullText = `নাম: ${ord.customerName}\nমোবাইল: ${ord.phone}\nঠিকানা: ${ord.address}\nবিভাগ/জেলা/উপজেলা: ${loc.divName} / ${loc.distName}${loc.upaName ? ` / ${loc.upaName}` : ''}`;
                             handleCopyText(`${ord.id}-all-details`, fullText);
                           }}
                           className="flex items-center gap-1.5 text-[10px] font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 px-2.5 py-1.5 rounded-lg border border-orange-200 cursor-pointer shadow-2xs"
@@ -794,12 +821,16 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           <div className="flex flex-col text-left flex-1 mr-4">
                             <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">{language === 'en' ? 'Division / District / Upazila' : 'বিভাগ / জেলা / উপজেলা'}</span>
                             <span className="font-bold text-stone-900 text-xs sm:text-sm leading-relaxed">
-                              {ord.division} / {ord.district}{ord.upazila ? ` / ${ord.upazila}` : ''}
+                              {(() => {
+                                const loc = getLocalizedLocation(ord.division, ord.district, ord.upazila, language);
+                                return `${loc.divName} / ${loc.distName}${loc.upaName ? ` / ${loc.upaName}` : ''}`;
+                              })()}
                             </span>
                           </div>
                           <button
                             onClick={() => {
-                              const geoText = `${ord.division} / ${ord.district}${ord.upazila ? ` / ${ord.upazila}` : ''}`;
+                              const loc = getLocalizedLocation(ord.division, ord.district, ord.upazila, language);
+                              const geoText = `${loc.divName} / ${loc.distName}${loc.upaName ? ` / ${loc.upaName}` : ''}`;
                               handleCopyText(`${ord.id}-fullgeo`, geoText);
                             }}
                             className="p-2 rounded-xl bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer flex-shrink-0 shadow-2xs"
@@ -955,6 +986,13 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                 {copiedField[`${ord.id}-fulltxid`] ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                               </button>
                             </div>
+                          </div>
+                        )}
+
+                        {ord.advancePaidAmount !== undefined && (
+                          <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                            <span className="font-semibold text-stone-500">{language === 'en' ? 'Advance Paid' : 'অগ্রিম প্রদান'}</span>
+                            <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">৳{ord.advancePaidAmount}</span>
                           </div>
                         )}
 

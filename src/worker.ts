@@ -87,7 +87,14 @@ export default {
             .not('fcm_token', 'is', null);
           
           if (!profileError && profiles) {
-            tokens = profiles.map(p => p.fcm_token).filter(t => !!t);
+            profiles.forEach(p => {
+              if (p.fcm_token) {
+                const parts = p.fcm_token.split(',').filter((t: string) => t.trim() !== '');
+                tokens.push(...parts);
+              }
+            });
+            // Remove duplicates
+            tokens = [...new Set(tokens)];
           }
         } else {
           const { data: profile, error: profileError } = await supabase
@@ -97,7 +104,7 @@ export default {
             .maybeSingle();
 
           if (!profileError && profile?.fcm_token) {
-            tokens = [profile.fcm_token];
+            tokens = profile.fcm_token.split(',').filter((t: string) => t.trim() !== '');
           }
         }
 

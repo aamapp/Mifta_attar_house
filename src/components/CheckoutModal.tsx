@@ -112,7 +112,8 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [manualTxId, setManualTxId] = useState('');
-  const [advanceAmount, setAdvanceAmount] = useState(0); // 0 = Only Delivery, 1 = Full Amount
+  const [advanceAmount, setAdvanceAmount] = useState(0); // 0 = Only Delivery, 1 = Full Amount, 2 = Custom
+  const [customAdvanceAmount, setCustomAdvanceAmount] = useState('');
   const [hasPaidAdvance, setHasPaidAdvance] = useState(false);
 
   const handleClose = () => {
@@ -229,7 +230,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     const order = placeOrder({
       ...formData,
       transactionId: manualTxId,
-      advancePaidAmount: advanceAmount === 0 ? shipping : total
+      advancePaidAmount: advanceAmount === 0 ? shipping : advanceAmount === 1 ? total : (parseFloat(customAdvanceAmount) || 0)
     }, itemsToCheckout);
     setCompletedOrder(order);
     setStep('success');
@@ -424,15 +425,17 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { id: 'cod', label: language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি', icon: <div className="w-14 h-14 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100"><DollarSign className="w-7 h-7 text-emerald-500" /></div> },
+                          { id: 'cod', label: language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি', desc: language === 'en' ? 'Pay on receive' : 'পণ্য হাতে পেয়ে টাকা দিন', icon: <div className="w-14 h-14 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 mb-1"><DollarSign className="w-7 h-7 text-emerald-500" /></div> },
                           { 
                             id: 'bkash', 
                             label: language === 'en' ? 'bKash Wallet' : 'বিকাশ পেমেন্ট', 
+                            desc: language === 'en' ? 'Secure online pay' : 'অনলাইন পেমেন্ট',
                             icon: <BkashIcon className="w-14 h-14 rounded-lg" />
                           },
                           { 
                             id: 'nagad', 
                             label: language === 'en' ? 'Nagad Pay' : 'নগদ পেমেন্ট', 
+                            desc: language === 'en' ? 'Secure online pay' : 'অনলাইন পেমেন্ট',
                             icon: <NagadIcon className="w-14 h-14 rounded-lg" />
                           }
                         ].map((pay) => (
@@ -449,7 +452,8 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                               className="sr-only"
                             />
                             {pay.icon}
-                            <span className="text-[10px] font-bold text-stone-700 font-sans">{pay.label}</span>
+                            <span className="text-[10px] font-bold text-stone-700 font-sans text-center">{pay.label}</span>
+                            <span className="text-[8px] text-stone-500 font-medium text-center leading-none mt-[-2px]">{pay.desc}</span>
                           </label>
                         ))}
                       </div>
@@ -622,8 +626,29 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                         >
                           {language === 'en' ? `Full Amount (৳${total})` : `পূর্ণ মূল্য (৳${total})`}
                         </button>
+                        <button 
+                          onClick={() => setAdvanceAmount(2)}
+                          className={`col-span-2 py-2.5 px-3 rounded-sm border text-[10px] font-bold transition-all ${advanceAmount === 2 ? 'border-gold-500 bg-gold-500 text-black' : 'border-stone-200 bg-stone-50 text-stone-600'}`}
+                        >
+                          {language === 'en' ? `Other Amount` : `অন্য পরিমাণ`}
+                        </button>
                       </div>
                     </label>
+
+                    {advanceAmount === 2 && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-500 uppercase mb-1.5">
+                          {language === 'en' ? 'Enter Amount (৳)' : 'টাকার পরিমাণ লিখুন (৳)'}
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 500"
+                          value={customAdvanceAmount}
+                          onChange={(e) => setCustomAdvanceAmount(e.target.value)}
+                          className="w-full h-11 px-4 rounded-sm bg-stone-50 border border-stone-200 text-stone-900 font-mono font-bold text-sm focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-[10px] font-bold text-stone-500 uppercase mb-1.5">

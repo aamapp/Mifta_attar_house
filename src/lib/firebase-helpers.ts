@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "./firebase";
 import { UserProfile } from "../types";
 
@@ -23,7 +23,8 @@ export async function updateFirebaseFCMToken(uid: string, token: string) {
     const userRef = doc(db, "mifta_user_profiles", uid);
     // Use setDoc with merge: true instead of updateDoc to ensure it works even if doc doesn't exist
     await setDoc(userRef, {
-      fcmToken: token,
+      fcmToken: token, // Keep for backward compatibility
+      fcmTokens: arrayUnion(token),
       updatedAt: new Date().toISOString()
     }, { merge: true });
     return true;
