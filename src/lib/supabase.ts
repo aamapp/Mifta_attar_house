@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { Product, Order, Review, Coupon, AppNotification, UserProfile } from '../types';
 
 // Read values from Vite environment or fall back to the provided values directly
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
-const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODEwODksImV4cCI6MjA5ODA1NzA4OX0.DAgyGWRrzksDY13wfwOuBkcp1q6nPHU8C2ShfclFYY0';
+const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL || 'https://wyouwojqsujhofsivywe.supabase.co';
+const supabaseAnonKey = (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3V3b2pxc3VqaG9mc2l2eXdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0ODEwODksImV4cCI6MjA5ODA1NzA4OX0.DAgyGWRrzksDY13wfwOuBkcp1q6nPHU8C2ShfclFYY0';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -189,6 +189,43 @@ export function serializeAddress(
 
 export async function getSupabaseOrders(): Promise<Order[] | null> {
   try {
+    // 1. Try direct Supabase fetch first (highly reliable on mobile/absolute URL)
+    const { data, error } = await supabase
+      .from('mifta_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map((row: any) => {
+        const parsed = parseSerializedAddress(row.address);
+        return {
+          id: row.id,
+          date: row.date,
+          customerName: row.customer_name,
+          phone: row.phone,
+          address: parsed.address,
+          district: row.district,
+          division: row.division,
+          upazila: parsed.upazila,
+          items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+          subtotal: Number(row.subtotal),
+          discount: Number(row.discount || 0),
+          shipping: Number(row.shipping || 0),
+          total: Number(row.total),
+          couponCode: row.coupon_code,
+          paymentMethod: row.payment_method,
+          paymentStatus: row.payment_status,
+          transactionId: parsed.transactionId,
+          advancePaidAmount: parsed.advancePaidAmount,
+          orderStatus: row.order_status,
+          trackingNumber: row.tracking_number
+        };
+      });
+    }
+
+    console.warn('Direct Supabase orders fetch failed, trying secure server API...', error?.message);
+
+    // 2. Fallback to server API proxy if direct fetch fails
     const response = await fetch('/api/orders');
     if (!response.ok) {
       throw new Error(`Server returned status: ${response.status}`);
@@ -197,10 +234,10 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
     if (!resData.success) {
       throw new Error(resData.error || 'Server fetch failed');
     }
-    const data = resData.data;
-    if (!data) return null;
+    const serverData = resData.data;
+    if (!serverData) return null;
 
-    return data.map((row: any) => {
+    return serverData.map((row: any) => {
       const parsed = parseSerializedAddress(row.address);
       return {
         id: row.id,
@@ -226,7 +263,7 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
       };
     });
   } catch (err) {
-    console.warn('Supabase orders fetch failed via secure API:', err);
+    console.warn('Supabase orders fetch failed via both direct client and secure API:', err);
     return null;
   }
 }
@@ -260,6 +297,19 @@ export async function saveSupabaseOrder(order: Order) {
       tracking_number: order.trackingNumber || null
     };
 
+    // 1. Try direct Supabase upsert first (highly reliable on mobile/absolute URL)
+    const { error } = await supabase
+      .from('mifta_orders')
+      .upsert(dbOrder, { onConflict: 'id' });
+
+    if (!error) {
+      console.log(`Order ${order.id} saved directly to Supabase successfully.`);
+      return true;
+    }
+
+    console.warn('Direct Supabase order upsert failed, trying secure server API...', error.message);
+
+    // 2. Fallback to server API proxy if direct save fails
     const response = await fetch('/api/orders', {
       method: 'POST',
       headers: {
@@ -280,7 +330,7 @@ export async function saveSupabaseOrder(order: Order) {
 
     return true;
   } catch (err) {
-    console.error('Supabase order upsert failed:', err);
+    console.error('Supabase order upsert failed via both direct client and secure API:', err);
     return false;
   }
 }
