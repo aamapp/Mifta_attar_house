@@ -93,6 +93,7 @@ export interface Order {
     price: number;
     quantity: number;
     size?: string;
+    image?: string;
   }[];
   subtotal: number;
   discount: number;

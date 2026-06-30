@@ -80,7 +80,7 @@ interface AppContextType {
     paymentOption: string;
     transactionId?: string;
     advancePaidAmount?: number;
-  }) => Order;
+  }, customItems?: CartItem[]) => Order;
   updateOrderStatus: (orderId: string, status: Order['orderStatus']) => void;
   deleteOrder: (orderId: string) => Promise<void>;
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
@@ -204,8 +204,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const refetchFromSupabase = async () => {
-    setSyncingWithSupabase(true);
+  const refetchFromSupabase = async (quiet = false) => {
+    if (!quiet) setSyncingWithSupabase(true);
     try {
       const status = await checkSupabaseConnection();
       setSupabaseStatus(status);
@@ -273,7 +273,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error('Failed to refetch data from Supabase:', err);
     } finally {
-      setSyncingWithSupabase(false);
+      if (!quiet) setSyncingWithSupabase(false);
     }
   };
 
@@ -483,9 +483,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })
       .subscribe();
 
+    // Quiet background polling interval to keep multiple devices perfectly synchronized
+    const syncInterval = setInterval(() => {
+      refetchFromSupabase(true).catch((err) =>
+        console.warn('Silent sync error:', err)
+      );
+    }, 10000); // 10 seconds interval
+
     return () => {
       subscription.unsubscribe();
       orderSubscription.unsubscribe();
+      clearInterval(syncInterval);
     };
   }, []);
 
@@ -1051,8 +1059,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     paymentOption: string;
     transactionId?: string;
     advancePaidAmount?: number;
-  }) => {
-    const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  }, customItems?: CartItem[]) => {
+    const orderItems = customItems || cart;
+    const subtotal = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     
     // Calculate coupon discount
     let discount = 0;
@@ -1078,12 +1087,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       district: shippingDetails.district,
       division: shippingDetails.division,
       upazila: shippingDetails.upazila,
-      items: cart.map((item) => ({
+      items: orderItems.map((item) => ({
         productId: item.product.id,
         name: item.product.name[language],
         price: item.product.price,
         quantity: item.quantity,
-        size: item.selectedSize
+        size: item.selectedSize,
+        image: item.product.images?.[0]
       })),
       subtotal,
       discount,
@@ -1098,7 +1108,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     setOrders((prev) => [newOrder, ...prev]);
-    clearCart();
+    
+    if (!customItems) {
+      clearCart();
+    }
 
     // Trigger FCM Push for Admin
     fetch('https://miftaattarhouse.mamun30yr.workers.dev/api/send-push', {

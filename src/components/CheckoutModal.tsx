@@ -115,6 +115,29 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
   const [advanceAmount, setAdvanceAmount] = useState(0); // 0 = Only Delivery, 1 = Full Amount
   const [hasPaidAdvance, setHasPaidAdvance] = useState(false);
 
+  const handleClose = () => {
+    setStep('info');
+    setFormData({
+      name: '',
+      phone: '',
+      address: '',
+      district: '',
+      division: '',
+      upazila: '',
+      deliveryOption: 'outside',
+      paymentOption: 'cod'
+    });
+    setMfsNumber('');
+    setMfsOtp('');
+    setMfsPin('');
+    setPaymentSubstep('number');
+    setCompletedOrder(null);
+    setManualTxId('');
+    setAdvanceAmount(0);
+    setHasPaidAdvance(false);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   // Compute values
@@ -173,6 +196,15 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
       return;
     }
 
+    // Smart pre-selection of advance paid amount:
+    // If Cash on Delivery, they only pay the delivery charge in advance.
+    // If bKash or Nagad, they pay the full amount in advance.
+    if (formData.paymentOption === 'cod') {
+      setAdvanceAmount(0);
+    } else {
+      setAdvanceAmount(1);
+    }
+
     // Go to payment step to show mandatory delivery charge instructions
     setStep('payment_process');
   };
@@ -198,7 +230,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
       ...formData,
       transactionId: manualTxId,
       advancePaidAmount: advanceAmount === 0 ? shipping : total
-    });
+    }, itemsToCheckout);
     setCompletedOrder(order);
     setStep('success');
   };
@@ -227,7 +259,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
         {/* Close button */}
         {step !== 'success' && (
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-900 transition-all z-10"
           >
             <X className="w-5 h-5" />
@@ -505,12 +537,18 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                     <ShieldAlert className="w-5 h-5 text-gold-600 shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-xs font-bold text-gold-900 uppercase mb-1">
-                        {language === 'en' ? 'Mandatory Advance Payment' : 'অগ্রিম পেমেন্ট বাধ্যতামূলক'}
+                        {formData.paymentOption === 'cod' 
+                          ? (language === 'en' ? 'Mandatory Delivery Charge' : 'অগ্রিম ডেলিভারি চার্জ বাধ্যতামূলক')
+                          : (language === 'en' ? 'Full Payment Verification' : 'পূর্ণ মূল্য পেমেন্ট ভেরিফিকেশন')}
                       </h4>
                       <p className="text-[10px] text-gold-800 leading-relaxed">
-                        {language === 'en' 
-                          ? `To confirm your order, you must pay at least the delivery charge (৳${shipping}) in advance. You can also pay the full amount (৳${total}) now.`
-                          : `অর্ডার নিশ্চিত করতে কমপক্ষে ডেলিভারি চার্জ (৳${shipping}) অগ্রিম প্রদান করতে হবে। আপনি চাইলে পূর্ণ মূল্য (৳${total}) এখনই পরিশোধ করতে পারেন।`}
+                        {formData.paymentOption === 'cod'
+                          ? (language === 'en' 
+                              ? `To confirm your Cash on Delivery order, you must pay the delivery charge (৳${shipping}) in advance. The rest of the amount will be paid on delivery.`
+                              : `ক্যাশ অন ডেলিভারি অর্ডার কনফার্ম করতে কমপক্ষে ডেলিভারি চার্জ (৳${shipping}) অগ্রিম প্রদান করতে হবে। বাকি টাকা পণ্য হাতে পেয়ে পরিশোধ করবেন।`)
+                          : (language === 'en' 
+                              ? `Please send the total order amount of ৳${total} in advance to confirm your order via bKash or Nagad.`
+                              : `আপনার অর্ডারের পূর্ণ মূল্য সর্বমোট ৳${total} টাকা নিচের বিকাশ বা নগদ নাম্বারে Send Money করুন।`)}
                       </p>
                     </div>
                   </div>
@@ -697,7 +735,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
             </div>
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-8 py-3.5 rounded-sm bg-gold-500 hover:brightness-110 text-black font-extrabold text-xs tracking-widest uppercase cursor-pointer"
             >
               {language === 'en' ? 'CONTINUE SHOPPING' : 'কেনাকাটা চালিয়ে যান'}

@@ -829,21 +829,42 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     </div>
                     <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100 shadow-sm overflow-hidden">
                       {orders.slice(0, 5).length > 0 ? (
-                        orders.slice(0, 5).map(order => (
-                          <div key={order.id} className="p-5 flex items-center justify-between hover:bg-stone-50/50 transition-colors group">
-                            <div className="flex items-center gap-5">
-                              <div className="h-12 w-12 rounded-sm bg-stone-100 flex items-center justify-center text-xs font-mono font-bold text-stone-400 group-hover:bg-gold-50 group-hover:text-gold-600 transition-colors">
-                                #{order.id.slice(-4)}
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-stone-900 group-hover:text-gold-700 transition-colors">{order.customerName}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-[10px] text-stone-400 font-mono uppercase">{new Date(order.date).toLocaleDateString()}</p>
-                                  <span className="text-stone-200">|</span>
-                                  <p className="text-[10px] text-stone-400 uppercase tracking-tighter">{order.items.length} আইটেম</p>
+                        orders.slice(0, 5).map(order => {
+                          const firstItem = order.items?.[0];
+                          const matchedProduct = products.find(p => p.id === firstItem?.productId);
+                          const productImage = firstItem?.image || matchedProduct?.images?.[0];
+
+                          return (
+                            <div key={order.id} className="p-5 flex items-center justify-between hover:bg-stone-50/50 transition-colors group">
+                              <div className="flex items-center gap-5">
+                                {productImage ? (
+                                  <div className="h-12 w-12 rounded-sm bg-stone-100 overflow-hidden relative shrink-0 border border-stone-200">
+                                    <img
+                                      src={productImage}
+                                      alt={firstItem?.name || 'Product'}
+                                      className="h-full w-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                    {order.items.length > 1 && (
+                                      <span className="absolute bottom-0 right-0 bg-gold-600 text-stone-950 font-bold text-[8px] px-1 rounded-tl-sm select-none">
+                                        +{order.items.length - 1}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="h-12 w-12 rounded-sm bg-stone-100 flex items-center justify-center text-xs font-mono font-bold text-stone-400 group-hover:bg-gold-50 group-hover:text-gold-600 transition-colors shrink-0">
+                                    #{order.id.slice(-4)}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-sm font-bold text-stone-900 group-hover:text-gold-700 transition-colors">{order.customerName}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-[10px] text-stone-400 font-mono uppercase">{new Date(order.date).toLocaleDateString()}</p>
+                                    <span className="text-stone-200">|</span>
+                                    <p className="text-[10px] text-stone-400 uppercase tracking-tighter">{order.items.length} আইটেম</p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
                             <div className="text-right">
                               <p className="text-sm font-bold text-stone-900 font-mono">৳{order.total.toLocaleString()}</p>
                               <span className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm ${
@@ -853,7 +874,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                               </span>
                             </div>
                           </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="p-10 text-center text-stone-400 text-xs uppercase font-bold tracking-widest">
                           কোন অর্ডার পাওয়া যায়নি
@@ -880,11 +902,30 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         className="flex flex-wrap justify-between items-center gap-2 p-4 cursor-pointer hover:bg-stone-100 transition-colors"
                         onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-gold-600 font-mono text-sm">{ord.id}</span>
-                          <span className="text-stone-500 font-mono hidden sm:inline-block">
-                            {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gold-600 font-mono text-sm">{ord.id}</span>
+                            <span className="text-stone-500 font-mono hidden sm:inline-block">
+                              {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <span className="text-stone-300 hidden sm:inline">|</span>
+                          <span className="font-semibold text-stone-800">{ord.customerName}</span>
+                          {(() => {
+                            const firstItem = ord.items?.[0];
+                            const product = products.find((p) => p.id === firstItem?.productId);
+                            const image = firstItem?.image || product?.images?.[0];
+                            return image ? (
+                              <div className="h-6 w-6 rounded-sm bg-stone-100 border border-stone-200 overflow-hidden relative shrink-0">
+                                <img src={image} className="h-full w-full object-cover" />
+                                {ord.items.length > 1 && (
+                                  <span className="absolute bottom-0 right-0 bg-gold-600 text-stone-950 font-bold text-[6px] px-0.5 rounded-tl-sm select-none">
+                                    +{ord.items.length - 1}
+                                  </span>
+                                )}
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
                         
                         <div className="flex items-center gap-3">
@@ -938,7 +979,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                               <div className="bg-stone-100 p-2.5 rounded-sm border border-stone-200 text-[11px] space-y-2 text-stone-800">
                                 {ord.items.map((item, index) => {
                                   const product = products.find((p) => p.id === item.productId);
-                                  const productImage = product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
+                                  const productImage = item.image || product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
                                   
                                   return (
                                     <div key={index} className="flex items-center justify-between gap-3 bg-white p-2 border border-stone-200 rounded-sm">
