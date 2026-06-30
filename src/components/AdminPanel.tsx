@@ -36,7 +36,9 @@ import {
   Settings,
   HeartHandshake,
   Truck,
-  Image
+  Image,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
@@ -897,49 +899,80 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
                 <div className="space-y-3">
                   {orders.map((ord) => (
-                    <div key={ord.id} className="rounded-sm border border-stone-200 bg-stone-50 text-xs overflow-hidden">
+                    <div 
+                      key={ord.id} 
+                      className={`rounded-xl border border-stone-200 bg-white text-xs overflow-hidden shadow-xs hover:shadow-md hover:border-gold-500/30 transition-all duration-300 ${
+                        expandedOrderId === ord.id ? 'ring-1 ring-gold-500/30 shadow-sm border-gold-500/40 bg-gold-500/[0.01]' : ''
+                      }`}
+                    >
                       <div 
-                        className="flex flex-wrap justify-between items-center gap-2 p-4 cursor-pointer hover:bg-stone-100 transition-colors"
+                        className="p-4 cursor-pointer hover:bg-stone-50/50 transition-colors relative pr-12"
                         onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-gold-600 font-mono text-sm">{ord.id}</span>
-                            <span className="text-stone-500 font-mono hidden sm:inline-block">
-                              {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                          </div>
-                          <span className="text-stone-300 hidden sm:inline">|</span>
-                          <span className="font-semibold text-stone-800">{ord.customerName}</span>
-                          {(() => {
-                            const firstItem = ord.items?.[0];
-                            const product = products.find((p) => p.id === firstItem?.productId);
-                            const image = firstItem?.image || product?.images?.[0];
-                            return image ? (
-                              <div className="h-6 w-6 rounded-sm bg-stone-100 border border-stone-200 overflow-hidden relative shrink-0">
-                                <img src={image} className="h-full w-full object-cover" />
-                                {ord.items.length > 1 && (
-                                  <span className="absolute bottom-0 right-0 bg-gold-600 text-stone-950 font-bold text-[6px] px-0.5 rounded-tl-sm select-none">
-                                    +{ord.items.length - 1}
-                                  </span>
-                                )}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3.5">
+                            {(() => {
+                              const firstItem = ord.items?.[0];
+                              const product = products.find((p) => p.id === firstItem?.productId);
+                              const image = firstItem?.image || product?.images?.[0];
+                              return image ? (
+                                <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 overflow-hidden relative shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                  <img src={image} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                                  {ord.items.length > 1 && (
+                                    <span className="absolute bottom-0 right-0 bg-stone-900 text-gold-500 font-extrabold text-[8px] px-1 py-0.5 rounded-tl-sm select-none shadow-xs border-t border-l border-gold-500/20">
+                                      +{ord.items.length - 1}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 flex flex-col items-center justify-center shrink-0">
+                                  <span className="text-[8px] text-stone-400 font-mono font-bold uppercase">No Pic</span>
+                                </div>
+                              );
+                            })()}
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-stone-950 text-sm sm:text-base tracking-tight">{ord.customerName}</span>
                               </div>
-                            ) : null;
-                          })()}
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-stone-500 font-mono font-medium">
+                                <span className="text-gold-600 font-bold bg-gold-500/10 px-2 py-0.5 rounded-md border border-gold-500/20">#{ord.id}</span>
+                                <span className="text-stone-300">•</span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                                  {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                                <span className="text-stone-300">•</span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5 text-stone-400" />
+                                  {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase border tracking-wider shadow-2xs ${
+                              ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                              ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                              ord.orderStatus === 'confirmed' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                              ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
+                              'bg-gold-50 text-gold-600 border-gold-200'
+                            }`}>
+                              {ord.orderStatus === 'pending' && (language === 'bn' ? 'অপেক্ষমাণ' : 'Pending')}
+                              {ord.orderStatus === 'confirmed' && (language === 'bn' ? 'নিশ্চিত' : 'Confirmed')}
+                              {ord.orderStatus === 'shipped' && (language === 'bn' ? 'শিপড' : 'Shipped')}
+                              {ord.orderStatus === 'delivered' && (language === 'bn' ? 'ডেলিভার্ড' : 'Delivered')}
+                              {ord.orderStatus === 'cancelled' && (language === 'bn' ? 'বাতিল' : 'Cancelled')}
+                            </span>
+                            <span className="text-base font-black font-mono tracking-tighter text-stone-900 bg-stone-100/60 px-2.5 py-1 rounded-lg border border-stone-200/50">৳{ord.total}</span>
+                          </div>
                         </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <span className={`px-2 py-1 rounded-sm text-[9px] font-bold uppercase border ${
-                            ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                            ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                            ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
-                            'bg-gold-50 text-gold-600 border-gold-200'
-                          }`}>
-                            {ord.orderStatus}
-                          </span>
-                          <span className="text-sm font-black font-mono tracking-tighter text-stone-900">৳{ord.total}</span>
-                          <svg className={`w-4 h-4 text-stone-400 transition-transform ${expandedOrderId === ord.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+
+                        {/* Expand/Collapse Arrow: Always far right, vertically centered */}
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-stone-100 transition-colors">
+                          <svg className={`w-4 h-4 text-stone-400 transition-transform ${expandedOrderId === ord.id ? 'rotate-180 text-gold-600' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                           </svg>
                         </div>
                       </div>

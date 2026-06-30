@@ -28,7 +28,8 @@ import {
   checkSupabaseConnection,
   getSupabaseUserProfile,
   saveSupabaseUserProfile,
-  updateSupabaseFCMToken
+  updateSupabaseFCMToken,
+  parseSerializedAddress
 } from '../lib/supabase';
 import {
   saveFirebaseUserProfile,
@@ -418,25 +419,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const { eventType, new: newRecord, old: oldRecord } = payload;
 
         if (eventType === 'INSERT') {
-          const mapOrder = (row: any): Order => ({
-            id: row.id,
-            date: row.date,
-            customerName: row.customer_name,
-            phone: row.phone,
-            address: row.address,
-            district: row.district,
-            division: row.division,
-            items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
-            subtotal: Number(row.subtotal),
-            discount: Number(row.discount || 0),
-            shipping: Number(row.shipping || 0),
-            total: Number(row.total),
-            couponCode: row.coupon_code,
-            paymentMethod: row.payment_method,
-            paymentStatus: row.payment_status,
-            orderStatus: row.order_status,
-            trackingNumber: row.tracking_number
-          });
+          const mapOrder = (row: any): Order => {
+            const parsed = parseSerializedAddress(row.address);
+            return {
+              id: row.id,
+              date: row.date,
+              customerName: row.customer_name,
+              phone: row.phone,
+              address: parsed.address,
+              district: row.district,
+              division: row.division,
+              upazila: parsed.upazila,
+              items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+              subtotal: Number(row.subtotal),
+              discount: Number(row.discount || 0),
+              shipping: Number(row.shipping || 0),
+              total: Number(row.total),
+              couponCode: row.coupon_code,
+              paymentMethod: row.payment_method as Order['paymentMethod'],
+              paymentStatus: row.payment_status as Order['paymentStatus'],
+              transactionId: parsed.transactionId,
+              advancePaidAmount: parsed.advancePaidAmount,
+              orderStatus: row.order_status as Order['orderStatus'],
+              trackingNumber: row.tracking_number
+            };
+          };
           const insertedOrder = mapOrder(newRecord);
           setOrders((prev) => {
             if (prev.some(o => o.id === insertedOrder.id)) return prev;
@@ -445,25 +452,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             return updated;
           });
         } else if (eventType === 'UPDATE') {
-          const mapOrder = (row: any): Order => ({
-            id: row.id,
-            date: row.date,
-            customerName: row.customer_name,
-            phone: row.phone,
-            address: row.address,
-            district: row.district,
-            division: row.division,
-            items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
-            subtotal: Number(row.subtotal),
-            discount: Number(row.discount || 0),
-            shipping: Number(row.shipping || 0),
-            total: Number(row.total),
-            couponCode: row.coupon_code,
-            paymentMethod: row.payment_method,
-            paymentStatus: row.payment_status,
-            orderStatus: row.order_status,
-            trackingNumber: row.tracking_number
-          });
+          const mapOrder = (row: any): Order => {
+            const parsed = parseSerializedAddress(row.address);
+            return {
+              id: row.id,
+              date: row.date,
+              customerName: row.customer_name,
+              phone: row.phone,
+              address: parsed.address,
+              district: row.district,
+              division: row.division,
+              upazila: parsed.upazila,
+              items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+              subtotal: Number(row.subtotal),
+              discount: Number(row.discount || 0),
+              shipping: Number(row.shipping || 0),
+              total: Number(row.total),
+              couponCode: row.coupon_code,
+              paymentMethod: row.payment_method as Order['paymentMethod'],
+              paymentStatus: row.payment_status as Order['paymentStatus'],
+              transactionId: parsed.transactionId,
+              advancePaidAmount: parsed.advancePaidAmount,
+              orderStatus: row.order_status as Order['orderStatus'],
+              trackingNumber: row.tracking_number
+            };
+          };
           const updatedOrder = mapOrder(newRecord);
           setOrders((prev) => {
             const updated = prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);

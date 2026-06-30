@@ -144,6 +144,49 @@ export async function deleteSupabaseProduct(productId: string) {
 }
 
 // 3. ORDERS HELPERS
+export function parseSerializedAddress(serializedAddress: string): {
+  address: string;
+  upazila?: string;
+  transactionId?: string;
+  advancePaidAmount?: number;
+} {
+  const mainAddress = serializedAddress || '';
+  if (mainAddress.includes('|||')) {
+    const parts = mainAddress.split('|||');
+    const address = parts[0] || '';
+    const upazila = parts[1] || '';
+    const transactionId = parts[2] || '';
+    let advancePaidAmount: number | undefined = undefined;
+    if (parts[3]) {
+      const val = Number(parts[3]);
+      if (!isNaN(val)) {
+        advancePaidAmount = val;
+      }
+    }
+    return {
+      address,
+      upazila: upazila || undefined,
+      transactionId: transactionId || undefined,
+      advancePaidAmount
+    };
+  }
+  return { address: mainAddress };
+}
+
+export function serializeAddress(
+  address: string,
+  upazila?: string,
+  transactionId?: string,
+  advancePaidAmount?: number
+): string {
+  return [
+    address || '',
+    upazila || '',
+    transactionId || '',
+    advancePaidAmount !== undefined ? String(advancePaidAmount) : ''
+  ].join('|||');
+}
+
 export async function getSupabaseOrders(): Promise<Order[] | null> {
   try {
     const { data, error } = await supabase
@@ -154,25 +197,31 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
     if (error) throw error;
     if (!data) return null;
 
-    return data.map((row: any) => ({
-      id: row.id,
-      date: row.date,
-      customerName: row.customer_name,
-      phone: row.phone,
-      address: row.address,
-      district: row.district,
-      division: row.division,
-      items: row.items,
-      subtotal: row.subtotal,
-      discount: row.discount,
-      shipping: row.shipping,
-      total: row.total,
-      couponCode: row.coupon_code,
-      paymentMethod: row.payment_method,
-      paymentStatus: row.payment_status,
-      orderStatus: row.order_status,
-      trackingNumber: row.tracking_number
-    }));
+    return data.map((row: any) => {
+      const parsed = parseSerializedAddress(row.address);
+      return {
+        id: row.id,
+        date: row.date,
+        customerName: row.customer_name,
+        phone: row.phone,
+        address: parsed.address,
+        district: row.district,
+        division: row.division,
+        upazila: parsed.upazila,
+        items: row.items,
+        subtotal: row.subtotal,
+        discount: row.discount,
+        shipping: row.shipping,
+        total: row.total,
+        couponCode: row.coupon_code,
+        paymentMethod: row.payment_method,
+        paymentStatus: row.payment_status,
+        transactionId: parsed.transactionId,
+        advancePaidAmount: parsed.advancePaidAmount,
+        orderStatus: row.order_status,
+        trackingNumber: row.tracking_number
+      };
+    });
   } catch (err) {
     console.warn('Supabase orders fetch failed (Table may not exist yet):', err);
     return null;
@@ -181,28 +230,51 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
 
 export async function saveSupabaseOrder(order: Order) {
   try {
-    const { error } = await supabase
-      .from('mifta_orders')
-      .upsert({
-        id: order.id,
-        date: order.date,
-        customer_name: order.customerName,
-        phone: order.phone,
-        address: order.address,
-        district: order.district,
-        division: order.division,
-        items: order.items,
-        subtotal: order.subtotal,
-        discount: order.discount,
-        shipping: order.shipping,
-        total: order.total,
-        coupon_code: order.couponCode,
-        payment_method: order.paymentMethod,
-        payment_status: order.paymentStatus,
-        order_status: order.orderStatus,
-        tracking_number: order.trackingNumber
-      }, { onConflict: 'id' });
-    if (error) throw error;
+    const serializedAddr = serializeAddress(
+      order.address,
+      order.upazila,
+      order.transactionId,
+      order.advancePaidAmount
+    );
+
+    const dbOrder = {
+      id: order.id,
+      date: order.date || new Date().toISOString(),
+      customer_name: order.customerName || 'No Name',
+      phone: order.phone || 'No Phone',
+      address: serializedAddr,
+      district: order.district || 'Default',
+      division: order.division || 'Default',
+      items: Array.isArray(order.items) ? order.items : [],
+      subtotal: typeof order.subtotal === 'number' ? order.subtotal : 0,
+      discount: typeof order.discount === 'number' ? order.discount : 0,
+      shipping: typeof order.shipping === 'number' ? order.shipping : 0,
+      total: typeof order.total === 'number' ? order.total : 0,
+      coupon_code: order.couponCode || null,
+      payment_method: order.paymentMethod || 'cod',
+      payment_status: order.paymentStatus || 'pending',
+      order_status: order.orderStatus || 'pending',
+      tracking_number: order.trackingNumber || null
+    };
+
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dbOrder)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Server status: ${response.status} - ${errText}`);
+    }
+
+    const resData = await response.json();
+    if (!resData.success) {
+      throw new Error(resData.error || 'Server upsert failed');
+    }
+
     return true;
   } catch (err) {
     console.error('Supabase order upsert failed:', err);

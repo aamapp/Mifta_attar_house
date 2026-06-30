@@ -145,6 +145,28 @@ async function startServer() {
     }
   });
 
+  // Secure Order Upsert Endpoint (Bypasses Client RLS limits using Service Role Key)
+  app.post("/api/orders", async (req, res) => {
+    try {
+      const order = req.body;
+      console.log(`Received secure request to upsert order: ${order.id}`);
+
+      const { error } = await supabase
+        .from('mifta_orders')
+        .upsert(order, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Error upserting order in Supabase:', error);
+        return res.status(500).json({ success: false, error: error.message });
+      }
+
+      res.json({ success: true, message: `Order ${order.id} successfully saved.` });
+    } catch (error: any) {
+      console.error('Upsert order endpoint error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {
