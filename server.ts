@@ -127,6 +127,9 @@ async function startServer() {
     try {
       const orderId = req.params.id;
       console.log(`Received secure request to delete order: ${orderId}`);
+      
+      // Add a small delay to simulate network or check if it's actually received
+      console.log(`Attempting to delete order from Supabase: ${orderId}`);
 
       const { error } = await supabase
         .from('mifta_orders')

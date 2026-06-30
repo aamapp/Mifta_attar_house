@@ -21,15 +21,12 @@ import BottomNavigation from './components/BottomNavigation';
 import SmartSelect from './components/SmartSelect';
 import BrandStory from './components/BrandStory';
 import Footer from './components/Footer';
-import Toast from './components/Toast';
 import { Search, SlidersHorizontal, ArrowUpDown, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export default function App() {
   const {
     products,
-    language,
-    toasts,
-    removeToast
+    language
   } = useApp();
 
   // Active Modals state toggles
@@ -105,7 +102,6 @@ export default function App() {
             }
           }}
         />
-        <Toast />
       </div>
     );
   }
@@ -381,9 +377,6 @@ export default function App() {
       />
 
       {/* Administrative System Portal handled by isAdminRoute check above */}
-
-      {/* Global Toasts Alerts Overlay Stack */}
-      <Toast />
 
     </div>
   );

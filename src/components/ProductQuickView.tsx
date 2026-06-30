@@ -193,41 +193,41 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
           <div className="lg:col-span-7 flex flex-col justify-between h-full space-y-6 text-left">
             
             {/* Title, Badges, and Price */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3.5 py-1.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/40 uppercase tracking-widest font-sans">
+                <span className="px-2.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200/40 uppercase tracking-widest font-sans">
                   {getCategoryLabel(product.category)}
                 </span>
                 {product.isBestSeller && (
-                  <span className="px-3.5 py-1.5 rounded-lg text-[10px] font-bold bg-stone-100 text-stone-700 tracking-wider font-sans uppercase">
+                  <span className="px-2.5 py-0.5 rounded text-[9px] font-bold bg-stone-100 text-stone-700 tracking-wider font-sans uppercase">
                     {language === 'en' ? 'BESTSELLER' : 'সেরা পণ্য'}
                   </span>
                 )}
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-stone-950 font-sans leading-snug">
+              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-stone-950 font-sans leading-snug">
                 {product.name[language]}
               </h2>
 
-              <div className="flex items-center gap-3 bg-stone-50/50 py-1.5 px-3 rounded-xl border border-stone-100/80 w-fit">
+              <div className="flex items-center gap-2 bg-stone-50/50 py-1 px-2 rounded-lg border border-stone-100/80 w-fit">
                 {/* Rating */}
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                  <span className="text-xs font-bold text-stone-850 font-mono">{toBengaliDigits(product.rating)}</span>
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  <span className="text-[10px] font-bold text-stone-850 font-mono">{toBengaliDigits(product.rating)}</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-stone-300" />
-                <span className="text-xs text-stone-500 font-sans">
+                <span className="text-[10px] text-stone-500 font-sans">
                   {language === 'en' ? `Based on ${toBengaliDigits(productReviews.length)} reviews` : `${toBengaliDigits(productReviews.length)}টি কাস্টমার রিভিউ`}
                 </span>
               </div>
 
               {/* Price Row */}
-              <div className="flex items-baseline gap-3.5 pt-1">
-                <span className="text-4xl font-extrabold text-[#e0a92a] font-mono tracking-tight">
+              <div className="flex items-baseline gap-2 pt-0.5">
+                <span className="text-3xl font-extrabold text-[#e0a92a] font-mono tracking-tight">
                   ৳{toBengaliDigits(adjustedPrice)}
                 </span>
                 {adjustedOriginalPrice && (
-                  <span className="text-base text-stone-400 line-through font-mono">
+                  <span className="text-sm text-stone-400 line-through font-mono">
                     ৳{toBengaliDigits(adjustedOriginalPrice)}
                   </span>
                 )}
@@ -236,11 +236,11 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
 
             {/* Size Selector for Attars / Organic Packages */}
             {product.category !== 'natural' && product.category !== 'gifts' && (
-              <div className="space-y-3 pt-1">
-                <label className="text-xs font-bold text-stone-500 tracking-wider uppercase font-sans">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-stone-500 tracking-wider uppercase font-sans">
                   {language === 'en' ? 'SELECT CONTAINER SIZE' : 'আকারের পরিমাণ নির্বাচন করুন'}
                 </label>
-                <div className="flex gap-2.5">
+                <div className="flex gap-2">
                   {['3ml', '6ml', '12ml'].map((size) => {
                     const isActive = selectedSize === size;
                     return (
@@ -253,10 +253,10 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                             bn: `পরিমাণ নির্বাচন করা হয়েছে: ${size}`
                           }, 'info');
                         }}
-                        className={`px-5 py-2.5 rounded-lg border text-sm font-bold tracking-wider font-mono transition-all duration-250 cursor-pointer ${
+                        className={`px-3 py-1 rounded text-xs font-bold tracking-wider font-mono transition-all duration-250 cursor-pointer ${
                           isActive
-                            ? 'border-[#e0a92a] bg-amber-50/50 text-[#cc9520] shadow-sm'
-                            : 'border-stone-200 bg-white hover:border-stone-400 text-stone-600'
+                            ? 'border border-[#e0a92a] bg-amber-50/50 text-[#cc9520] shadow-sm'
+                            : 'border border-stone-200 bg-white hover:border-stone-400 text-stone-600'
                         }`}
                       >
                         {size}
@@ -268,21 +268,21 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
             )}
 
             {/* Quantity and Checkout Actions */}
-            <div className="space-y-4 pt-3 border-t border-stone-100">
-              <div className="flex items-center gap-2 sm:gap-3">
+            <div className="space-y-3 pt-2 border-t border-stone-100">
+              <div className="flex items-center gap-2">
                 
                 {/* Quantity Editor */}
-                <div className="flex items-center justify-between rounded-lg border border-stone-200 bg-stone-50 p-1 h-12 w-24 sm:w-28 shrink-0">
+                <div className="flex items-center justify-between rounded border border-stone-200 bg-stone-50 p-0.5 h-10 w-20 shrink-0">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-10 flex items-center justify-center text-lg font-bold text-stone-500 hover:text-black hover:bg-stone-100 rounded transition-colors cursor-pointer"
+                    className="w-7 h-9 flex items-center justify-center text-sm font-bold text-stone-500 hover:text-black hover:bg-stone-100 rounded transition-colors cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="text-sm font-bold font-mono text-stone-850">{toBengaliDigits(quantity)}</span>
+                  <span className="text-xs font-bold font-mono text-stone-850">{toBengaliDigits(quantity)}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-10 flex items-center justify-center text-lg font-bold text-stone-500 hover:text-black hover:bg-stone-100 rounded transition-colors cursor-pointer"
+                    className="w-7 h-9 flex items-center justify-center text-sm font-bold text-stone-500 hover:text-black hover:bg-stone-100 rounded transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -292,28 +292,27 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                 <button
                   disabled={outOfStock}
                   onClick={() => addToCart(product, quantity, selectedSize)}
-                  className={`flex-1 h-12 rounded-lg font-bold tracking-wider text-xs font-sans uppercase flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 transition-all duration-250 cursor-pointer ${
+                  className={`flex-1 h-10 rounded text-[10px] font-bold tracking-wider font-sans uppercase flex items-center justify-center gap-1.5 shadow-sm hover:-translate-y-0.5 transition-all duration-250 cursor-pointer ${
                     outOfStock
                       ? 'bg-stone-150 border border-stone-200 text-stone-400 cursor-not-allowed'
-                      : 'bg-[#e0a92a] hover:bg-[#cc9520] text-white shadow-amber-500/10 font-sans'
+                      : 'bg-[#e0a92a] hover:bg-[#cc9520] text-white'
                   }`}
                 >
-                  <ShoppingCart className="w-4.5 h-4.5 shrink-0" />
-                  <span className="truncate">{language === 'en' ? 'ADD TO SHOPPING BAG' : 'ব্যাগ-এ যুক্ত করুন'}</span>
+                  <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{language === 'en' ? 'ADD TO BAG' : 'ব্যাগ-এ যুক্ত করুন'}</span>
                 </button>
 
                 {/* Wishlist Button labeled Favorite/ফেভারিট */}
                 <button
                   onClick={() => toggleWishlist(product.id)}
-                  className={`h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 rounded-lg border transition-all duration-200 cursor-pointer text-xs font-bold font-sans shrink-0 ${
+                  className={`h-10 w-10 flex items-center justify-center rounded border transition-all duration-200 cursor-pointer shrink-0 ${
                     isSaved
-                      ? 'border-red-200 bg-red-50 text-red-600 shadow-sm'
-                      : 'border-stone-200 bg-white hover:border-stone-450 text-stone-600 hover:bg-stone-50'
+                      ? 'border-red-200 bg-red-50 text-red-600'
+                      : 'border-stone-200 bg-white hover:border-stone-450 text-stone-600'
                   }`}
                   title={language === 'en' ? 'Favorite' : 'ফেভারিট'}
                 >
-                  <Heart className={`w-4.5 h-4.5 shrink-0 ${isSaved ? 'fill-current text-red-500' : 'text-stone-500'}`} />
-                  <span className="hidden sm:inline">{language === 'en' ? 'FAVORITE' : 'ফেভারিট'}</span>
+                  <Heart className={`w-4 h-4 shrink-0 ${isSaved ? 'fill-current text-red-500' : 'text-stone-500'}`} />
                 </button>
               </div>
 
@@ -321,17 +320,17 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
               {!outOfStock && (
                 <button
                   onClick={() => onBuyNow(product, quantity, selectedSize)}
-                  className="w-full h-13 rounded-xl bg-gradient-to-r from-[#e0a92a] to-[#cc9520] hover:from-[#cc9520] hover:to-[#b8821a] text-white font-extrabold tracking-widest text-xs uppercase flex items-center justify-center gap-2.5 shadow-[0_8px_25px_rgba(224,169,42,0.25)] hover:shadow-[0_12px_30px_rgba(224,169,42,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer"
+                  className="w-full h-11 rounded-lg bg-gradient-to-r from-[#e0a92a] to-[#cc9520] hover:from-[#cc9520] hover:to-[#b8821a] text-white font-extrabold tracking-widest text-[11px] uppercase flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer"
                 >
-                  <Sparkles className="w-4.5 h-4.5 fill-current text-white animate-pulse" />
+                  <Sparkles className="w-4 h-4 fill-current text-white animate-pulse" />
                   <span>{language === 'en' ? 'ORDER NOW' : 'অর্ডার করুন'}</span>
                 </button>
               )}
             </div>
 
             {/* Info Tabs: Details, Specs, Benefits, Reviews */}
-            <div className="border-t border-stone-150 pt-5">
-              <div className="flex border-b border-stone-100 overflow-x-auto pb-px scrollbar-none gap-2">
+            <div className="border-t border-stone-150 pt-3">
+              <div className="flex border-b border-stone-100 overflow-x-auto pb-px scrollbar-none gap-1">
                 {[
                   { id: 'desc', label: { en: 'Details', bn: 'বর্ণনা' } },
                   { id: 'spec', label: { en: 'Specifications', bn: 'বৈশিষ্ট্য' } },
@@ -342,7 +341,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`py-2.5 px-4 text-xs font-bold tracking-wider uppercase shrink-0 transition-colors cursor-pointer border-b-2 -mb-px ${
+                    className={`py-2 px-3 text-[10px] font-bold tracking-wider uppercase shrink-0 transition-colors cursor-pointer border-b-2 -mb-px ${
                       activeTab === tab.id
                         ? 'border-[#e0a92a] text-[#cc9520]'
                         : 'border-transparent text-stone-500 hover:text-stone-900'

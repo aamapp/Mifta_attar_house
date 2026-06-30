@@ -133,6 +133,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [viewingOrderId, setViewingOrderId] = useState<string | null>(null);
+  const [pendingDeleteOrder, setPendingDeleteOrder] = useState<string | null>(null);
   const [showAdminProfilePopup, setShowAdminProfilePopup] = useState(false);
   const [copiedField, setCopiedField] = useState<{ [key: string]: boolean }>({});
 
@@ -1019,12 +1020,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         {/* Delete Button */}
                         <div className="pt-3 border-t border-stone-100">
                           <button
-                            onClick={() => {
-                              if (confirm(language === 'bn' ? 'আপনি কি নিশ্চিতভাবে এই অর্ডারটি মুছে ফেলতে চান?' : 'Are you sure you want to delete this order?')) {
-                                deleteOrder(ord.id);
-                                setViewingOrderId(null);
-                              }
-                            }}
+                            onClick={() => setPendingDeleteOrder(ord.id)}
                             className="w-full h-10 bg-red-50 hover:bg-red-500 hover:text-white border border-red-100 text-red-600 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2858,6 +2854,55 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         </div>
       )}
 
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {pendingDeleteOrder && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4"
+              onClick={() => {
+                  console.log("Modal clicked, closing");
+                  setPendingDeleteOrder(null);
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="font-bold text-lg text-stone-900">
+                  {language === 'en' ? 'Delete Order?' : 'অর্ডারটি মুছে ফেলতে চান?'}
+                </h3>
+                <p className="text-stone-600 text-sm">
+                  {language === 'en' ? 'This action cannot be undone.' : 'এই কাজটি পরবর্তীতে আর পরিবর্তন করা যাবে না।'}
+                </p>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setPendingDeleteOrder(null)}
+                    className="flex-1 py-2 rounded-lg bg-stone-100 text-stone-700 font-bold hover:bg-stone-200 transition-all"
+                  >
+                    {language === 'en' ? 'Cancel' : 'বাতিল'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log("Delete button clicked for:", pendingDeleteOrder);
+                      deleteOrder(pendingDeleteOrder);
+                      setViewingOrderId(null);
+                      setPendingDeleteOrder(null);
+                    }}
+                    className="flex-1 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-all"
+                  >
+                    {language === 'en' ? 'Delete' : 'মুছে ফেলুন'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
     </div>
   );
 }

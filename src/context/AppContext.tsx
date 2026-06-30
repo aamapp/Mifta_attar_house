@@ -895,9 +895,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToast = (msg: { en: string; bn: string }, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message: msg, type }]);
-    setTimeout(() => removeToast(id), 4000);
+    // addToast is disabled
   };
 
   const removeToast = (id: string) => {
@@ -1234,6 +1232,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteOrder = async (orderId: string) => {
+    console.log("Delete Order called with ID:", orderId);
     const rolledBackOrders: Order[] = [...orders];
 
     // Optimistically update local state and localStorage immediately
@@ -1263,7 +1262,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       console.log(`Order ${orderId} deleted successfully via secure server-side API.`);
     } catch (apiErr) {
-      console.warn('Server-side delete API failed, falling back to direct Supabase client:', apiErr);
+      console.error('Server-side delete API failed:', apiErr);
 
       // 2. Fallback to direct client-side delete if API fails
       if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
@@ -1271,21 +1270,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           .from('mifta_orders')
           .delete()
           .eq('id', orderId);
-
+        
         if (error) {
-          console.error('Error deleting order directly from Supabase:', error);
-          // Rollback state & local storage
-          setOrders(rolledBackOrders);
-          localStorage.setItem('mifta_orders', JSON.stringify(rolledBackOrders));
-          addToast(
-            { en: `Failed to delete order ${orderId}.`, bn: `অর্ডার ${orderId} মুছে ফেলা ব্যর্থ হয়েছে।` },
-            'error'
-          );
-          return;
+            console.error('Fallback Supabase delete failed:', error);
+            // Rollback if needed
+            setOrders(rolledBackOrders);
+        } else {
+            console.log('Fallback delete successful');
         }
+      } else {
+          console.error('Supabase not connected or table missing, cannot delete');
       }
     }
-
+    
     addToast(
       { en: `Order ${orderId} has been deleted.`, bn: `অর্ডার ${orderId} মুছে ফেলা হয়েছে।` },
       'info'

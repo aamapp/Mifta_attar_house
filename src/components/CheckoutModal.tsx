@@ -189,9 +189,16 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
 
   const handleProceedToOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name.trim() === '' || formData.phone.trim() === '' || formData.address.trim() === '') {
+    if (
+      formData.name.trim() === '' || 
+      formData.phone.trim() === '' || 
+      formData.address.trim() === '' ||
+      formData.division.trim() === '' ||
+      formData.district.trim() === '' ||
+      formData.upazila.trim() === ''
+    ) {
       addToast(
-        { en: 'Please fill out all required shipping fields.', bn: 'অনুগ্রহ করে সকল আবশ্যক তথ্য পূরণ করুন।' },
+        { en: 'Please fill out all required shipping fields, including location.', bn: 'অনুগ্রহ করে পূর্ণ নাম, মোবাইল নম্বর, ঠিকানা, বিভাগ, জেলা এবং উপজেলা সঠিকভাবে পূরণ করুন।' },
         'error'
       );
       return;
