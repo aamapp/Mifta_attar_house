@@ -38,7 +38,8 @@ import {
   Truck,
   Image,
   Calendar,
-  Clock
+  Clock,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
@@ -105,6 +106,21 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [viewingOrderId, setViewingOrderId] = useState<string | null>(null);
+  const [showAdminProfilePopup, setShowAdminProfilePopup] = useState(false);
+  const [copiedField, setCopiedField] = useState<{ [key: string]: boolean }>({});
+
+  const handleCopyText = (key: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(prev => ({ ...prev, [key]: true }));
+    setTimeout(() => {
+      setCopiedField(prev => ({ ...prev, [key]: false }));
+    }, 2000);
+    addToast({
+      en: 'Copied successfully!',
+      bn: 'সফলভাবে কপি করা হয়েছে!'
+    }, 'success');
+  };
 
   const getCategoryName = (categoryId: string) => {
     const category = CATEGORIES.find(c => c.id === categoryId);
@@ -548,10 +564,448 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   return (
     <div className="fixed inset-0 z-50 bg-stone-50 text-stone-900 flex flex-col h-screen overflow-hidden">
       
+      {/* Admin Profile & Logout Popup Modal */}
+      <AnimatePresence>
+        {showAdminProfilePopup && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-stone-950/65 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative max-w-sm w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl text-stone-900 overflow-hidden text-center"
+            >
+              <button
+                onClick={() => setShowAdminProfilePopup(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full border border-stone-150 text-stone-400 hover:text-stone-900 hover:bg-stone-50 cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex flex-col items-center space-y-4 pt-2">
+                <div className="h-16 w-16 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm relative">
+                  <Briefcase className="w-8 h-8" />
+                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="font-serif text-lg font-black text-stone-900 tracking-wide">
+                    {language === 'en' ? 'Mifta Super Admin' : 'মিফতা সুপার অ্যাডমিন'}
+                  </h3>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block border border-emerald-100">
+                    {language === 'en' ? 'Authorized Owner' : 'সর্বোচ্চ নিয়ন্ত্রণকারী'}
+                  </p>
+                </div>
+
+                {/* Info List */}
+                <div className="w-full bg-stone-50 rounded-xl border border-stone-150 p-3.5 text-xs text-left space-y-3 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px]">{language === 'en' ? 'Admin ID' : 'অ্যাডমিন আইডি'}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-stone-850">mifta_admin_786</span>
+                      <button
+                        onClick={() => handleCopyText('admin-id', 'mifta_admin_786')}
+                        className="p-1 rounded bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer shadow-2xs"
+                        title={language === 'en' ? 'Copy ID' : 'আইডি কপি করুন'}
+                      >
+                        {copiedField['admin-id'] ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="h-px bg-stone-200/60" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px]">{language === 'en' ? 'Auth Key' : 'সিকিউরিটি কী'}</span>
+                    <span className="font-mono text-stone-700 font-semibold text-[11px]">mifta@786#admin</span>
+                  </div>
+                  <div className="h-px bg-stone-200/60" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px]">{language === 'en' ? 'Status' : 'অবস্থা'}</span>
+                    <span className="text-emerald-600 font-bold flex items-center gap-1 text-[11px]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {language === 'en' ? 'Session Active' : 'নিরাপত্তা টোকেন সক্রিয়'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('mifta_admin_logged_in');
+                    setIsAdminLoggedIn(false);
+                    setShowAdminProfilePopup(false);
+                    window.dispatchEvent(new Event('storage'));
+                    addToast({
+                      en: 'Admin logged out successfully.',
+                      bn: 'অ্যাডমিন অ্যাকাউন্ট সফলভাবে লগআউট করা হয়েছে।'
+                    }, 'success');
+                    onClose();
+                  }}
+                  className="w-full h-11 bg-red-500 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md shadow-red-500/15 cursor-pointer mt-2"
+                >
+                  {language === 'en' ? 'LOG OUT' : 'লগ আউট করুন'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Order Details Fullscreen Sub-page View */}
+      <AnimatePresence>
+        {viewingOrderId && (() => {
+          const ord = orders.find(o => o.id === viewingOrderId);
+          if (!ord) return null;
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, x: '100vw' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100vw' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+              className="fixed inset-0 z-[120] bg-stone-50 w-screen h-screen overflow-y-auto flex flex-col"
+            >
+              {/* Header */}
+              <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setViewingOrderId(null)}
+                    className="p-2 rounded-full border border-stone-200 text-stone-600 hover:text-stone-950 hover:bg-stone-50 transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                  <div className="text-left">
+                    <h3 className="font-serif text-sm sm:text-base font-bold text-stone-850 tracking-wide leading-tight">
+                      {language === 'en' ? 'Order Details' : 'অর্ডারের বিস্তারিত বিবরণ'}
+                    </h3>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-orange-600 mt-0.5 font-mono">
+                      #{ord.id}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Header Status Badge */}
+                <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border tracking-wider shadow-2xs ${
+                  ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                  ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                  ord.orderStatus === 'confirmed' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                  ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
+                  'bg-gold-50 text-gold-600 border-gold-200'
+                }`}>
+                  {ord.orderStatus === 'pending' && (language === 'bn' ? 'অপেক্ষমাণ' : 'Pending')}
+                  {ord.orderStatus === 'confirmed' && (language === 'bn' ? 'নিশ্চিত' : 'Confirmed')}
+                  {ord.orderStatus === 'shipped' && (language === 'bn' ? 'শিপড' : 'Shipped')}
+                  {ord.orderStatus === 'delivered' && (language === 'bn' ? 'ডেলিভার্ড' : 'Delivered')}
+                  {ord.orderStatus === 'cancelled' && (language === 'bn' ? 'বাতিল' : 'Cancelled')}
+                </span>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 max-w-5xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6 pb-24">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left Column: Customer Details & Items */}
+                  <div className="lg:col-span-7 space-y-6 text-left">
+                    {/* Customer Details Card */}
+                    <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-5 sm:p-6 space-y-5">
+                      <div className="flex justify-between items-center pb-3 border-b border-stone-150">
+                        <h4 className="font-serif text-sm sm:text-base font-bold text-stone-850 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-orange-600"></span>
+                          {language === 'en' ? 'Customer Info' : 'কাস্টমারের বিবরণ'}
+                        </h4>
+                        <button
+                          onClick={() => {
+                            const fullText = `নাম: ${ord.customerName}\nমোবাইল: ${ord.phone}\nঠিকানা: ${ord.address}\nবিভাগ/জেলা/উপজেলা: ${ord.division} / ${ord.district}${ord.upazila ? ` / ${ord.upazila}` : ''}`;
+                            handleCopyText(`${ord.id}-all-details`, fullText);
+                          }}
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 px-2.5 py-1.5 rounded-lg border border-orange-200 cursor-pointer shadow-2xs"
+                        >
+                          {copiedField[`${ord.id}-all-details`] ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-600">{language === 'en' ? 'Copied' : 'সব কপি হয়েছে'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>{language === 'en' ? 'Copy All Info' : 'সব তথ্য কপি করুন'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Name Row */}
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100 last:border-0 hover:bg-stone-50/50 px-2 rounded-xl transition-colors">
+                          <div className="flex flex-col text-left">
+                            <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">{language === 'en' ? 'Customer Name' : 'কাস্টমারের নাম'}</span>
+                            <span className="font-bold text-stone-900 text-sm sm:text-base">{ord.customerName}</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopyText(`${ord.id}-fullname`, ord.customerName)}
+                            className="p-2 rounded-xl bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer shadow-2xs"
+                            title={language === 'en' ? 'Copy Name' : 'নাম কপি করুন'}
+                          >
+                            {copiedField[`${ord.id}-fullname`] ? (
+                              <Check className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Phone Row */}
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100 last:border-0 hover:bg-stone-50/50 px-2 rounded-xl transition-colors">
+                          <div className="flex flex-col text-left">
+                            <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">{language === 'en' ? 'Mobile Number' : 'মোবাইল নম্বর'}</span>
+                            <span className="font-mono font-black text-stone-900 text-sm sm:text-base tracking-wide">{ord.phone}</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopyText(`${ord.id}-fullphone`, ord.phone)}
+                            className="p-2 rounded-xl bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer shadow-2xs"
+                            title={language === 'en' ? 'Copy Phone' : 'মোবাইল কপি করুন'}
+                          >
+                            {copiedField[`${ord.id}-fullphone`] ? (
+                              <Check className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Address Row */}
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100 last:border-0 hover:bg-stone-50/50 px-2 rounded-xl transition-colors">
+                          <div className="flex flex-col text-left flex-1 mr-4">
+                            <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">{language === 'en' ? 'Full Address' : 'পূর্ণাঙ্গ ঠিকানা'}</span>
+                            <span className="font-semibold text-stone-850 text-xs sm:text-sm leading-relaxed">{ord.address}</span>
+                          </div>
+                          <button
+                            onClick={() => handleCopyText(`${ord.id}-fulladdress`, ord.address)}
+                            className="p-2 rounded-xl bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer flex-shrink-0 shadow-2xs"
+                            title={language === 'en' ? 'Copy Address' : 'ঠিকানা কপি করুন'}
+                          >
+                            {copiedField[`${ord.id}-fulladdress`] ? (
+                              <Check className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Division/District/Upazila Combined Row */}
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100 last:border-0 hover:bg-stone-50/50 px-2 rounded-xl transition-colors">
+                          <div className="flex flex-col text-left flex-1 mr-4">
+                            <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">{language === 'en' ? 'Division / District / Upazila' : 'বিভাগ / জেলা / উপজেলা'}</span>
+                            <span className="font-bold text-stone-900 text-xs sm:text-sm leading-relaxed">
+                              {ord.division} / {ord.district}{ord.upazila ? ` / ${ord.upazila}` : ''}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const geoText = `${ord.division} / ${ord.district}${ord.upazila ? ` / ${ord.upazila}` : ''}`;
+                              handleCopyText(`${ord.id}-fullgeo`, geoText);
+                            }}
+                            className="p-2 rounded-xl bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer flex-shrink-0 shadow-2xs"
+                            title={language === 'en' ? 'Copy Geo Details' : 'বিভাগ/জেলা/উপজেলা কপি করুন'}
+                          >
+                            {copiedField[`${ord.id}-fullgeo`] ? (
+                              <Check className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Purchased Items List */}
+                    <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-5 sm:p-6 space-y-4">
+                      <h4 className="font-serif text-sm sm:text-base font-bold text-stone-850 flex items-center gap-2 pb-3 border-b border-stone-150">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        {language === 'en' ? 'Purchased Items' : 'ক্রয়কৃত পণ্যসমূহ'}
+                      </h4>
+                      <div className="space-y-3">
+                        {ord.items.map((item, index) => {
+                          const product = products.find((p) => p.id === item.productId);
+                          const productImage = item.image || product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
+                          
+                          return (
+                            <div key={index} className="flex items-center justify-between gap-4 bg-stone-50 p-3 border border-stone-200/80 rounded-xl">
+                              <div className="flex items-center gap-3.5">
+                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-stone-200 shrink-0">
+                                  <img src={productImage} alt={item.name} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col text-left">
+                                  <span className="font-bold text-stone-900 leading-snug">{item.name}</span>
+                                  <span className="text-[10px] text-stone-500 mt-1">
+                                    {item.size ? `সাইজ: ${item.size}` : 'সাইজ: N/A'} 
+                                    <span className="mx-2 opacity-30">|</span> 
+                                    <span className="font-mono">Qty: {item.quantity}</span>
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-mono font-black text-stone-900 bg-white px-2.5 py-1 rounded-lg border border-stone-200">৳{item.price * item.quantity}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Status Actions & Billing */}
+                  <div className="lg:col-span-5 space-y-6 text-left">
+                    {/* Order Status & Actions */}
+                    <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-5 sm:p-6 space-y-4">
+                      <h4 className="font-serif text-sm sm:text-base font-bold text-stone-850 flex items-center gap-2 pb-3 border-b border-stone-150">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        {language === 'en' ? 'Order Actions' : 'অর্ডারের অবস্থা ও ট্র্যাকিং'}
+                      </h4>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[9px] font-bold text-stone-400 uppercase tracking-wider">অর্ডারের অবস্থা পরিবর্তন করুন</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { id: 'pending', label: language === 'bn' ? 'অপেক্ষমাণ' : 'Pending', color: 'bg-gold-500 text-black border-gold-500' },
+                              { id: 'confirmed', label: language === 'bn' ? 'নিশ্চিত' : 'Confirmed', color: 'bg-amber-500 text-white border-amber-500' },
+                              { id: 'shipped', label: language === 'bn' ? 'শিপড' : 'Shipped', color: 'bg-blue-600 text-white border-blue-600' },
+                              { id: 'delivered', label: language === 'bn' ? 'ডেলিভার্ড' : 'Delivered', color: 'bg-emerald-600 text-white border-emerald-600' },
+                              { id: 'cancelled', label: language === 'bn' ? 'বাতিল' : 'Cancelled', color: 'bg-red-600 text-white border-red-600' }
+                            ].map((st) => (
+                              <button
+                                key={st.id}
+                                onClick={() => updateOrderStatus(ord.id, st.id as any)}
+                                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border text-center ${
+                                  ord.orderStatus === st.id
+                                    ? st.color
+                                    : 'border-stone-200 hover:bg-stone-50 text-stone-600 bg-white shadow-2xs'
+                                }`}
+                              >
+                                {st.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Tracking Input */}
+                        <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                          <label className="block text-[9px] font-bold text-stone-400 uppercase tracking-wider">ডেলিভারি ট্র্যাকিং নম্বর</label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={ord.trackingNumber || ''}
+                              onChange={(e) => {
+                                const newOrders = orders.map(o => o.id === ord.id ? {...o, trackingNumber: e.target.value} : o);
+                                setOrders(newOrders);
+                              }}
+                              placeholder="e.g. STEADFAST-123456"
+                              className="w-full h-10 px-3 pl-9 rounded-xl border border-stone-200 text-xs font-mono font-bold focus:outline-none focus:border-[#F97316] transition-colors shadow-2xs"
+                            />
+                            <Truck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                          </div>
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="pt-3 border-t border-stone-100">
+                          <button
+                            onClick={() => {
+                              if (confirm(language === 'bn' ? 'আপনি কি নিশ্চিতভাবে এই অর্ডারটি মুছে ফেলতে চান?' : 'Are you sure you want to delete this order?')) {
+                                deleteOrder(ord.id);
+                                setViewingOrderId(null);
+                              }
+                            }}
+                            className="w-full h-10 bg-red-50 hover:bg-red-500 hover:text-white border border-red-100 text-red-600 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            {language === 'en' ? 'Delete Order' : 'অর্ডার চিরতরে মুছুন'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Billing Summary */}
+                    <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-5 sm:p-6 space-y-4">
+                      <h4 className="font-serif text-sm sm:text-base font-bold text-stone-850 flex items-center gap-2 pb-3 border-b border-stone-150">
+                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                        {language === 'en' ? 'Payment Summary' : 'পেমেন্ট ও বিলিং বিবরণ'}
+                      </h4>
+                      <div className="space-y-3 text-xs text-stone-700">
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="font-semibold text-stone-500">{language === 'en' ? 'Payment Method' : 'পেমেন্ট পদ্ধতি'}</span>
+                          <span className="font-mono font-black text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider border border-amber-200/50">
+                            {ord.paymentMethod}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="font-semibold text-stone-500">{language === 'en' ? 'Payment Status' : 'পেমেন্ট স্ট্যাটাস'}</span>
+                          <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${
+                            ord.paymentStatus === 'paid'
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-200/50'
+                              : 'bg-red-50 text-red-500 border-red-200/50'
+                          }`}>
+                            {ord.paymentStatus === 'paid' ? (language === 'en' ? 'Paid' : 'পরিশোধিত') : (language === 'en' ? 'Unpaid' : 'বাকি')}
+                          </span>
+                        </div>
+
+                        {ord.transactionId && (
+                          <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                            <span className="font-semibold text-stone-500">{language === 'en' ? 'Transaction ID' : 'ট্রানজেকশন আইডি'}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{ord.transactionId}</span>
+                              <button
+                                onClick={() => handleCopyText(`${ord.id}-fulltxid`, ord.transactionId || '')}
+                                className="p-1 rounded bg-white border border-stone-200 text-stone-500 hover:text-[#F97316] hover:border-orange-200 cursor-pointer shadow-2xs"
+                              >
+                                {copiedField[`${ord.id}-fulltxid`] ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {ord.couponCode && (
+                          <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                            <span className="font-semibold text-stone-500">{language === 'en' ? 'Coupon Applied' : 'ব্যবহৃত কুপন'}</span>
+                            <span className="font-mono font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100 text-[10px] uppercase">
+                              {ord.couponCode}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="pt-3.5 space-y-2 text-xs text-stone-600">
+                          <div className="flex justify-between">
+                            <span>{language === 'en' ? 'Subtotal' : 'সাবটোটাল'}:</span>
+                            <span className="font-mono">৳{ord.subtotal}</span>
+                          </div>
+                          {ord.discount > 0 && (
+                            <div className="flex justify-between text-red-500 font-semibold">
+                              <span>{language === 'en' ? 'Discount' : 'ডিসকাউন্ট'}:</span>
+                              <span className="font-mono">-৳{ord.discount}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span>{language === 'en' ? 'Shipping Fee' : 'ডেলিভারি চার্জ'}:</span>
+                            <span className="font-mono">৳{ord.shipping || 0}</span>
+                          </div>
+                          <div className="h-px bg-stone-200 my-1.5" />
+                          <div className="flex justify-between items-center text-sm font-bold pt-1">
+                            <span className="text-stone-900 font-bold">{language === 'en' ? 'Grand Total' : 'সর্বমোট মূল্য'}</span>
+                            <span className="text-orange-600 font-mono text-base font-extrabold bg-stone-900 px-3 py-1 rounded shadow-sm">৳{ord.total}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+      
       {/* Sticky Top Header */}
       <div className="sticky top-0 bg-white border-b border-stone-200 z-45 w-full shadow-sm shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-3 shrink-0">
+          <div 
+            onClick={() => setShowAdminProfilePopup(true)}
+            className="flex items-center gap-3 shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
+            title={language === 'en' ? 'Admin Profile' : 'অ্যাডমিন প্রোফাইল'}
+          >
             <img src="/logo.png" alt="Mifta Attar House" className="h-12 w-auto object-contain" />
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1.5">
@@ -837,7 +1291,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           const productImage = firstItem?.image || matchedProduct?.images?.[0];
 
                           return (
-                            <div key={order.id} className="p-5 flex items-center justify-between hover:bg-stone-50/50 transition-colors group">
+                            <div 
+                              key={order.id} 
+                              onClick={() => setViewingOrderId(order.id)}
+                              className="p-5 flex items-center justify-between hover:bg-stone-50/50 transition-colors group cursor-pointer"
+                            >
                               <div className="flex items-center gap-5">
                                 {productImage ? (
                                   <div className="h-12 w-12 rounded-sm bg-stone-100 overflow-hidden relative shrink-0 border border-stone-200">
@@ -901,188 +1359,73 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   {orders.map((ord) => (
                     <div 
                       key={ord.id} 
-                      className={`rounded-xl border border-stone-200 bg-white text-xs overflow-hidden shadow-xs hover:shadow-md hover:border-gold-500/30 transition-all duration-300 ${
-                        expandedOrderId === ord.id ? 'ring-1 ring-gold-500/30 shadow-sm border-gold-500/40 bg-gold-500/[0.01]' : ''
-                      }`}
+                      onClick={() => setViewingOrderId(ord.id)}
+                      className="rounded-xl border border-stone-200 bg-white text-xs overflow-hidden shadow-xs hover:shadow-md hover:border-orange-500/30 transition-all duration-300 cursor-pointer"
                     >
-                      <div 
-                        className="p-4 cursor-pointer hover:bg-stone-50/50 transition-colors relative pr-12"
-                        onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                          <div className="flex items-center gap-3.5">
-                            {(() => {
-                              const firstItem = ord.items?.[0];
-                              const product = products.find((p) => p.id === firstItem?.productId);
-                              const image = firstItem?.image || product?.images?.[0];
-                              return image ? (
-                                <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 overflow-hidden relative shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                                  <img src={image} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-                                  {ord.items.length > 1 && (
-                                    <span className="absolute bottom-0 right-0 bg-stone-900 text-gold-500 font-extrabold text-[8px] px-1 py-0.5 rounded-tl-sm select-none shadow-xs border-t border-l border-gold-500/20">
-                                      +{ord.items.length - 1}
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 flex flex-col items-center justify-center shrink-0">
-                                  <span className="text-[8px] text-stone-400 font-mono font-bold uppercase">No Pic</span>
-                                </div>
-                              );
-                            })()}
+                      <div className="p-4 relative pr-12 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3.5">
+                          {(() => {
+                            const firstItem = ord.items?.[0];
+                            const product = products.find((p) => p.id === firstItem?.productId);
+                            const image = firstItem?.image || product?.images?.[0];
+                            return image ? (
+                              <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 overflow-hidden relative shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                <img src={image} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                                {ord.items.length > 1 && (
+                                  <span className="absolute bottom-0 right-0 bg-stone-900 text-gold-500 font-extrabold text-[8px] px-1 py-0.5 rounded-tl-sm select-none shadow-xs border-t border-l border-gold-500/20">
+                                    +{ord.items.length - 1}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="h-12 w-12 rounded-lg bg-stone-100 border border-stone-200 flex flex-col items-center justify-center shrink-0">
+                                <span className="text-[8px] text-stone-400 font-mono font-bold uppercase">No Pic</span>
+                              </div>
+                            );
+                          })()}
 
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-stone-950 text-sm sm:text-base tracking-tight">{ord.customerName}</span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-stone-500 font-mono font-medium">
-                                <span className="text-gold-600 font-bold bg-gold-500/10 px-2 py-0.5 rounded-md border border-gold-500/20">#{ord.id}</span>
-                                <span className="text-stone-300">•</span>
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3.5 h-3.5 text-stone-400" />
-                                  {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </span>
-                                <span className="text-stone-300">•</span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5 text-stone-400" />
-                                  {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                                </span>
-                              </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-stone-950 text-sm sm:text-base tracking-tight">{ord.customerName}</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-stone-500 font-mono font-medium">
+                              <span className="text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/20">#{ord.id}</span>
+                              <span className="text-stone-300">•</span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                                {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                              <span className="text-stone-300">•</span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5 text-stone-400" />
+                                {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                              </span>
                             </div>
                           </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase border tracking-wider shadow-2xs ${
-                              ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                              ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                              ord.orderStatus === 'confirmed' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                              ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
-                              'bg-gold-50 text-gold-600 border-gold-200'
-                            }`}>
-                              {ord.orderStatus === 'pending' && (language === 'bn' ? 'অপেক্ষমাণ' : 'Pending')}
-                              {ord.orderStatus === 'confirmed' && (language === 'bn' ? 'নিশ্চিত' : 'Confirmed')}
-                              {ord.orderStatus === 'shipped' && (language === 'bn' ? 'শিপড' : 'Shipped')}
-                              {ord.orderStatus === 'delivered' && (language === 'bn' ? 'ডেলিভার্ড' : 'Delivered')}
-                              {ord.orderStatus === 'cancelled' && (language === 'bn' ? 'বাতিল' : 'Cancelled')}
-                            </span>
-                            <span className="text-base font-black font-mono tracking-tighter text-stone-900 bg-stone-100/60 px-2.5 py-1 rounded-lg border border-stone-200/50">৳{ord.total}</span>
-                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase border tracking-wider shadow-2xs ${
+                            ord.orderStatus === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                            ord.orderStatus === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                            ord.orderStatus === 'confirmed' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                            ord.orderStatus === 'cancelled' ? 'bg-red-50 text-red-600 border-red-200' :
+                            'bg-gold-50 text-gold-600 border-gold-200'
+                          }`}>
+                            {ord.orderStatus === 'pending' && (language === 'bn' ? 'অপেক্ষমাণ' : 'Pending')}
+                            {ord.orderStatus === 'confirmed' && (language === 'bn' ? 'নিশ্চিত' : 'Confirmed')}
+                            {ord.orderStatus === 'shipped' && (language === 'bn' ? 'シップড' : 'Shipped')}
+                            {ord.orderStatus === 'delivered' && (language === 'bn' ? 'ডেলিভার্ড' : 'Delivered')}
+                            {ord.orderStatus === 'cancelled' && (language === 'bn' ? 'বাতিল' : 'Cancelled')}
+                          </span>
+                          <span className="text-base font-black font-mono tracking-tighter text-stone-900 bg-stone-100/60 px-2.5 py-1 rounded-lg border border-stone-200/50">৳{ord.total}</span>
                         </div>
 
-                        {/* Expand/Collapse Arrow: Always far right, vertically centered */}
+                        {/* Chevron Icon Right */}
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-stone-100 transition-colors">
-                          <svg className={`w-4 h-4 text-stone-400 transition-transform ${expandedOrderId === ord.id ? 'rotate-180 text-gold-600' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                          </svg>
+                          <ChevronRight className="w-5 h-5 text-stone-400" />
                         </div>
                       </div>
-
-                      <AnimatePresence>
-                        {expandedOrderId === ord.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-stone-200"
-                          >
-                            <div className="p-4 space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-stone-600">
-                                <div className="space-y-1">
-                                  <span className="block text-[10px] text-stone-500 font-bold uppercase">কাস্টমারের বিবরণ</span>
-                                  <p className="font-sans font-semibold text-stone-900">
-                                    {ord.customerName} ({ord.phone})
-                                  </p>
-                                  <p className="font-sans text-stone-600">{ord.address}, {ord.district}</p>
-                                </div>
-                                <div className="space-y-1">
-                                  <span className="block text-[10px] text-stone-500 font-bold uppercase">পেমেন্টের বিবরণ</span>
-                                  <p className="font-sans font-semibold text-stone-900">
-                                    পদ্ধতি: {ord.paymentMethod.toUpperCase()} | স্ট্যাটাস: {ord.paymentStatus === 'paid' ? 'পরিশোধিত' : 'বাকি'}
-                                  </p>
-                                  {ord.transactionId && (
-                                    <p className="font-sans text-[11px] text-emerald-600 font-bold">
-                                      TXID: {ord.transactionId} {ord.advancePaidAmount ? `| অগ্রিম: ৳${ord.advancePaidAmount}` : ''}
-                                    </p>
-                                  )}
-                                  <p className="font-sans">সাবটোটাল: ৳{ord.subtotal} | ডিসকাউন্ট: ৳{ord.discount}</p>
-                                </div>
-                              </div>
-
-                              {/* Purchased Items List */}
-                              <div className="bg-stone-100 p-2.5 rounded-sm border border-stone-200 text-[11px] space-y-2 text-stone-800">
-                                {ord.items.map((item, index) => {
-                                  const product = products.find((p) => p.id === item.productId);
-                                  const productImage = item.image || product?.images?.[0] || 'https://images.unsplash.com/photo-1615631648086-325025c9e51e?auto=format&fit=crop&q=80&w=200';
-                                  
-                                  return (
-                                    <div key={index} className="flex items-center justify-between gap-3 bg-white p-2 border border-stone-200 rounded-sm">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-16 h-16 rounded-sm overflow-hidden bg-stone-100 flex-shrink-0 border border-stone-200">
-                                          <img src={productImage} alt={item.name} className="w-full h-full object-cover" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                          <span className="font-bold text-stone-900 leading-tight">{item.name}</span>
-                                          <span className="text-[10px] text-stone-500">{item.size ? `সাইজ: ${item.size}` : 'সাইজ: N/A'} <span className="mx-1 opacity-50">|</span> <span className="font-mono">Qty: {item.quantity}</span></span>
-                                        </div>
-                                      </div>
-                                      <span className="font-mono font-bold text-stone-900">৳{item.price * item.quantity}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-
-                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-3 gap-4 border-t border-stone-200">
-                                <div className="flex flex-wrap gap-2 flex-1">
-                                  {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((st) => (
-                                    <button
-                                      key={st}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        updateOrderStatus(ord.id, st as any);
-                                      }}
-                                      className={`px-3 py-1.5 rounded-sm text-[9px] font-bold uppercase transition-all cursor-pointer border ${
-                                        ord.orderStatus === st
-                                          ? 'bg-gold-500 border-gold-500 text-black'
-                                          : 'border-stone-200 hover:bg-stone-100 text-stone-500 bg-white'
-                                      }`}
-                                    >
-                                      {st}
-                                    </button>
-                                  ))}
-                                </div>
-
-                                <div className="flex items-center gap-2 w-full sm:w-auto">
-                                  <div className="flex-1 sm:w-40 relative">
-                                    <input
-                                      type="text"
-                                      value={ord.trackingNumber || ''}
-                                      onClick={(e) => e.stopPropagation()}
-                                      onChange={(e) => {
-                                        const newOrders = orders.map(o => o.id === ord.id ? {...o, trackingNumber: e.target.value} : o);
-                                        setOrders(newOrders);
-                                      }}
-                                      placeholder="TRACKING #"
-                                      className="w-full h-8 px-2 pl-7 rounded-sm border border-stone-200 text-[10px] font-mono font-bold focus:outline-none focus:border-gold-500"
-                                    />
-                                    <Truck className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-stone-400" />
-                                  </div>
-                                  
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteOrder(ord.id);
-                                    }}
-                                    className="p-2 rounded-sm border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm"
-                                    title="Delete Permanently"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </div>
                   ))}
                 </div>
