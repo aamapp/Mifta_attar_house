@@ -167,6 +167,28 @@ async function startServer() {
     }
   });
 
+  // Secure Get Orders Endpoint (Bypasses Client RLS limits using Service Role Key)
+  app.get("/api/orders", async (req, res) => {
+    try {
+      console.log(`Received secure request to fetch all orders`);
+
+      const { data, error } = await supabase
+        .from('mifta_orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders from Supabase:', error);
+        return res.status(500).json({ success: false, error: error.message });
+      }
+
+      res.json({ success: true, data });
+    } catch (error: any) {
+      console.error('Get orders endpoint error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Chat endpoint
   app.post("/api/chat", async (req, res) => {
     try {

@@ -189,12 +189,15 @@ export function serializeAddress(
 
 export async function getSupabaseOrders(): Promise<Order[] | null> {
   try {
-    const { data, error } = await supabase
-      .from('mifta_orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
+    const response = await fetch('/api/orders');
+    if (!response.ok) {
+      throw new Error(`Server returned status: ${response.status}`);
+    }
+    const resData = await response.json();
+    if (!resData.success) {
+      throw new Error(resData.error || 'Server fetch failed');
+    }
+    const data = resData.data;
     if (!data) return null;
 
     return data.map((row: any) => {
@@ -208,11 +211,11 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
         district: row.district,
         division: row.division,
         upazila: parsed.upazila,
-        items: row.items,
-        subtotal: row.subtotal,
-        discount: row.discount,
-        shipping: row.shipping,
-        total: row.total,
+        items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+        subtotal: Number(row.subtotal),
+        discount: Number(row.discount || 0),
+        shipping: Number(row.shipping || 0),
+        total: Number(row.total),
         couponCode: row.coupon_code,
         paymentMethod: row.payment_method,
         paymentStatus: row.payment_status,
@@ -223,7 +226,7 @@ export async function getSupabaseOrders(): Promise<Order[] | null> {
       };
     });
   } catch (err) {
-    console.warn('Supabase orders fetch failed (Table may not exist yet):', err);
+    console.warn('Supabase orders fetch failed via secure API:', err);
     return null;
   }
 }

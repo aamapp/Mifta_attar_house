@@ -257,8 +257,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (status.tables.mifta_orders) {
           const dbOrders = await getSupabaseOrders();
           if (dbOrders) {
-            setOrders(dbOrders);
-            localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
+            setOrders((prev) => {
+              // Merge database orders and previous local orders safely
+              // Keep any local order that is NOT yet in the database and is placed in the last 2 minutes
+              const merged = [...dbOrders];
+              const dbIds = new Set(dbOrders.map(o => o.id));
+              
+              const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+              prev.forEach((localOrd) => {
+                if (!dbIds.has(localOrd.id)) {
+                  const orderTime = new Date(localOrd.date).getTime();
+                  if (!isNaN(orderTime) && orderTime > twoMinutesAgo) {
+                    merged.push(localOrd);
+                  }
+                }
+              });
+
+              // Sort by date descending
+              merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+              localStorage.setItem('mifta_orders', JSON.stringify(merged));
+              return merged;
+            });
           }
         }
 
@@ -1102,7 +1122,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       upazila: shippingDetails.upazila,
       items: orderItems.map((item) => ({
         productId: item.product.id,
-        name: item.product.name[language],
+        name: typeof item.product.name === 'object' && item.product.name 
+          ? (item.product.name[language] || item.product.name['en'] || item.product.name['bn'] || '') 
+          : String(item.product.name || ''),
         price: item.product.price,
         quantity: item.quantity,
         size: item.selectedSize,
