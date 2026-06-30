@@ -501,7 +501,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const updatedOrder = mapOrder(newRecord);
           setOrders((prev) => {
             const timeSinceLocalUpdate = Date.now() - (localOrderUpdates.current[updatedOrder.id] || 0);
-            if (timeSinceLocalUpdate < 5000) {
+            if (timeSinceLocalUpdate < 10000) {
               return prev; // Ignore incoming update to prevent bounce
             }
             const updated = prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
