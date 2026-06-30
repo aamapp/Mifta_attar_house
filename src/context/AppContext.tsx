@@ -1196,34 +1196,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateOrderStatus = (orderId: string, status: Order['orderStatus']) => {
-    let updatedOrder: Order | undefined;
+    const existingOrder = orders.find((o) => o.id === orderId);
+    if (!existingOrder) return;
 
-    setOrders((prev) => {
-      const next = prev.map((ord) => {
-        if (ord.id === orderId) {
-          const updated = {
-            ...ord,
-            orderStatus: status,
-            paymentStatus: status === 'delivered' ? 'paid' : ord.paymentStatus,
-            trackingNumber: status === 'shipped' && !ord.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : ord.trackingNumber
-          };
-          updatedOrder = updated;
-          return updated;
-        }
-        return ord;
-      });
-      return next;
-    });
+    const updatedOrder: Order = {
+      ...existingOrder,
+      orderStatus: status,
+      paymentStatus: status === 'delivered' ? 'paid' : existingOrder.paymentStatus,
+      trackingNumber: status === 'shipped' && !existingOrder.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : existingOrder.trackingNumber
+    };
 
-    // Background sync to Supabase outside state updater
-    // Give state a tiny bit of time to update locally before saving, though not strictly required
-    setTimeout(() => {
-      if (updatedOrder && supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-        saveSupabaseOrder(updatedOrder).catch((err) =>
-          console.error('Error background syncing order status:', err)
-        );
-      }
-    }, 0);
+    setOrders((prev) => prev.map((ord) => ord.id === orderId ? updatedOrder : ord));
+
+    // Background sync to Supabase
+    if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
+      saveSupabaseOrder(updatedOrder).catch((err) =>
+        console.error('Error background syncing order status:', err)
+      );
+    }
 
     addToast(
       {
@@ -1235,11 +1225,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteOrder = async (orderId: string) => {
-    let rolledBackOrders: Order[] = [];
+    const rolledBackOrders: Order[] = [...orders];
 
     // Optimistically update local state and localStorage immediately
     setOrders((prev) => {
-      rolledBackOrders = prev;
       const updated = prev.filter((ord) => ord.id !== orderId);
       localStorage.setItem('mifta_orders', JSON.stringify(updated));
       return updated;
