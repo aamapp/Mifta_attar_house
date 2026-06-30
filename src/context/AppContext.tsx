@@ -1159,7 +1159,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         body: language === 'en' 
           ? `Order for ৳${newOrder.total} from ${newOrder.customerName}`
           : `${newOrder.customerName} এর কাছ থেকে ৳${newOrder.total} টাকার অর্ডার এসেছে।`,
-        orderId: newOrder.id
+        data: {
+          orderId: newOrder.id,
+          url: `/?openAdmin=true&orderId=${newOrder.id}`
+        }
       })
     }).catch(err => console.error("Auto-push error:", err));
 

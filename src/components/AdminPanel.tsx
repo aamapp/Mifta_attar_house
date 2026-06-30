@@ -136,6 +136,17 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [showAdminProfilePopup, setShowAdminProfilePopup] = useState(false);
   const [copiedField, setCopiedField] = useState<{ [key: string]: boolean }>({});
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderIdParam = urlParams.get('orderId');
+      if (orderIdParam) {
+        setViewingOrderId(orderIdParam);
+        setActiveTab('orders');
+      }
+    }
+  }, []);
+
   const handleCopyText = (key: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(prev => ({ ...prev, [key]: true }));
@@ -218,6 +229,79 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     title: { en: '', bn: '' },
     subtitle: { en: '', bn: '' }
   });
+
+  // Hardware Back Button Interceptor for Android WebView
+  const adminStateRef = useRef({
+    viewingOrderId,
+    isAddingProduct,
+    editingProduct,
+    isAddingHero,
+    editingHeroSlide,
+    showAdminProfilePopup,
+    showNotifications,
+    activeTab
+  });
+
+  React.useEffect(() => {
+    adminStateRef.current = {
+      viewingOrderId,
+      isAddingProduct,
+      editingProduct,
+      isAddingHero,
+      editingHeroSlide,
+      showAdminProfilePopup,
+      showNotifications,
+      activeTab
+    };
+  }, [viewingOrderId, isAddingProduct, editingProduct, isAddingHero, editingHeroSlide, showAdminProfilePopup, showNotifications, activeTab]);
+
+  React.useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const s = adminStateRef.current;
+      let handled = false;
+      
+      if (s.viewingOrderId) {
+        setViewingOrderId(null);
+        handled = true;
+      } else if (s.isAddingProduct) {
+        setIsAddingProduct(false);
+        handled = true;
+      } else if (s.editingProduct) {
+        setEditingProduct(null);
+        handled = true;
+      } else if (s.isAddingHero) {
+        setIsAddingHero(false);
+        handled = true;
+      } else if (s.editingHeroSlide) {
+        setEditingHeroSlide(null);
+        handled = true;
+      } else if (s.showAdminProfilePopup) {
+        setShowAdminProfilePopup(false);
+        handled = true;
+      } else if (s.showNotifications) {
+        setShowNotifications(false);
+        handled = true;
+      } else if (s.activeTab !== 'dashboard') {
+        setActiveTab('dashboard');
+        handled = true;
+      }
+
+      if (handled) {
+        window.history.pushState({ adminIntercept: true }, '');
+      } else {
+        // Exit admin panel logic
+        if (typeof onClose === 'function') {
+          // If we are in an SPA and want to exit properly, we just pop normally, 
+          // but since we are handling hardware back, let's trigger history back again to ensure we exit
+          window.history.back();
+        }
+      }
+    };
+
+    window.history.pushState({ adminIntercept: true }, '');
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean = false) => {
     const file = e.target.files?.[0];

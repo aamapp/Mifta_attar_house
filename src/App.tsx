@@ -53,7 +53,8 @@ export default function App() {
 
   const isAdminRoute = typeof window !== 'undefined' && 
     (hash.toLowerCase().includes('admin-control') || 
-     window.location.pathname.toLowerCase().includes('admin-control'));
+     window.location.pathname.toLowerCase().includes('admin-control') ||
+     window.location.search.includes('openAdmin=true'));
 
   // Instant direct buy product reference
   const [directCheckoutProduct, setDirectCheckoutProduct] = useState<{
