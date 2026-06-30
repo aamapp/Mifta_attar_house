@@ -569,6 +569,8 @@ CREATE TABLE IF NOT EXISTS public.mifta_products (
 ALTER TABLE public.mifta_products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read products" ON public.mifta_products FOR SELECT USING (true);
 CREATE POLICY "Allow public write products" ON public.mifta_products FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow public delete products" ON public.mifta_products;
+CREATE POLICY "Allow public delete products" ON public.mifta_products FOR DELETE USING (true);
 
 -- 3. Create mifta_orders table
 CREATE TABLE IF NOT EXISTS public.mifta_orders (
@@ -595,6 +597,8 @@ CREATE TABLE IF NOT EXISTS public.mifta_orders (
 ALTER TABLE public.mifta_orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read orders" ON public.mifta_orders FOR SELECT USING (true);
 CREATE POLICY "Allow public write orders" ON public.mifta_orders FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow public delete orders" ON public.mifta_orders;
+CREATE POLICY "Allow public delete orders" ON public.mifta_orders FOR DELETE USING (true);
 
 -- 4. Create mifta_reviews table
 CREATE TABLE IF NOT EXISTS public.mifta_reviews (
@@ -611,6 +615,8 @@ CREATE TABLE IF NOT EXISTS public.mifta_reviews (
 ALTER TABLE public.mifta_reviews ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read reviews" ON public.mifta_reviews FOR SELECT USING (true);
 CREATE POLICY "Allow public write reviews" ON public.mifta_reviews FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow public delete reviews" ON public.mifta_reviews;
+CREATE POLICY "Allow public delete reviews" ON public.mifta_reviews FOR DELETE USING (true);
 
 -- 5. Create mifta_coupons table
 CREATE TABLE IF NOT EXISTS public.mifta_coupons (
@@ -626,6 +632,8 @@ CREATE TABLE IF NOT EXISTS public.mifta_coupons (
 ALTER TABLE public.mifta_coupons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read coupons" ON public.mifta_coupons FOR SELECT USING (true);
 CREATE POLICY "Allow public write coupons" ON public.mifta_coupons FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow public delete coupons" ON public.mifta_coupons;
+CREATE POLICY "Allow public delete coupons" ON public.mifta_coupons FOR DELETE USING (true);
 
 -- 5.5. Create mifta_notifications table
 CREATE TABLE IF NOT EXISTS public.mifta_notifications (
@@ -641,6 +649,8 @@ CREATE TABLE IF NOT EXISTS public.mifta_notifications (
 ALTER TABLE public.mifta_notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read notifications" ON public.mifta_notifications FOR SELECT USING (true);
 CREATE POLICY "Allow public write notifications" ON public.mifta_notifications FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow public delete notifications" ON public.mifta_notifications;
+CREATE POLICY "Allow public delete notifications" ON public.mifta_notifications FOR DELETE USING (true);
 
 -- 5.6. Create mifta_user_profiles table
 CREATE TABLE IF NOT EXISTS public.mifta_user_profiles (
