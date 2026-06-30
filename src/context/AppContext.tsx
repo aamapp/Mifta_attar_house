@@ -82,7 +82,7 @@ interface AppContextType {
     advancePaidAmount?: number;
   }) => Order;
   updateOrderStatus: (orderId: string, status: Order['orderStatus']) => void;
-  deleteOrder: (orderId: string) => void;
+  deleteOrder: (orderId: string) => Promise<void>;
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   reviews: Review[];
   addReview: (review: Omit<Review, 'id' | 'date'>) => void;
@@ -1124,14 +1124,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const deleteOrder = (orderId: string) => {
+  const deleteOrder = async (orderId: string) => {
     // Background sync to Supabase
     if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-      supabase
+      const { error } = await supabase
         .from('mifta_orders')
         .delete()
-        .eq('id', orderId)
-        .then(({ error }) => { if (error) console.error('Error background deleting order from Supabase:', error); });
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error deleting order from Supabase:', error);
+        addToast(
+          { en: `Failed to delete order ${orderId}.`, bn: `অর্ডার ${orderId} মুছে ফেলা ব্যর্থ হয়েছে।` },
+          'error'
+        );
+        return;
+      }
     }
 
     setOrders((prev) => prev.filter((ord) => ord.id !== orderId));
