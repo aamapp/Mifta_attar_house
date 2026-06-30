@@ -149,6 +149,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const localOrderUpdates = useRef<{ [key: string]: number }>({});
   // Lang & Theme
   const [language, setLanguageState] = useState<Language>(() => {
     return (localStorage.getItem('mifta_lang') as Language) || 'bn';
@@ -499,6 +500,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           };
           const updatedOrder = mapOrder(newRecord);
           setOrders((prev) => {
+            const timeSinceLocalUpdate = Date.now() - (localOrderUpdates.current[updatedOrder.id] || 0);
+            if (timeSinceLocalUpdate < 5000) {
+              return prev; // Ignore incoming update to prevent bounce
+            }
             const updated = prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
             localStorage.setItem('mifta_orders', JSON.stringify(updated));
             return updated;
@@ -1209,6 +1214,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       trackingNumber: status === 'shipped' && !existingOrder.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : existingOrder.trackingNumber
     };
 
+    localOrderUpdates.current[orderId] = Date.now();
     setOrders((prev) => prev.map((ord) => ord.id === orderId ? updatedOrder : ord));
 
     // Background sync to Supabase

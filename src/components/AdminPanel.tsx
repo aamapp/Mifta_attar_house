@@ -711,9 +711,9 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <div className="flex justify-between items-center">
                     <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px]">{language === 'en' ? 'Admin ID' : 'অ্যাডমিন আইডি'}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-stone-850">mifta_admin_786</span>
+                      <span className="font-mono font-bold text-stone-850">admin@mifta.com</span>
                       <button
-                        onClick={() => handleCopyText('admin-id', 'mifta_admin_786')}
+                        onClick={() => handleCopyText('admin-id', 'admin@mifta.com')}
                         className="p-1 rounded bg-white border border-stone-200 hover:border-orange-500 text-stone-500 hover:text-orange-600 transition-all cursor-pointer shadow-2xs"
                         title={language === 'en' ? 'Copy ID' : 'আইডি কপি করুন'}
                       >
@@ -724,7 +724,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <div className="h-px bg-stone-200/60" />
                   <div className="flex justify-between items-center">
                     <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px]">{language === 'en' ? 'Auth Key' : 'সিকিউরিটি কী'}</span>
-                    <span className="font-mono text-stone-700 font-semibold text-[11px]">mifta@786#admin</span>
+                    <span className="font-mono text-stone-700 font-semibold text-[11px]">********</span>
                   </div>
                   <div className="h-px bg-stone-200/60" />
                   <div className="flex justify-between items-center">
@@ -1510,17 +1510,17 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-stone-950 text-sm sm:text-base tracking-tight">{ord.customerName}</span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-stone-500 font-mono font-medium">
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-stone-500 font-sans font-medium">
                               <span className="text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/20">#{ord.id}</span>
                               <span className="text-stone-300">•</span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3.5 h-3.5 text-stone-400" />
-                                {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                {new Date(ord.date).toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long' })}, {new Date(ord.date).getFullYear()}
                               </span>
                               <span className="text-stone-300">•</span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5 text-stone-400" />
-                                {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                {new Date(ord.date).toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}
                               </span>
                             </div>
                           </div>
@@ -1536,7 +1536,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           }`}>
                             {ord.orderStatus === 'pending' && (language === 'bn' ? 'অপেক্ষমাণ' : 'Pending')}
                             {ord.orderStatus === 'confirmed' && (language === 'bn' ? 'নিশ্চিত' : 'Confirmed')}
-                            {ord.orderStatus === 'shipped' && (language === 'bn' ? 'シップড' : 'Shipped')}
+                            {ord.orderStatus === 'shipped' && (language === 'bn' ? 'শিপড' : 'Shipped')}
                             {ord.orderStatus === 'delivered' && (language === 'bn' ? 'ডেলিভার্ড' : 'Delivered')}
                             {ord.orderStatus === 'cancelled' && (language === 'bn' ? 'বাতিল' : 'Cancelled')}
                           </span>

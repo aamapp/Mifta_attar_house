@@ -34,11 +34,11 @@ export default function FeaturedCategories({ onSelectCategory }: FeaturedCategor
   };
 
   return (
-    <section className="py-8 bg-white border-b border-gray-100">
+    <section className="pt-4 pb-8 bg-white border-b border-gray-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center mx-auto mb-8">
+        <div className="text-center mx-auto mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
             {language === 'en' ? 'Featured Categories' : 'ফিচার্ড ক্যাটাগরি'}
           </h2>

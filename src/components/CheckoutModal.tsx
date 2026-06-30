@@ -162,7 +162,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
   const shipping = subtotal === 0 ? 0 : isFreeShipping ? 0 : (formData.deliveryOption === 'dhaka' ? 80 : 160);
   const total = subtotal - discount + shipping;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
     if (name === 'division') {
@@ -324,14 +324,17 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                     <label className="block text-[10px] font-sans font-bold text-stone-500 uppercase tracking-wider mb-1">
                       {language === 'en' ? 'Delivery Area Address *' : 'বিস্তারিত ঠিকানা *'}
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       name="address"
                       required
                       placeholder="e.g. Road, House, Sector/Vill..."
                       value={formData.address}
-                      onChange={handleInputChange}
-                      className="w-full h-11 px-4 rounded-sm bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:border-gold-500 placeholder-stone-400"
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                      }}
+                      className="w-full min-h-[44px] px-4 py-3 rounded-sm bg-stone-50 border border-stone-200 text-stone-950 text-sm focus:outline-none focus:border-gold-500 placeholder-stone-400 resize-none overflow-hidden"
                     />
                   </div>
 

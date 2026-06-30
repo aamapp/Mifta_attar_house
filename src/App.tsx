@@ -178,12 +178,12 @@ export default function App() {
       }} />
 
       {/* 4. Main Store Catalog & Interactive Filtering Controls Section */}
-      <main id="catalog" className="py-12 bg-white relative">
+      <main id="catalog" className="pt-4 pb-12 bg-white relative">
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Main Title Headers */}
-          <div className="text-center space-y-2 mb-8">
+          <div className="text-center space-y-1 mb-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {language === 'en' ? 'Explore Products' : 'আমাদের কালেকশন'}
             </h2>
