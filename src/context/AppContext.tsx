@@ -413,11 +413,72 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     // Setup real-time subscription for orders
     const orderSubscription = supabase
       .channel('public:mifta_orders_sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'mifta_orders' }, async () => {
-        const dbOrders = await getSupabaseOrders();
-        if (dbOrders) {
-           setOrders(dbOrders);
-           localStorage.setItem('mifta_orders', JSON.stringify(dbOrders));
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mifta_orders' }, (payload) => {
+        console.log('Real-time order change received:', payload);
+        const { eventType, new: newRecord, old: oldRecord } = payload;
+
+        if (eventType === 'INSERT') {
+          const mapOrder = (row: any): Order => ({
+            id: row.id,
+            date: row.date,
+            customerName: row.customer_name,
+            phone: row.phone,
+            address: row.address,
+            district: row.district,
+            division: row.division,
+            items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+            subtotal: Number(row.subtotal),
+            discount: Number(row.discount || 0),
+            shipping: Number(row.shipping || 0),
+            total: Number(row.total),
+            couponCode: row.coupon_code,
+            paymentMethod: row.payment_method,
+            paymentStatus: row.payment_status,
+            orderStatus: row.order_status,
+            trackingNumber: row.tracking_number
+          });
+          const insertedOrder = mapOrder(newRecord);
+          setOrders((prev) => {
+            if (prev.some(o => o.id === insertedOrder.id)) return prev;
+            const updated = [insertedOrder, ...prev];
+            localStorage.setItem('mifta_orders', JSON.stringify(updated));
+            return updated;
+          });
+        } else if (eventType === 'UPDATE') {
+          const mapOrder = (row: any): Order => ({
+            id: row.id,
+            date: row.date,
+            customerName: row.customer_name,
+            phone: row.phone,
+            address: row.address,
+            district: row.district,
+            division: row.division,
+            items: Array.isArray(row.items) ? row.items : (typeof row.items === 'string' ? JSON.parse(row.items) : []),
+            subtotal: Number(row.subtotal),
+            discount: Number(row.discount || 0),
+            shipping: Number(row.shipping || 0),
+            total: Number(row.total),
+            couponCode: row.coupon_code,
+            paymentMethod: row.payment_method,
+            paymentStatus: row.payment_status,
+            orderStatus: row.order_status,
+            trackingNumber: row.tracking_number
+          });
+          const updatedOrder = mapOrder(newRecord);
+          setOrders((prev) => {
+            const updated = prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+            localStorage.setItem('mifta_orders', JSON.stringify(updated));
+            return updated;
+          });
+        } else if (eventType === 'DELETE') {
+          const deletedId = oldRecord?.id;
+          if (deletedId) {
+            setOrders((prev) => {
+              const updated = prev.filter(o => o.id !== deletedId);
+              localStorage.setItem('mifta_orders', JSON.stringify(updated));
+              return updated;
+            });
+          }
         }
       })
       .subscribe();
@@ -1125,6 +1186,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteOrder = async (orderId: string) => {
+    let rolledBackOrders: Order[] = [];
+
+    // Optimistically update local state and localStorage immediately
+    setOrders((prev) => {
+      rolledBackOrders = prev;
+      const updated = prev.filter((ord) => ord.id !== orderId);
+      localStorage.setItem('mifta_orders', JSON.stringify(updated));
+      return updated;
+    });
+
     // Background sync to Supabase
     if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
       const { error } = await supabase
@@ -1134,6 +1205,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error deleting order from Supabase:', error);
+        // Rollback state & local storage
+        setOrders(rolledBackOrders);
+        localStorage.setItem('mifta_orders', JSON.stringify(rolledBackOrders));
         addToast(
           { en: `Failed to delete order ${orderId}.`, bn: `অর্ডার ${orderId} মুছে ফেলা ব্যর্থ হয়েছে।` },
           'error'
@@ -1141,8 +1215,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
     }
-
-    setOrders((prev) => prev.filter((ord) => ord.id !== orderId));
 
     addToast(
       { en: `Order ${orderId} has been deleted.`, bn: `অর্ডার ${orderId} মুছে ফেলা হয়েছে।` },
