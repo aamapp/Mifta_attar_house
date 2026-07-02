@@ -6,6 +6,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import SafeImage from './SafeImage';
 
 interface HeroProps {
   onExplore: () => void;
@@ -52,11 +53,10 @@ export default function Hero({ onExplore, onFlashSale }: HeroProps) {
               transition={{ duration: 0.8 }}
               className="absolute inset-0"
             >
-              <img 
+              <SafeImage 
                 src={currentSlide.url} 
                 alt={language === 'en' ? currentSlide.title.en : currentSlide.title.bn}
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
               />
               
               {/* Glassmorphism Overlay - Only if text exists */}

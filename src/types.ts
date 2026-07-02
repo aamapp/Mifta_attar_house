@@ -28,6 +28,7 @@ export interface Product {
   isTrending?: boolean;
   isFlashSale?: boolean;
   flashSaleDiscount?: number; // e.g., 20 for 20% off
+  sizePrices?: { [size: string]: number };
 }
 
 export interface Category {
@@ -129,3 +130,36 @@ export interface AppNotification {
   isRead: boolean;
   createdAt: string;
 }
+
+export function getProductPriceForSize(product: Product, size?: string): number {
+  if (!size || product.category === 'natural' || product.category === 'gifts') {
+    return product.price;
+  }
+
+  // Check if explicit size price exists
+  if (product.sizePrices && product.sizePrices[size] !== undefined) {
+    return product.sizePrices[size];
+  }
+
+  // Fallback dynamic pricing ratios
+  const basePrice = product.price; // assumed as the 6ml price
+  switch (size) {
+    case '3ml':
+      return Math.round(basePrice * 0.65);
+    case '6ml':
+      return basePrice;
+    case '12ml':
+      return Math.round(basePrice * 1.75);
+    case '20ml':
+      return Math.round(basePrice * 2.85);
+    case '30ml':
+      return Math.round(basePrice * 4.0);
+    case '40ml':
+      return Math.round(basePrice * 5.2);
+    case '50ml':
+      return Math.round(basePrice * 6.2);
+    default:
+      return basePrice;
+  }
+}
+

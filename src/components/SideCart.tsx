@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, ShoppingBag, Trash2, Tag, Gift, AlertCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getProductPriceForSize } from '../types';
 
 interface SideCartProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
 
   if (!isOpen) return null;
 
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + getProductPriceForSize(item.product, item.selectedSize) * item.quantity, 0);
 
   // Free shipping threshold
   const freeShippingThreshold = 1500;
@@ -195,7 +196,7 @@ export default function SideCart({ isOpen, onClose, onCheckout }: SideCartProps)
                     </div>
 
                     <span className="text-xs font-bold text-gold-600 font-mono">
-                      ৳{item.product.price * item.quantity}
+                      ৳{getProductPriceForSize(item.product, item.selectedSize) * item.quantity}
                     </span>
                   </div>
                 </div>

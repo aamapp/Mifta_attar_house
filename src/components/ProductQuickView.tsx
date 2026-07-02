@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Product } from '../types';
 import {
@@ -20,6 +20,7 @@ import {
   Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import SafeImage from './SafeImage';
 
 interface ProductQuickViewProps {
   product: Product;
@@ -39,11 +40,45 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
     user
   } = useApp();
 
+  const availableSizes = React.useMemo(() => {
+    if (product.sizePrices && Object.keys(product.sizePrices).length > 0) {
+      const sizes = Object.keys(product.sizePrices).filter(
+        (size) => product.sizePrices?.[size] !== undefined && Number(product.sizePrices[size]) > 0
+      );
+      if (sizes.length > 0) return sizes;
+    }
+    return ['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'];
+  }, [product.sizePrices]);
+
   const [activeImage, setActiveImage] = useState(product.images[0]);
-  const [selectedSize, setSelectedSize] = useState('6ml');
+  const [selectedSize, setSelectedSize] = useState(() => {
+    if (product.sizePrices && Object.keys(product.sizePrices).length > 0) {
+      const sizes = Object.keys(product.sizePrices).filter(
+        (size) => product.sizePrices?.[size] !== undefined && Number(product.sizePrices[size]) > 0
+      );
+      if (sizes.length > 0) {
+        return sizes.includes('6ml') ? '6ml' : sizes[0];
+      }
+    }
+    return '6ml';
+  });
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'benefits' | 'usage' | 'reviews'>('desc');
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({ transform: 'scale(1)' });
+
+  // Reset selectedSize if product changes
+  useEffect(() => {
+    if (product.sizePrices && Object.keys(product.sizePrices).length > 0) {
+      const sizes = Object.keys(product.sizePrices).filter(
+        (size) => product.sizePrices?.[size] !== undefined && Number(product.sizePrices[size]) > 0
+      );
+      if (sizes.length > 0) {
+        setSelectedSize(sizes.includes('6ml') ? '6ml' : sizes[0]);
+        return;
+      }
+    }
+    setSelectedSize('6ml');
+  }, [product]);
 
   // Reviews for this product
   const productReviews = reviews.filter((r) => r.productId === product.id);
@@ -55,16 +90,24 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
 
   // Price modifier depending on volume/size
   const getAdjustedPrice = () => {
+    if (product.sizePrices && product.sizePrices[selectedSize] !== undefined && Number(product.sizePrices[selectedSize]) > 0) {
+      return Number(product.sizePrices[selectedSize]);
+    }
+    // Fallback multipliers
     if (selectedSize === '3ml') return Math.round(product.price * 0.65);
     if (selectedSize === '12ml') return Math.round(product.price * 1.75);
+    if (selectedSize === '20ml') return Math.round(product.price * 2.85);
+    if (selectedSize === '30ml') return Math.round(product.price * 4.0);
+    if (selectedSize === '40ml') return Math.round(product.price * 5.2);
+    if (selectedSize === '50ml') return Math.round(product.price * 6.2);
     return product.price; // 6ml default
   };
 
   const getAdjustedOriginalPrice = () => {
     if (!product.originalPrice) return undefined;
-    if (selectedSize === '3ml') return Math.round(product.originalPrice * 0.65);
-    if (selectedSize === '12ml') return Math.round(product.originalPrice * 1.75);
-    return product.originalPrice;
+    const currentPrice = getAdjustedPrice();
+    const ratio = currentPrice / product.price;
+    return Math.round(product.originalPrice * ratio);
   };
 
   const adjustedPrice = getAdjustedPrice();
@@ -162,10 +205,9 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
               onMouseLeave={handleMouseLeave}
               className="relative aspect-square overflow-hidden rounded-2xl border border-stone-100 bg-stone-50/50 cursor-zoom-in group shadow-sm"
             >
-              <img
+              <SafeImage
                 src={activeImage}
                 alt={product.name[language]}
-                referrerPolicy="no-referrer"
                 style={zoomStyle}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-100 ease-out group-hover:brightness-105"
               />
@@ -182,7 +224,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                       activeImage === img ? 'border-[#e0a92a] bg-[#e0a92a]/5 shadow-sm' : 'border-stone-150 hover:border-stone-300'
                     }`}
                   >
-                    <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                    <SafeImage src={img} alt="thumbnail" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -240,8 +282,8 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                 <label className="text-[10px] font-bold text-stone-500 tracking-wider uppercase font-sans">
                   {language === 'en' ? 'SELECT CONTAINER SIZE' : 'আকারের পরিমাণ নির্বাচন করুন'}
                 </label>
-                <div className="flex gap-2">
-                  {['3ml', '6ml', '12ml'].map((size) => {
+                <div className="flex flex-wrap gap-2">
+                  {availableSizes.map((size) => {
                     const isActive = selectedSize === size;
                     return (
                       <button
@@ -253,10 +295,10 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
                             bn: `পরিমাণ নির্বাচন করা হয়েছে: ${size}`
                           }, 'info');
                         }}
-                        className={`px-3 py-1 rounded text-xs font-bold tracking-wider font-mono transition-all duration-250 cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider font-mono transition-all duration-250 cursor-pointer ${
                           isActive
-                            ? 'border border-[#e0a92a] bg-amber-50/50 text-[#cc9520] shadow-sm'
-                            : 'border border-stone-200 bg-white hover:border-stone-400 text-stone-600'
+                            ? 'border border-[#e0a92a] bg-amber-50/50 text-[#cc9520] shadow-sm scale-102'
+                            : 'border border-stone-200 bg-white hover:border-stone-400 text-stone-600 hover:bg-stone-50'
                         }`}
                       >
                         {size}

@@ -4,6 +4,7 @@
  */
 
 import { useApp } from '../context/AppContext';
+import SafeImage from './SafeImage';
 import { Crown, Compass, Flower, Wind, Leaf, Gift } from 'lucide-react';
 
 interface FeaturedCategoriesProps {
@@ -56,10 +57,9 @@ export default function FeaturedCategories({ onSelectCategory }: FeaturedCategor
               >
                 {/* Image Container */}
                 <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-50 hover:bg-gray-100 rounded-3xl overflow-hidden shadow-sm transition-colors flex items-center justify-center p-3 relative">
-                  <img
+                  <SafeImage
                     src={category.image}
                     alt={category.name[language]}
-                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform"
                   />
                   {/* Overlay for icon if needed, but we'll stick to images primarily */}

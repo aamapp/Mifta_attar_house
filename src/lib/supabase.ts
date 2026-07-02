@@ -71,26 +71,33 @@ export async function getSupabaseProducts(): Promise<Product[] | null> {
     if (!data) return null;
 
     // Map DB columns to Frontend interface
-    return data.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      category: row.category,
-      price: row.price,
-      originalPrice: row.original_price,
-      images: row.images || [],
-      rating: row.rating || 5,
-      reviewsCount: row.reviews_count || 0,
-      description: row.description,
-      specifications: row.specifications || { en: [], bn: [] },
-      benefits: row.benefits || { en: [], bn: [] },
-      usage: row.usage || { en: '', bn: '' },
-      stock: row.stock,
-      isBestSeller: row.featured || row.is_best_seller,
-      isNewArrival: row.is_new_arrival,
-      isTrending: row.is_trending,
-      isFlashSale: row.flash_sale || row.is_flash_sale,
-      flashSaleDiscount: row.flash_sale_discount || row.flash_sale_discount
-    }));
+    return data.map((row: any) => {
+      const description = row.description || { en: '', bn: '' };
+      return {
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        price: row.price,
+        originalPrice: row.original_price,
+        images: row.images || [],
+        rating: row.rating || 5,
+        reviewsCount: row.reviews_count || 0,
+        description: {
+          en: description.en || '',
+          bn: description.bn || ''
+        },
+        specifications: row.specifications || { en: [], bn: [] },
+        benefits: row.benefits || { en: [], bn: [] },
+        usage: row.usage || { en: '', bn: '' },
+        stock: row.stock,
+        isBestSeller: row.featured || row.is_best_seller,
+        isNewArrival: row.is_new_arrival,
+        isTrending: row.is_trending,
+        isFlashSale: row.flash_sale || row.is_flash_sale,
+        flashSaleDiscount: row.flash_sale_discount || row.flash_sale_discount,
+        sizePrices: row.size_prices || description.sizePrices || undefined
+      };
+    });
   } catch (err) {
     console.warn('Supabase products fetch failed (Table may not exist yet):', err);
     return null;
@@ -110,7 +117,11 @@ export async function saveSupabaseProduct(product: Product) {
         images: product.images,
         rating: product.rating,
         reviews_count: product.reviewsCount,
-        description: product.description,
+        description: {
+          en: product.description.en,
+          bn: product.description.bn,
+          sizePrices: product.sizePrices
+        },
         specifications: product.specifications,
         benefits: product.benefits,
         usage: product.usage,

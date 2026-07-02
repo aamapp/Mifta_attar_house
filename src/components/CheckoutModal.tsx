@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Order } from '../types';
+import { Order, Product, getProductPriceForSize } from '../types';
 import {
   X,
   CreditCard,
@@ -147,7 +147,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     ? [{ product: directProduct!.product, quantity: directProduct!.quantity, selectedSize: directProduct!.size }]
     : cart;
 
-  const subtotal = itemsToCheckout.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = itemsToCheckout.reduce((sum, item) => sum + getProductPriceForSize(item.product, item.selectedSize) * item.quantity, 0);
 
   let discount = 0;
   if (activeCoupon) {
@@ -488,7 +488,7 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                           {language === 'en' ? 'Qty' : 'পরিমাণ'}: {item.quantity} {item.selectedSize ? `| ${language === 'en' ? 'Size' : 'আকার'}: ${item.selectedSize}` : ''}
                         </div>
                       </div>
-                      <span className="font-bold font-mono text-gold-600">৳{item.product.price * item.quantity}</span>
+                      <span className="font-bold font-mono text-gold-600">৳{getProductPriceForSize(item.product, item.selectedSize) * item.quantity}</span>
                     </div>
                   ))}
                 </div>

@@ -6,6 +6,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Product } from '../types';
+import SafeImage from './SafeImage';
 import { Star, Heart, Eye, ShoppingCart, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -47,10 +48,9 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
         onClick={() => onQuickView(product)}
         className="relative pt-[100%] overflow-hidden bg-gray-50 cursor-pointer"
       >
-        <img
+        <SafeImage
           src={product.images[0]}
           alt={product.name[language]}
-          referrerPolicy="no-referrer"
           className="absolute inset-0 w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
         />
         

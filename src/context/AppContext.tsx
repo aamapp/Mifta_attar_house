@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote, HeroSlide, AppNotification } from '../types';
+import { Language, Theme, Product, Category, CartItem, Coupon, UserProfile, Order, Review, IslamicQuote, HeroSlide, AppNotification, getProductPriceForSize } from '../types';
 import { PRODUCTS, CATEGORIES, INITIAL_COUPONS, ISLAMIC_QUOTES, HERO_SLIDES } from '../data';
 import {
   supabase,
@@ -149,7 +149,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const localOrderUpdates = useRef<{ [key: string]: number }>({});
+  const localOrderUpdates = useRef<{ [key: string]: { timestamp: number, isUpdating: boolean } }>({});
   // Lang & Theme
   const [language, setLanguageState] = useState<Language>(() => {
     return (localStorage.getItem('mifta_lang') as Language) || 'bn';
@@ -500,8 +500,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           };
           const updatedOrder = mapOrder(newRecord);
           setOrders((prev) => {
-            const timeSinceLocalUpdate = Date.now() - (localOrderUpdates.current[updatedOrder.id] || 0);
-            if (timeSinceLocalUpdate < 10000) {
+            const localUpdate = localOrderUpdates.current[updatedOrder.id];
+            const isUpdating = localUpdate?.isUpdating || false;
+            const timeSinceLocalUpdate = Date.now() - (localUpdate?.timestamp || 0);
+
+            if (isUpdating || (timeSinceLocalUpdate < 10000)) {
               return prev; // Ignore incoming update to prevent bounce
             }
             const updated = prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
@@ -1002,7 +1005,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Calculate subtotal
-    const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const subtotal = cart.reduce((sum, item) => sum + getProductPriceForSize(item.product, item.selectedSize) * item.quantity, 0);
 
     if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
       return {
@@ -1098,7 +1101,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     advancePaidAmount?: number;
   }, customItems?: CartItem[]) => {
     const orderItems = customItems || cart;
-    const subtotal = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const subtotal = orderItems.reduce((sum, item) => sum + getProductPriceForSize(item.product, item.selectedSize) * item.quantity, 0);
     
     // Calculate coupon discount
     let discount = 0;
@@ -1129,7 +1132,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         name: typeof item.product.name === 'object' && item.product.name 
           ? (item.product.name[language] || item.product.name['en'] || item.product.name['bn'] || '') 
           : String(item.product.name || ''),
-        price: item.product.price,
+        price: getProductPriceForSize(item.product, item.selectedSize),
         quantity: item.quantity,
         size: item.selectedSize,
         image: item.product.images?.[0]
@@ -1201,7 +1204,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['orderStatus']) => {
+  const updateOrderStatus = async (orderId: string, status: Order['orderStatus']) => {
     const existingOrder = orders.find((o) => o.id === orderId);
     if (!existingOrder) return;
 
@@ -1212,14 +1215,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       trackingNumber: status === 'shipped' && !existingOrder.trackingNumber ? 'TRK-' + Math.random().toString(36).substring(2, 8).toUpperCase() : existingOrder.trackingNumber
     };
 
-    localOrderUpdates.current[orderId] = Date.now();
+    localOrderUpdates.current[orderId] = { timestamp: Date.now(), isUpdating: true };
     setOrders((prev) => prev.map((ord) => ord.id === orderId ? updatedOrder : ord));
 
     // Background sync to Supabase
     if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-      saveSupabaseOrder(updatedOrder).catch((err) =>
+      await saveSupabaseOrder(updatedOrder).catch((err) =>
         console.error('Error background syncing order status:', err)
-      );
+      ).finally(() => {
+        localOrderUpdates.current[orderId] = { timestamp: Date.now(), isUpdating: false };
+      });
+    } else {
+      localOrderUpdates.current[orderId] = { timestamp: Date.now(), isUpdating: false };
     }
 
     addToast(

@@ -616,7 +616,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       isNewArrival: true,
       isTrending: false,
       isFlashSale: false,
-      flashSaleDiscount: 0
+      flashSaleDiscount: 0,
+      sizePrices: undefined
     });
     setIsAddingProduct(false);
   };
@@ -1763,6 +1764,74 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                 </div>
                               </div>
 
+                              {/* Size/Mili Prices Setup for editingProduct */}
+                              <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left mt-6">
+                                <div className="flex items-center gap-2 text-stone-800 mb-4">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <Tags className="w-4 h-4 text-orange-600" />
+                                  </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ (Milliliter Size & Pricing)</h3>
+                                </div>
+                                
+                                <p className="text-[11px] text-stone-500 mb-4 leading-relaxed">
+                                  {language === 'en' 
+                                    ? 'Define custom prices for each container size. If empty or disabled, the default base price will scale automatically.' 
+                                    : 'প্রতিটি সাইজের জন্য আলাদা মূল্য নির্ধারণ করুন। কোনো সাইজ নিষ্ক্রিয় বা খালি রাখলে, মূল্যের অনুপাত অনুযায়ী স্বয়ংক্রিয়ভাবে হিসাব করা হবে।'}
+                                </p>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                  {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
+                                    const sizePrices = editingProduct.sizePrices || {};
+                                    const currentPrice = sizePrices[size] !== undefined ? sizePrices[size] : '';
+                                    const isEnabled = sizePrices[size] !== undefined;
+
+                                    return (
+                                      <div key={size} className="p-3 bg-white rounded-xl border border-stone-200 hover:border-orange-200 transition-all flex flex-col gap-2 shadow-xs">
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-mono font-bold text-xs text-stone-800">{size}</span>
+                                          <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={isEnabled}
+                                              onChange={(e) => {
+                                                const updatedPrices = { ...sizePrices };
+                                                if (e.target.checked) {
+                                                  let defPrice = editingProduct.price;
+                                                  if (size === '3ml') defPrice = Math.round(editingProduct.price * 0.65);
+                                                  if (size === '12ml') defPrice = Math.round(editingProduct.price * 1.75);
+                                                  if (size === '20ml') defPrice = Math.round(editingProduct.price * 2.85);
+                                                  if (size === '30ml') defPrice = Math.round(editingProduct.price * 4.0);
+                                                  if (size === '40ml') defPrice = Math.round(editingProduct.price * 5.2);
+                                                  if (size === '50ml') defPrice = Math.round(editingProduct.price * 6.2);
+                                                  updatedPrices[size] = defPrice;
+                                                } else {
+                                                  delete updatedPrices[size];
+                                                }
+                                                setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
+                                              }}
+                                              className="sr-only peer"
+                                            />
+                                            <div className="w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500"></div>
+                                          </label>
+                                        </div>
+                                        <input
+                                          type="number"
+                                          disabled={!isEnabled}
+                                          value={currentPrice}
+                                          onChange={(e) => {
+                                            const updatedPrices = { ...sizePrices };
+                                            updatedPrices[size] = Number(e.target.value);
+                                            setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
+                                          }}
+                                          placeholder="মূল্য (৳)"
+                                          className="w-full px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 disabled:opacity-40 disabled:bg-stone-100 transition-all"
+                                        />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
                             </div>
                           </div>
 
@@ -2070,6 +2139,74 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                       স্টক পরিমাণ *
                                     </label>
                                   </div>
+                                </div>
+                              </div>
+
+                              {/* Size/Mili Prices Setup for newProduct */}
+                              <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left mt-6">
+                                <div className="flex items-center gap-2 text-stone-800 mb-4">
+                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                    <Tags className="w-4 h-4 text-orange-600" />
+                                  </div>
+                                  <h3 className="font-bold text-xs uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ (Milliliter Size & Pricing)</h3>
+                                </div>
+                                
+                                <p className="text-[11px] text-stone-500 mb-4 leading-relaxed">
+                                  {language === 'en' 
+                                    ? 'Define custom prices for each container size. If empty or disabled, the default base price will scale automatically.' 
+                                    : 'প্রতিটি সাইজের জন্য আলাদা মূল্য নির্ধারণ করুন। কোনো সাইজ নিষ্ক্রিয় বা খালি রাখলে, মূল্যের অনুপাত অনুযায়ী স্বয়ংক্রিয়ভাবে হিসাব করা হবে।'}
+                                </p>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                  {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
+                                    const sizePrices = newProduct.sizePrices || {};
+                                    const currentPrice = sizePrices[size] !== undefined ? sizePrices[size] : '';
+                                    const isEnabled = sizePrices[size] !== undefined;
+
+                                    return (
+                                      <div key={size} className="p-3 bg-white rounded-xl border border-stone-200 hover:border-orange-200 transition-all flex flex-col gap-2 shadow-xs">
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-mono font-bold text-xs text-stone-800">{size}</span>
+                                          <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={isEnabled}
+                                              onChange={(e) => {
+                                                const updatedPrices = { ...sizePrices };
+                                                if (e.target.checked) {
+                                                  let defPrice = newProduct.price;
+                                                  if (size === '3ml') defPrice = Math.round(newProduct.price * 0.65);
+                                                  if (size === '12ml') defPrice = Math.round(newProduct.price * 1.75);
+                                                  if (size === '20ml') defPrice = Math.round(newProduct.price * 2.85);
+                                                  if (size === '30ml') defPrice = Math.round(newProduct.price * 4.0);
+                                                  if (size === '40ml') defPrice = Math.round(newProduct.price * 5.2);
+                                                  if (size === '50ml') defPrice = Math.round(newProduct.price * 6.2);
+                                                  updatedPrices[size] = defPrice;
+                                                } else {
+                                                  delete updatedPrices[size];
+                                                }
+                                                setNewProduct({ ...newProduct, sizePrices: updatedPrices });
+                                              }}
+                                              className="sr-only peer"
+                                            />
+                                            <div className="w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500"></div>
+                                          </label>
+                                        </div>
+                                        <input
+                                          type="number"
+                                          disabled={!isEnabled}
+                                          value={currentPrice}
+                                          onChange={(e) => {
+                                            const updatedPrices = { ...sizePrices };
+                                            updatedPrices[size] = Number(e.target.value);
+                                            setNewProduct({ ...newProduct, sizePrices: updatedPrices });
+                                          }}
+                                          placeholder="মূল্য (৳)"
+                                          className="w-full px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 disabled:opacity-40 disabled:bg-stone-100 transition-all"
+                                        />
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
 
