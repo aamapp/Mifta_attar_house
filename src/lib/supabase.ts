@@ -95,7 +95,8 @@ export async function getSupabaseProducts(): Promise<Product[] | null> {
         isTrending: row.is_trending,
         isFlashSale: row.flash_sale || row.is_flash_sale,
         flashSaleDiscount: row.flash_sale_discount || row.flash_sale_discount,
-        sizePrices: row.size_prices || description.sizePrices || undefined
+        sizePrices: row.size_prices || description.sizePrices || undefined,
+        sizeOriginalPrices: row.size_original_prices || description.sizeOriginalPrices || undefined
       };
     });
   } catch (err) {
@@ -120,7 +121,8 @@ export async function saveSupabaseProduct(product: Product) {
         description: {
           en: product.description.en,
           bn: product.description.bn,
-          sizePrices: product.sizePrices
+          sizePrices: product.sizePrices,
+          sizeOriginalPrices: product.sizeOriginalPrices
         },
         specifications: product.specifications,
         benefits: product.benefits,

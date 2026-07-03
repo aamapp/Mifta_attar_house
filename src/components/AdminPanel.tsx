@@ -1939,12 +1939,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                   <div className="relative">
                                                     <input
-                                                      type="number"
+                                                      type="text"
+                                                      inputMode="decimal"
                                                       required={isEnabled}
                                                       value={currentPrice}
                                                       onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
                                                         const updatedPrices = { ...sizePrices };
-                                                        updatedPrices[size] = Number(e.target.value);
+                                                        updatedPrices[size] = val === '' ? 0 : Number(val);
                                                         setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
                                                       }}
                                                       placeholder="বিক্রয় মূল্য (৳) *"
@@ -1954,12 +1956,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                                   </div>
                                                   <div className="relative">
                                                     <input
-                                                      type="number"
+                                                      type="text"
+                                                      inputMode="decimal"
                                                       value={currentOriginalPrice}
                                                       onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
                                                         const updatedOrigPrices = { ...sizeOriginalPrices };
-                                                        if (e.target.value) {
-                                                          updatedOrigPrices[size] = Number(e.target.value);
+                                                        if (val !== '') {
+                                                          updatedOrigPrices[size] = Number(val);
                                                         } else {
                                                           delete updatedOrigPrices[size];
                                                         }
@@ -2380,12 +2384,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                   <div className="relative">
                                                     <input
-                                                      type="number"
+                                                      type="text"
+                                                      inputMode="decimal"
                                                       required={isEnabled}
                                                       value={currentPrice}
                                                       onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
                                                         const updatedPrices = { ...sizePrices };
-                                                        updatedPrices[size] = Number(e.target.value);
+                                                        updatedPrices[size] = val === '' ? 0 : Number(val);
                                                         setNewProduct({ ...newProduct, sizePrices: updatedPrices });
                                                       }}
                                                       placeholder="বিক্রয় মূল্য (৳) *"
@@ -2395,12 +2401,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                                   </div>
                                                   <div className="relative">
                                                     <input
-                                                      type="number"
+                                                      type="text"
+                                                      inputMode="decimal"
                                                       value={currentOriginalPrice}
                                                       onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
                                                         const updatedOrigPrices = { ...sizeOriginalPrices };
-                                                        if (e.target.value) {
-                                                          updatedOrigPrices[size] = Number(e.target.value);
+                                                        if (val !== '') {
+                                                          updatedOrigPrices[size] = Number(val);
                                                         } else {
                                                           delete updatedOrigPrices[size];
                                                         }
