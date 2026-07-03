@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Product } from '../types';
 import SafeImage from './SafeImage';
+import ProductSkeleton from './ProductSkeleton';
 import { Star, Heart, Eye, ShoppingCart, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -19,6 +20,37 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onQuickView, onBuyNow }: ProductCardProps) {
   const { language, toggleWishlist, wishlist, addToCart } = useApp();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    // Reset loaded state when image src changes
+    setIsImageLoaded(false);
+    
+    const img = new Image();
+    img.src = product.images[0];
+    
+    img.onload = () => {
+      setIsImageLoaded(true);
+    };
+    
+    img.onerror = () => {
+      setIsImageLoaded(true); // Show card anyway if image load fails
+    };
+
+    // If image is already in cache
+    if (img.complete) {
+      setIsImageLoaded(true);
+    }
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [product.images]);
+
+  if (!isImageLoaded) {
+    return <ProductSkeleton />;
+  }
 
   const isSaved = wishlist.includes(product.id);
   const outOfStock = product.stock <= 0;
