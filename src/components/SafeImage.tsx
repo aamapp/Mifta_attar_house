@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
@@ -15,6 +15,7 @@ export default function SafeImage({ src, fallbackSrc = DEFAULT_FALLBACK, alt, cl
   const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const handleError = () => {
     if (!hasError) {
@@ -35,8 +36,34 @@ export default function SafeImage({ src, fallbackSrc = DEFAULT_FALLBACK, alt, cl
     setIsLoading(true);
   }, [src]);
 
+  // Check if image is already loaded from cache on mount or src change
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setIsLoading(false);
+    }
+  }, [imgSrc]);
+
+  // Parse layout classes for the wrapper and image-specific classes for the img tag
+  const classes = className ? className.split(' ') : [];
+  
+  const wrapperClassKeywords = [
+    'absolute', 'relative', 'static', 'fixed',
+    'inset-0', 'inset-y-0', 'inset-x-0',
+    'top-0', 'left-0', 'right-0', 'bottom-0',
+    'w-full', 'h-full',
+    'w-16', 'h-16', 'w-24', 'h-24', 'w-32', 'h-32',
+    'rounded-xl', 'rounded-3xl', 'rounded-sm', 'rounded-md', 'rounded-lg', 'rounded', 'rounded-2xl',
+    'overflow-hidden'
+  ];
+
+  const wrapperClasses = classes.filter(c => 
+    wrapperClassKeywords.some(keyword => c === keyword || c.startsWith('w-') || c.startsWith('h-') || c.startsWith('rounded-'))
+  );
+
+  const imgClasses = classes.filter(c => !wrapperClasses.includes(c));
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-stone-50/50 flex items-center justify-center min-h-[inherit]">
+    <div className={`relative overflow-hidden bg-stone-50/50 flex items-center justify-center ${wrapperClasses.join(' ')}`}>
       {/* Skeleton Loading Watermark Component (Daraz-like but with Mifta Attar House branding) */}
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-100 animate-pulse p-4 select-none z-10">
@@ -68,11 +95,12 @@ export default function SafeImage({ src, fallbackSrc = DEFAULT_FALLBACK, alt, cl
 
       {/* The actual product image */}
       <img
+        ref={imgRef}
         src={imgSrc}
         alt={alt}
         onError={handleError}
         onLoad={handleLoad}
-        className={`${className} transition-opacity duration-300 ${
+        className={`w-full h-full ${imgClasses.join(' ')} transition-opacity duration-300 ${
           isLoading ? 'opacity-0 absolute' : 'opacity-100'
         } ${hasError ? 'opacity-80 grayscale-[0.5]' : ''}`}
         referrerPolicy="no-referrer"

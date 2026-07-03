@@ -23,6 +23,11 @@ export default function ProductCard({ product, onQuickView, onBuyNow }: ProductC
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
+    if (!product.images || product.images.length === 0 || !product.images[0]) {
+      setIsImageLoaded(true);
+      return;
+    }
+
     // Reset loaded state when image src changes
     setIsImageLoaded(false);
     
