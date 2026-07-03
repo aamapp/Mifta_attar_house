@@ -48,6 +48,68 @@ import { locationData } from '../lib/locationData';
 import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage, saveSupabaseUserProfile } from '../lib/supabase';
 import { saveFirebaseUserProfile } from '../lib/firebase-helpers';
 
+function compressImage(file: File, maxWidth = 1024, maxHeight = 1024, quality = 0.75): Promise<File> {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      return resolve(file);
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return resolve(file);
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            return resolve(file);
+          }
+          const compressedFile = new File([blob], file.name, {
+            type: outputType,
+            lastModified: Date.now(),
+          });
+          
+          if (compressedFile.size >= file.size) {
+            resolve(file);
+          } else {
+            resolve(compressedFile);
+          }
+        }, outputType, quality);
+      };
+      img.onerror = () => resolve(file);
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 function getLocalizedLocation(division: string | undefined, district: string | undefined, upazila: string | undefined, lang: 'en' | 'bn') {
   if (!division) return { divName: '', distName: '', upaName: '' };
   
@@ -210,7 +272,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       bn: ['বিশুদ্ধ সুঘ্রাণ মিশ্রণ']
     },
     usage: { en: 'Apply on clothes.', bn: 'পোশাকে ব্যবহার করুন।' },
-    stock: 25,
+    stock: 0,
     isBestSeller: false,
     isNewArrival: true,
     isTrending: false,
@@ -315,7 +377,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
     setIsUploadingImage(true);
     try {
-      const publicUrl = await uploadProductImage(file);
+      const compressedFile = await compressImage(file);
+      const publicUrl = await uploadProductImage(compressedFile);
       if (publicUrl) {
         if (isEditing && editingHeroSlide) {
           setEditingHeroSlide({ ...editingHeroSlide, url: publicUrl });
@@ -388,7 +451,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
     setIsUploadingImage(true);
     try {
-      const publicUrl = await uploadProductImage(file);
+      const compressedFile = await compressImage(file);
+      const publicUrl = await uploadProductImage(compressedFile);
       if (publicUrl) {
         if (isEditing && editingProduct) {
           setEditingProduct({ ...editingProduct, images: [publicUrl] });
@@ -584,6 +648,15 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       reviewsCount: 1
     };
 
+    if (added.category !== 'natural' && added.category !== 'gifts') {
+      const sizes = ['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'];
+      const activeSize = sizes.find(s => added.sizePrices?.[s] !== undefined && Number(added.sizePrices[s]) > 0);
+      if (activeSize) {
+        added.price = Number(added.sizePrices[activeSize]);
+        added.originalPrice = added.sizeOriginalPrices?.[activeSize] ? Number(added.sizeOriginalPrices[activeSize]) : undefined;
+      }
+    }
+
     // Use a temporary toast to show it's saving
     const toastId = Math.random().toString(36).substring(2, 9);
     addToast({ en: 'Saving product...', bn: 'পণ্য সংরক্ষণ করা হচ্ছে...' }, 'info');
@@ -611,13 +684,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       },
       benefits: { en: ['Pure essential fragrance oil.'], bn: ['বিশুদ্ধ প্রাকৃতিক এসেনশিয়াল অয়েল।'] },
       usage: { en: 'Apply on pulse points.', bn: 'পালস পয়েন্টে ব্যবহার করুন।' },
-      stock: 30,
+      stock: 0,
       isBestSeller: false,
       isNewArrival: true,
       isTrending: false,
       isFlashSale: false,
       flashSaleDiscount: 0,
-      sizePrices: undefined
+      sizePrices: undefined,
+      sizeOriginalPrices: undefined
     });
     setIsAddingProduct(false);
   };
@@ -663,11 +737,22 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       addToast({ en: 'Product name cannot be empty!', bn: 'পণ্যের নাম খালি রাখা যাবে না!' }, 'error');
       return;
     }
+
+    const savedProd = { ...editingProduct };
+    if (savedProd.category !== 'natural' && savedProd.category !== 'gifts') {
+      const sizes = ['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'];
+      const activeSize = sizes.find(s => savedProd.sizePrices?.[s] !== undefined && Number(savedProd.sizePrices[s]) > 0);
+      if (activeSize) {
+        savedProd.price = Number(savedProd.sizePrices[activeSize]);
+        savedProd.originalPrice = savedProd.sizeOriginalPrices?.[activeSize] ? Number(savedProd.sizeOriginalPrices[activeSize]) : undefined;
+      }
+    }
+
     setProducts((prev) =>
-      prev.map((p) => (p.id === editingProduct.id ? editingProduct : p))
+      prev.map((p) => (p.id === savedProd.id ? savedProd : p))
     );
     addToast(
-      { en: `Updated details for ${editingProduct.name.en}!`, bn: `${editingProduct.name.bn}-এর তথ্য সফলভাবে এডিট করা হয়েছে!` },
+      { en: `Updated details for ${savedProd.name.en}!`, bn: `${savedProd.name.bn}-এর তথ্য সফলভাবে এডিট করা হয়েছে!` },
       'success'
     );
     setEditingProduct(null);
@@ -1598,11 +1683,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     </div>
 
                     <div className="w-full pb-32">
-                      <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
-                        <form id="edit-product-form" onSubmit={handleSaveEditProduct} className="space-y-6">
+                      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+                        <form id="edit-product-form" onSubmit={handleSaveEditProduct} className="space-y-8">
                           
                           {/* 1. Image & Primary Info Section */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs">
+                          <div className="pb-8 border-b border-stone-200/80">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                               
                               {/* Left: Image Upload & Preview */}
@@ -1725,118 +1810,181 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                   />
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="relative">
-                                    <input
-                                      type="number"
-                                      id="edit-p-price"
-                                      required
-                                      placeholder=" "
-                                      value={editingProduct.price}
-                                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                                    />
-                                    <label 
-                                      htmlFor="edit-p-price"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
-                                    >
-                                      মূল্য (৳) *
-                                    </label>
+                                {(editingProduct.category === 'natural' || editingProduct.category === 'gifts') ? (
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="edit-p-price"
+                                        required
+                                        placeholder=" "
+                                        value={editingProduct.price}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="edit-p-price"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        মূল্য (৳) *
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="edit-p-original-price"
+                                        placeholder=" "
+                                        value={editingProduct.originalPrice || ''}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, originalPrice: e.target.value ? Number(e.target.value) : undefined })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="edit-p-original-price"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        পূর্বের/স্ল্যাশড মূল্য (৳)
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="edit-p-stock"
+                                        required
+                                        placeholder=" "
+                                        value={editingProduct.stock}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="edit-p-stock"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        স্টক পরিমাণ *
+                                      </label>
+                                    </div>
                                   </div>
-
-                                  <div className="relative">
-                                    <input
-                                      type="number"
-                                      id="edit-p-stock"
-                                      required
-                                      placeholder=" "
-                                      value={editingProduct.stock}
-                                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                                    />
-                                    <label 
-                                      htmlFor="edit-p-stock"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
-                                    >
-                                      স্টক পরিমাণ *
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Size/Mili Prices Setup for editingProduct */}
-                              <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left mt-6">
-                                <div className="flex items-center gap-2 text-stone-800 mb-4">
-                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
-                                    <Tags className="w-4 h-4 text-orange-600" />
-                                  </div>
-                                  <h3 className="font-bold text-xs uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ (Milliliter Size & Pricing)</h3>
-                                </div>
-                                
-                                <p className="text-[11px] text-stone-500 mb-4 leading-relaxed">
-                                  {language === 'en' 
-                                    ? 'Define custom prices for each container size. If empty or disabled, the default base price will scale automatically.' 
-                                    : 'প্রতিটি সাইজের জন্য আলাদা মূল্য নির্ধারণ করুন। কোনো সাইজ নিষ্ক্রিয় বা খালি রাখলে, মূল্যের অনুপাত অনুযায়ী স্বয়ংক্রিয়ভাবে হিসাব করা হবে।'}
-                                </p>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                  {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
-                                    const sizePrices = editingProduct.sizePrices || {};
-                                    const currentPrice = sizePrices[size] !== undefined ? sizePrices[size] : '';
-                                    const isEnabled = sizePrices[size] !== undefined;
-
-                                    return (
-                                      <div key={size} className="p-3 bg-white rounded-xl border border-stone-200 hover:border-orange-200 transition-all flex flex-col gap-2 shadow-xs">
-                                        <div className="flex items-center justify-between">
-                                          <span className="font-mono font-bold text-xs text-stone-800">{size}</span>
-                                          <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                              type="checkbox"
-                                              checked={isEnabled}
-                                              onChange={(e) => {
-                                                const updatedPrices = { ...sizePrices };
-                                                if (e.target.checked) {
-                                                  let defPrice = editingProduct.price;
-                                                  if (size === '3ml') defPrice = Math.round(editingProduct.price * 0.65);
-                                                  if (size === '12ml') defPrice = Math.round(editingProduct.price * 1.75);
-                                                  if (size === '20ml') defPrice = Math.round(editingProduct.price * 2.85);
-                                                  if (size === '30ml') defPrice = Math.round(editingProduct.price * 4.0);
-                                                  if (size === '40ml') defPrice = Math.round(editingProduct.price * 5.2);
-                                                  if (size === '50ml') defPrice = Math.round(editingProduct.price * 6.2);
-                                                  updatedPrices[size] = defPrice;
-                                                } else {
-                                                  delete updatedPrices[size];
-                                                }
-                                                setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
-                                              }}
-                                              className="sr-only peer"
-                                            />
-                                            <div className="w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500"></div>
-                                          </label>
+                                ) : (
+                                  <div className="space-y-4">
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="edit-p-stock"
+                                        required
+                                        placeholder=" "
+                                        value={editingProduct.stock}
+                                        onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="edit-p-stock"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        স্টক পরিমাণ *
+                                      </label>
+                                    </div>
+                                    
+                                    {/* Size and Pricing inline inside Primary Info! */}
+                                    <div className="bg-stone-50/70 p-4 sm:p-5 rounded-xl border border-stone-200 shadow-3xs text-left">
+                                      <div className="flex items-center gap-2 text-stone-800 mb-3 border-b border-stone-200 pb-2.5">
+                                        <div className="h-7 w-7 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                          <Tags className="w-3.5 h-3.5 text-orange-600" />
                                         </div>
-                                        <input
-                                          type="number"
-                                          disabled={!isEnabled}
-                                          value={currentPrice}
-                                          onChange={(e) => {
-                                            const updatedPrices = { ...sizePrices };
-                                            updatedPrices[size] = Number(e.target.value);
-                                            setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
-                                          }}
-                                          placeholder="মূল্য (৳)"
-                                          className="w-full px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 disabled:opacity-40 disabled:bg-stone-100 transition-all"
-                                        />
+                                        <h4 className="font-bold text-[11px] uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ</h4>
                                       </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                                      
+                                      <div className="space-y-1">
+                                        {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
+                                          const sizePrices = editingProduct.sizePrices || {};
+                                          const sizeOriginalPrices = editingProduct.sizeOriginalPrices || {};
+                                          const currentPrice = sizePrices[size] ? sizePrices[size] : '';
+                                          const currentOriginalPrice = sizeOriginalPrices[size] ? sizeOriginalPrices[size] : '';
+                                          const isEnabled = sizePrices[size] !== undefined;
 
+                                          return (
+                                            <div key={size} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200/60 last:border-0">
+                                              <div className="flex items-center gap-3 min-w-[120px]">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={isEnabled}
+                                                    onChange={(e) => {
+                                                      const updatedPrices = { ...sizePrices };
+                                                      const updatedOrigPrices = { ...sizeOriginalPrices };
+                                                      if (e.target.checked) {
+                                                        updatedPrices[size] = 0;
+                                                        updatedOrigPrices[size] = 0;
+                                                      } else {
+                                                        delete updatedPrices[size];
+                                                        delete updatedOrigPrices[size];
+                                                      }
+                                                      setEditingProduct({ 
+                                                        ...editingProduct, 
+                                                        sizePrices: updatedPrices,
+                                                        sizeOriginalPrices: updatedOrigPrices
+                                                      });
+                                                    }}
+                                                    className="sr-only peer"
+                                                  />
+                                                  <div className="relative w-8 h-4.5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-orange-500"></div>
+                                                </label>
+                                                <span className="font-mono font-extrabold text-xs text-stone-800">{size}</span>
+                                                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${isEnabled ? 'bg-orange-100 text-orange-700' : 'bg-stone-100 text-stone-400'}`}>
+                                                  {isEnabled ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                                                </span>
+                                              </div>
+                                              
+                                              {isEnabled && (
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                  <div className="relative">
+                                                    <input
+                                                      type="number"
+                                                      required={isEnabled}
+                                                      value={currentPrice}
+                                                      onChange={(e) => {
+                                                        const updatedPrices = { ...sizePrices };
+                                                        updatedPrices[size] = Number(e.target.value);
+                                                        setEditingProduct({ ...editingProduct, sizePrices: updatedPrices });
+                                                      }}
+                                                      placeholder="বিক্রয় মূল্য (৳) *"
+                                                      className="peer w-full h-10 px-3 pr-20 rounded-lg bg-white border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 transition-all"
+                                                    />
+                                                    <span className="absolute right-3 top-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">বিক্রয় মূল্য</span>
+                                                  </div>
+                                                  <div className="relative">
+                                                    <input
+                                                      type="number"
+                                                      value={currentOriginalPrice}
+                                                      onChange={(e) => {
+                                                        const updatedOrigPrices = { ...sizeOriginalPrices };
+                                                        if (e.target.value) {
+                                                          updatedOrigPrices[size] = Number(e.target.value);
+                                                        } else {
+                                                          delete updatedOrigPrices[size];
+                                                        }
+                                                        setEditingProduct({ ...editingProduct, sizeOriginalPrices: updatedOrigPrices });
+                                                      }}
+                                                      placeholder="পূর্বের মূল্য (৳)"
+                                                      className="peer w-full h-10 px-3 pr-20 rounded-lg bg-white border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 transition-all"
+                                                    />
+                                                    <span className="absolute right-3 top-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">পূর্বের মূল্য</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
 
                           {/* 2. Description Section */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                          <div className="text-left py-8 border-b border-stone-200/80">
                             <div className="flex items-center gap-2 text-stone-800 mb-4">
                               <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
                                 <Package className="w-4 h-4 text-orange-600" />
@@ -1886,7 +2034,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           </div>
 
                           {/* 3. Badges & Sales Promotions */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                          <div className="text-left pt-6">
                             <div className="flex items-center gap-2 text-stone-800 mb-4">
                               <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
                                 <Tags className="w-4 h-4 text-orange-600" />
@@ -1973,14 +2121,14 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     </div>
 
                     <div className="w-full pb-32">
-                      <div className="max-w-4xl mx-auto p-6 sm:p-10 space-y-8">
+                      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-8">
                         <form id="add-product-form" onSubmit={(e) => {
                           handleAddProduct(e);
                           setIsAddingProduct(false);
-                        }} className="space-y-6">
+                        }} className="space-y-8">
                           
                           {/* 1. Image & Primary Info Section */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs">
+                          <div className="pb-8 border-b border-stone-200/80">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                               
                               {/* Left: Image Upload & Preview */}
@@ -2103,118 +2251,181 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                   />
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="relative">
-                                    <input
-                                      type="number"
-                                      id="add-p-price"
-                                      required
-                                      placeholder=" "
-                                      value={newProduct.price}
-                                      onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                                    />
-                                    <label 
-                                      htmlFor="add-p-price"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
-                                    >
-                                      মূল্য (৳) *
-                                    </label>
+                                {(newProduct.category === 'natural' || newProduct.category === 'gifts') ? (
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-price"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.price}
+                                        onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-price"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        মূল্য (৳) *
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-original-price"
+                                        placeholder=" "
+                                        value={newProduct.originalPrice || ''}
+                                        onChange={(e) => setNewProduct({ ...newProduct, originalPrice: e.target.value ? Number(e.target.value) : undefined })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-original-price"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        পূর্বের/স্ল্যাশড মূল্য (৳)
+                                      </label>
+                                    </div>
+
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-stock"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.stock || ''}
+                                        onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value === '' ? 0 : Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-stock"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        স্টক পরিমাণ *
+                                      </label>
+                                    </div>
                                   </div>
-
-                                  <div className="relative">
-                                    <input
-                                      type="number"
-                                      id="add-p-stock"
-                                      required
-                                      placeholder=" "
-                                      value={newProduct.stock}
-                                      onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                                      className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
-                                    />
-                                    <label 
-                                      htmlFor="add-p-stock"
-                                      className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
-                                    >
-                                      স্টক পরিমাণ *
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Size/Mili Prices Setup for newProduct */}
-                              <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left mt-6">
-                                <div className="flex items-center gap-2 text-stone-800 mb-4">
-                                  <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
-                                    <Tags className="w-4 h-4 text-orange-600" />
-                                  </div>
-                                  <h3 className="font-bold text-xs uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ (Milliliter Size & Pricing)</h3>
-                                </div>
-                                
-                                <p className="text-[11px] text-stone-500 mb-4 leading-relaxed">
-                                  {language === 'en' 
-                                    ? 'Define custom prices for each container size. If empty or disabled, the default base price will scale automatically.' 
-                                    : 'প্রতিটি সাইজের জন্য আলাদা মূল্য নির্ধারণ করুন। কোনো সাইজ নিষ্ক্রিয় বা খালি রাখলে, মূল্যের অনুপাত অনুযায়ী স্বয়ংক্রিয়ভাবে হিসাব করা হবে।'}
-                                </p>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                  {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
-                                    const sizePrices = newProduct.sizePrices || {};
-                                    const currentPrice = sizePrices[size] !== undefined ? sizePrices[size] : '';
-                                    const isEnabled = sizePrices[size] !== undefined;
-
-                                    return (
-                                      <div key={size} className="p-3 bg-white rounded-xl border border-stone-200 hover:border-orange-200 transition-all flex flex-col gap-2 shadow-xs">
-                                        <div className="flex items-center justify-between">
-                                          <span className="font-mono font-bold text-xs text-stone-800">{size}</span>
-                                          <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                              type="checkbox"
-                                              checked={isEnabled}
-                                              onChange={(e) => {
-                                                const updatedPrices = { ...sizePrices };
-                                                if (e.target.checked) {
-                                                  let defPrice = newProduct.price;
-                                                  if (size === '3ml') defPrice = Math.round(newProduct.price * 0.65);
-                                                  if (size === '12ml') defPrice = Math.round(newProduct.price * 1.75);
-                                                  if (size === '20ml') defPrice = Math.round(newProduct.price * 2.85);
-                                                  if (size === '30ml') defPrice = Math.round(newProduct.price * 4.0);
-                                                  if (size === '40ml') defPrice = Math.round(newProduct.price * 5.2);
-                                                  if (size === '50ml') defPrice = Math.round(newProduct.price * 6.2);
-                                                  updatedPrices[size] = defPrice;
-                                                } else {
-                                                  delete updatedPrices[size];
-                                                }
-                                                setNewProduct({ ...newProduct, sizePrices: updatedPrices });
-                                              }}
-                                              className="sr-only peer"
-                                            />
-                                            <div className="w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500"></div>
-                                          </label>
+                                ) : (
+                                  <div className="space-y-4">
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        id="add-p-stock"
+                                        required
+                                        placeholder=" "
+                                        value={newProduct.stock || ''}
+                                        onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value === '' ? 0 : Number(e.target.value) })}
+                                        className="peer w-full h-14 px-4 rounded-xl bg-white border border-stone-200 text-xs focus:outline-none focus:border-orange-500 text-stone-900 font-mono font-bold placeholder-transparent transition-all"
+                                      />
+                                      <label 
+                                        htmlFor="add-p-stock"
+                                        className="absolute left-4 -top-2 px-1 bg-white text-[9px] font-bold text-stone-400 uppercase tracking-widest transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-placeholder-shown:left-4 peer-placeholder-shown:font-normal peer-placeholder-shown:text-stone-300 peer-focus:-top-2 peer-focus:left-4 peer-focus:text-[9px] peer-focus:font-bold peer-focus:text-orange-600 pointer-events-none"
+                                      >
+                                        স্টক পরিমাণ *
+                                      </label>
+                                    </div>
+                                    
+                                    {/* Size and Pricing inline inside Primary Info! */}
+                                    <div className="bg-stone-50/70 p-4 sm:p-5 rounded-xl border border-stone-200 shadow-3xs text-left">
+                                      <div className="flex items-center gap-2 text-stone-800 mb-3 border-b border-stone-200 pb-2.5">
+                                        <div className="h-7 w-7 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
+                                          <Tags className="w-3.5 h-3.5 text-orange-600" />
                                         </div>
-                                        <input
-                                          type="number"
-                                          disabled={!isEnabled}
-                                          value={currentPrice}
-                                          onChange={(e) => {
-                                            const updatedPrices = { ...sizePrices };
-                                            updatedPrices[size] = Number(e.target.value);
-                                            setNewProduct({ ...newProduct, sizePrices: updatedPrices });
-                                          }}
-                                          placeholder="মূল্য (৳)"
-                                          className="w-full px-2.5 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 disabled:opacity-40 disabled:bg-stone-100 transition-all"
-                                        />
+                                        <h4 className="font-bold text-[11px] uppercase tracking-wider">মিলিলিটার সাইজ ও মূল্য নির্ধারণ</h4>
                                       </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                                      
+                                      <div className="space-y-1">
+                                        {['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'].map((size) => {
+                                          const sizePrices = newProduct.sizePrices || {};
+                                          const sizeOriginalPrices = newProduct.sizeOriginalPrices || {};
+                                          const currentPrice = sizePrices[size] ? sizePrices[size] : '';
+                                          const currentOriginalPrice = sizeOriginalPrices[size] ? sizeOriginalPrices[size] : '';
+                                          const isEnabled = sizePrices[size] !== undefined;
 
+                                          return (
+                                            <div key={size} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200/60 last:border-0">
+                                              <div className="flex items-center gap-3 min-w-[120px]">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={isEnabled}
+                                                    onChange={(e) => {
+                                                      const updatedPrices = { ...sizePrices };
+                                                      const updatedOrigPrices = { ...sizeOriginalPrices };
+                                                      if (e.target.checked) {
+                                                        updatedPrices[size] = 0;
+                                                        updatedOrigPrices[size] = 0;
+                                                      } else {
+                                                        delete updatedPrices[size];
+                                                        delete updatedOrigPrices[size];
+                                                      }
+                                                      setNewProduct({ 
+                                                        ...newProduct, 
+                                                        sizePrices: updatedPrices,
+                                                        sizeOriginalPrices: updatedOrigPrices
+                                                      });
+                                                    }}
+                                                    className="sr-only peer"
+                                                  />
+                                                  <div className="relative w-8 h-4.5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-orange-500"></div>
+                                                </label>
+                                                <span className="font-mono font-extrabold text-xs text-stone-800">{size}</span>
+                                                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${isEnabled ? 'bg-orange-100 text-orange-700' : 'bg-stone-100 text-stone-400'}`}>
+                                                  {isEnabled ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                                                </span>
+                                              </div>
+                                              
+                                              {isEnabled && (
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                  <div className="relative">
+                                                    <input
+                                                      type="number"
+                                                      required={isEnabled}
+                                                      value={currentPrice}
+                                                      onChange={(e) => {
+                                                        const updatedPrices = { ...sizePrices };
+                                                        updatedPrices[size] = Number(e.target.value);
+                                                        setNewProduct({ ...newProduct, sizePrices: updatedPrices });
+                                                      }}
+                                                      placeholder="বিক্রয় মূল্য (৳) *"
+                                                      className="peer w-full h-10 px-3 pr-20 rounded-lg bg-white border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 transition-all"
+                                                    />
+                                                    <span className="absolute right-3 top-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">বিক্রয় মূল্য</span>
+                                                  </div>
+                                                  <div className="relative">
+                                                    <input
+                                                      type="number"
+                                                      value={currentOriginalPrice}
+                                                      onChange={(e) => {
+                                                        const updatedOrigPrices = { ...sizeOriginalPrices };
+                                                        if (e.target.value) {
+                                                          updatedOrigPrices[size] = Number(e.target.value);
+                                                        } else {
+                                                          delete updatedOrigPrices[size];
+                                                        }
+                                                        setNewProduct({ ...newProduct, sizeOriginalPrices: updatedOrigPrices });
+                                                      }}
+                                                      placeholder="পূর্বের মূল্য (৳)"
+                                                      className="peer w-full h-10 px-3 pr-20 rounded-lg bg-white border border-stone-200 text-xs text-stone-900 font-mono font-bold focus:outline-none focus:border-orange-500 transition-all"
+                                                    />
+                                                    <span className="absolute right-3 top-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">পূর্বের মূল্য</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
 
                           {/* 2. Description Section */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                          <div className="text-left py-8 border-b border-stone-200/80">
                             <div className="flex items-center gap-2 text-stone-800 mb-4">
                               <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
                                 <Package className="w-4 h-4 text-orange-600" />
@@ -2264,7 +2475,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                           </div>
 
                           {/* 3. Badges & Sales Promotions */}
-                          <div className="bg-stone-50/50 p-6 sm:p-8 rounded-2xl border border-stone-200/60 shadow-xs text-left">
+                          <div className="text-left pt-6">
                             <div className="flex items-center gap-2 text-stone-800 mb-4">
                               <div className="h-8 w-8 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center">
                                 <Tags className="w-4 h-4 text-orange-600" />

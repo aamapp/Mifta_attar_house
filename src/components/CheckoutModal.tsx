@@ -79,7 +79,7 @@ interface CheckoutModalProps {
   directProduct?: {
     product: any;
     quantity: number;
-    size: string;
+    size?: string;
   };
 }
 

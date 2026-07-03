@@ -57,7 +57,7 @@ export default function App() {
   const [directCheckoutProduct, setDirectCheckoutProduct] = useState<{
     product: Product;
     quantity: number;
-    size: string;
+    size?: string;
   } | undefined>(undefined);
 
   // Catalog Filtration and Sorting states
@@ -67,8 +67,17 @@ export default function App() {
   const [sortBy, setSortBy] = useState<'default' | 'price-low' | 'price-high' | 'rating'>('default');
 
   // Triggering instant Buy Now button from cards or details
-  const handleBuyNow = (product: Product, quantity = 1, size = '6ml') => {
-    setDirectCheckoutProduct({ product, quantity, size });
+  const handleBuyNow = (product: Product, quantity = 1, size?: string) => {
+    let finalSize = size;
+    if (!finalSize && product.sizePrices && Object.keys(product.sizePrices).length > 0) {
+      const sizes = Object.keys(product.sizePrices).filter(
+        (s) => product.sizePrices?.[s] !== undefined && Number(product.sizePrices[s]) > 0
+      );
+      if (sizes.length > 0) {
+        finalSize = sizes.includes('6ml') ? '6ml' : sizes[0];
+      }
+    }
+    setDirectCheckoutProduct({ product, quantity, size: finalSize });
     setCheckoutOpen(true);
   };
 

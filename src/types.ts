@@ -29,6 +29,7 @@ export interface Product {
   isFlashSale?: boolean;
   flashSaleDiscount?: number; // e.g., 20 for 20% off
   sizePrices?: { [size: string]: number };
+  sizeOriginalPrices?: { [size: string]: number };
 }
 
 export interface Category {
@@ -161,5 +162,23 @@ export function getProductPriceForSize(product: Product, size?: string): number 
     default:
       return basePrice;
   }
+}
+
+export function getProductOriginalPriceForSize(product: Product, size?: string): number | undefined {
+  if (!size || product.category === 'natural' || product.category === 'gifts') {
+    return product.originalPrice;
+  }
+
+  // Check if explicit size original price exists
+  if (product.sizeOriginalPrices && product.sizeOriginalPrices[size] !== undefined) {
+    return product.sizeOriginalPrices[size];
+  }
+
+  if (!product.originalPrice) return undefined;
+
+  // Fallback ratio
+  const currentPrice = getProductPriceForSize(product, size);
+  const ratio = currentPrice / product.price;
+  return Math.round(product.originalPrice * ratio);
 }
 

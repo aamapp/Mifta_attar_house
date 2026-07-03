@@ -25,7 +25,7 @@ import SafeImage from './SafeImage';
 interface ProductQuickViewProps {
   product: Product;
   onClose: () => void;
-  onBuyNow: (p: Product, qty: number, size: string) => void;
+  onBuyNow: (p: Product, qty: number, size: string | undefined) => void;
 }
 
 export default function ProductQuickView({ product, onClose, onBuyNow }: ProductQuickViewProps) {
@@ -42,16 +42,15 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
 
   const availableSizes = React.useMemo(() => {
     if (product.sizePrices && Object.keys(product.sizePrices).length > 0) {
-      const sizes = Object.keys(product.sizePrices).filter(
+      return Object.keys(product.sizePrices).filter(
         (size) => product.sizePrices?.[size] !== undefined && Number(product.sizePrices[size]) > 0
       );
-      if (sizes.length > 0) return sizes;
     }
-    return ['3ml', '6ml', '12ml', '20ml', '30ml', '40ml', '50ml'];
+    return [];
   }, [product.sizePrices]);
 
   const [activeImage, setActiveImage] = useState(product.images[0]);
-  const [selectedSize, setSelectedSize] = useState(() => {
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(() => {
     if (product.sizePrices && Object.keys(product.sizePrices).length > 0) {
       const sizes = Object.keys(product.sizePrices).filter(
         (size) => product.sizePrices?.[size] !== undefined && Number(product.sizePrices[size]) > 0
@@ -60,7 +59,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
         return sizes.includes('6ml') ? '6ml' : sizes[0];
       }
     }
-    return '6ml';
+    return undefined;
   });
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'benefits' | 'usage' | 'reviews'>('desc');
@@ -77,7 +76,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
         return;
       }
     }
-    setSelectedSize('6ml');
+    setSelectedSize(undefined);
   }, [product]);
 
   // Reviews for this product
@@ -90,7 +89,7 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
 
   // Price modifier depending on volume/size
   const getAdjustedPrice = () => {
-    if (product.sizePrices && product.sizePrices[selectedSize] !== undefined && Number(product.sizePrices[selectedSize]) > 0) {
+    if (selectedSize && product.sizePrices && product.sizePrices[selectedSize] !== undefined && Number(product.sizePrices[selectedSize]) > 0) {
       return Number(product.sizePrices[selectedSize]);
     }
     // Fallback multipliers
@@ -100,10 +99,13 @@ export default function ProductQuickView({ product, onClose, onBuyNow }: Product
     if (selectedSize === '30ml') return Math.round(product.price * 4.0);
     if (selectedSize === '40ml') return Math.round(product.price * 5.2);
     if (selectedSize === '50ml') return Math.round(product.price * 6.2);
-    return product.price; // 6ml default
+    return product.price; // 6ml or base default
   };
 
   const getAdjustedOriginalPrice = () => {
+    if (selectedSize && product.sizeOriginalPrices && product.sizeOriginalPrices[selectedSize] !== undefined && Number(product.sizeOriginalPrices[selectedSize]) > 0) {
+      return Number(product.sizeOriginalPrices[selectedSize]);
+    }
     if (!product.originalPrice) return undefined;
     const currentPrice = getAdjustedPrice();
     const ratio = currentPrice / product.price;
