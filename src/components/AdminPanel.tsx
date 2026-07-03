@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SmartSelect from './SmartSelect';
+import { ProductSkeletonGrid } from './ProductSkeleton';
 import { CATEGORIES } from '../data';
 import { locationData } from '../lib/locationData';
 import { SUPABASE_SQL_CREATION_QUERY, uploadProductImage, saveSupabaseUserProfile } from '../lib/supabase';
@@ -1640,6 +1641,21 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {activeTab === 'products' && (
               <div className="space-y-6">
                 
+                {/* Header Action Row */}
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="font-serif text-sm sm:text-base font-bold text-stone-850">
+                    {language === 'en' ? 'Catalog Management' : 'ক্যাটালগ ব্যবস্থাপনা'}
+                  </h3>
+                  <button
+                    onClick={() => refetchFromSupabase()}
+                    disabled={syncingWithSupabase}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 disabled:opacity-50 text-xs font-bold rounded-lg transition-all"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${syncingWithSupabase ? 'animate-spin' : ''}`} />
+                    {language === 'en' ? 'Refresh Database' : 'ডাটাবেস রিফ্রেশ'}
+                  </button>
+                </div>
+                
                 {/* Add New Product Button */}
                 {!editingProduct && !isAddingProduct && (
                   <button
@@ -2549,7 +2565,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <div className="space-y-3.5">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500">স্টোর ক্যাটালগ ইনভেন্টরি ({products.length})</h4>
                   <div className="space-y-2.5">
-                    {products.map((p) => (
+                    {syncingWithSupabase ? (
+                      <div className="bg-white p-4 rounded-sm border border-stone-200">
+                        <ProductSkeletonGrid count={5} />
+                      </div>
+                    ) : products.map((p) => (
                       <div key={p.id} className="flex items-center gap-4 py-4 px-3 rounded-sm border border-stone-200 bg-stone-50 text-xs text-left">
                         <img src={p.images[0]} className="w-10 h-10 object-cover rounded-sm border border-stone-200" />
                         <div className="flex-1 min-w-0">

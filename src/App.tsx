@@ -21,12 +21,14 @@ import BottomNavigation from './components/BottomNavigation';
 import SmartSelect from './components/SmartSelect';
 import BrandStory from './components/BrandStory';
 import Footer from './components/Footer';
+import ProductSkeleton, { ProductSkeletonGrid } from './components/ProductSkeleton';
 import { Search, SlidersHorizontal, ArrowUpDown, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export default function App() {
   const {
     products,
-    language
+    language,
+    syncingWithSupabase
   } = useApp();
 
   // Active Modals state toggles
@@ -275,7 +277,9 @@ export default function App() {
           </div>
 
           {/* Grid list of Product Card modules */}
-          {sortedProducts.length === 0 ? (
+          {syncingWithSupabase ? (
+            <ProductSkeletonGrid count={10} />
+          ) : sortedProducts.length === 0 ? (
             <div className="text-center py-20 rounded-2xl border border-dashed border-gray-200 bg-gray-50 space-y-4 shadow-sm">
               <div className="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-gray-400">
                 <Search className="w-5 h-5" />

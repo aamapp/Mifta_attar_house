@@ -115,8 +115,10 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
   const [advanceAmount, setAdvanceAmount] = useState(0); // 0 = Only Delivery, 1 = Full Amount, 2 = Custom
   const [customAdvanceAmount, setCustomAdvanceAmount] = useState('');
   const [hasPaidAdvance, setHasPaidAdvance] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const handleClose = () => {
+    if (isPlacingOrder) return; // Prevent closing while processing
     setStep('info');
     setFormData({
       name: '',
@@ -217,7 +219,9 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
     setStep('payment_process');
   };
 
-  const handleConfirmManualPayment = () => {
+  const handleConfirmManualPayment = async () => {
+    if (isPlacingOrder) return;
+
     if (manualTxId.trim().length < 4) {
       addToast(
         { en: 'Please enter a valid Transaction ID.', bn: 'অনুগ্রহ করে সঠিক ট্রানজেকশন আইডি দিন।' },
@@ -234,13 +238,24 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
       return;
     }
 
-    const order = placeOrder({
-      ...formData,
-      transactionId: manualTxId,
-      advancePaidAmount: advanceAmount === 0 ? shipping : advanceAmount === 1 ? total : (parseFloat(customAdvanceAmount) || 0)
-    }, itemsToCheckout);
-    setCompletedOrder(order);
-    setStep('success');
+    setIsPlacingOrder(true);
+    try {
+      const order = await placeOrder({
+        ...formData,
+        transactionId: manualTxId,
+        advancePaidAmount: advanceAmount === 0 ? shipping : advanceAmount === 1 ? total : (parseFloat(customAdvanceAmount) || 0)
+      }, itemsToCheckout);
+      setCompletedOrder(order);
+      setStep('success');
+    } catch (err) {
+      console.error("Order placement error:", err);
+      addToast(
+        { en: 'Failed to place order. Please try again.', bn: 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' },
+        'error'
+      );
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   const copyOrderTracking = () => {
@@ -691,10 +706,18 @@ export default function CheckoutModal({ isOpen, onClose, directProduct }: Checko
                   </div>
 
                   <button
+                    disabled={isPlacingOrder}
                     onClick={handleConfirmManualPayment}
-                    className="w-full py-4 rounded-sm bg-stone-900 hover:bg-black text-white font-extrabold text-xs tracking-widest uppercase shadow-xl transition-all"
+                    className={`w-full py-4 rounded-sm bg-stone-900 hover:bg-black text-white font-extrabold text-xs tracking-widest uppercase shadow-xl transition-all flex items-center justify-center gap-2 ${isPlacingOrder ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    {language === 'en' ? 'SUBMIT ORDER FOR VERIFICATION' : 'অর্ডার ভেরিফিকেশনের জন্য পাঠান'}
+                    {isPlacingOrder ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        {language === 'en' ? 'PROCESSING ORDER...' : 'অর্ডার প্রসেস হচ্ছে...'}
+                      </>
+                    ) : (
+                      language === 'en' ? 'SUBMIT ORDER FOR VERIFICATION' : 'অর্ডার ভেরিফিকেশনের জন্য পাঠান'
+                    )}
                   </button>
                   
                   <p className="text-[9px] text-center text-stone-400 mt-2">

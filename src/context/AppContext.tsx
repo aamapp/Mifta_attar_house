@@ -81,7 +81,7 @@ interface AppContextType {
     paymentOption: string;
     transactionId?: string;
     advancePaidAmount?: number;
-  }, customItems?: CartItem[]) => Order;
+  }, customItems?: CartItem[]) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: Order['orderStatus']) => void;
   deleteOrder: (orderId: string) => Promise<void>;
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
@@ -1088,7 +1088,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Orders Management
-  const placeOrder = (shippingDetails: {
+  const placeOrder = async (shippingDetails: {
     name: string;
     phone: string;
     address: string;
@@ -1155,22 +1155,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       clearCart();
     }
 
-    // Trigger FCM Push for Admin
-    fetch('https://miftaattarhouse.mamun30yr.workers.dev/api/send-push', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: 'ADMINS',
-        title: language === 'en' ? 'New Order Received!' : 'নতুন অর্ডার এসেছে!',
-        body: language === 'en' 
-          ? `Order for ৳${newOrder.total} from ${newOrder.customerName}`
-          : `${newOrder.customerName} এর কাছ থেকে ৳${newOrder.total} টাকার অর্ডার এসেছে।`,
-        data: {
-          orderId: newOrder.id,
-          url: `/?openAdmin=true&orderId=${newOrder.id}`
-        }
-      })
-    }).catch(err => console.error("Auto-push error:", err));
+    // Trigger FCM Push for Admin (Awaited with catch to prevent early cancellation if tab closes)
+    try {
+      await fetch('https://miftaattarhouse.mamun30yr.workers.dev/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'ADMINS',
+          title: language === 'en' ? 'New Order Received!' : 'নতুন অর্ডার এসেছে!',
+          body: language === 'en' 
+            ? `Order for ৳${newOrder.total} from ${newOrder.customerName}`
+            : `${newOrder.customerName} এর কাছ থেকে ৳${newOrder.total} টাকার অর্ডার এসেছে।`,
+          data: {
+            orderId: newOrder.id,
+            url: `/?openAdmin=true&orderId=${newOrder.id}`
+          }
+        })
+      });
+      console.log('FCM Push notification triggered successfully.');
+    } catch (err) {
+      console.error("Auto-push error:", err);
+    }
 
     // Trigger Admin Notification
     addNotification({
@@ -1186,11 +1191,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       referenceId: newOrder.id
     });
 
-    // Background sync to Supabase
+    // Save to Supabase (Awaited with catch to ensure order is written before page transitions)
     if (supabaseStatus.connected && supabaseStatus.tables.mifta_orders) {
-      saveSupabaseOrder(newOrder).catch((err) =>
-        console.error('Error background syncing placed order:', err)
-      );
+      try {
+        await saveSupabaseOrder(newOrder);
+        console.log('Order sync to Supabase completed.');
+      } catch (err) {
+        console.error('Error syncing placed order to Supabase:', err);
+      }
     }
     
     addToast(

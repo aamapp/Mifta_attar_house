@@ -1,5 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
+let cachedFcmAccessToken: string | null = null;
+let cachedFcmTokenExpiry: number = 0; // Epoch timestamp in ms
+
 export default {
   async fetch(request: Request, env: any, ctx: any): Promise<Response> {
     const url = new URL(request.url);
@@ -120,36 +123,51 @@ export default {
           });
         }
 
-        // 3. Get FCM Access Token via Google Auth
-        const { JWT } = await import("google-auth-library");
-        const clientEmail = env.FIREBASE_CLIENT_EMAIL;
-        const privateKey = env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-        const projectId = env.FIREBASE_PROJECT_ID;
+        // 3. Get FCM Access Token via Google Auth (with caching)
+        let accessToken = cachedFcmAccessToken;
+        const now = Date.now();
+        
+        if (!accessToken || now >= cachedFcmTokenExpiry) {
+          const { JWT } = await import("google-auth-library");
+          const clientEmail = env.FIREBASE_CLIENT_EMAIL;
+          const privateKey = env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+          const projectId = env.FIREBASE_PROJECT_ID;
 
-        if (!clientEmail || !privateKey || !projectId) {
-          const missing = [];
-          if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
-          if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
-          if (!projectId) missing.push("FIREBASE_PROJECT_ID");
-          
-          console.error("Firebase credentials missing in environment:", missing.join(", "));
-          return new Response(JSON.stringify({ 
-            error: "FIREBASE_CREDENTIALS_MISSING", 
-            details: `Missing environment variables: ${missing.join(", ")}. Please check wrangler.toml or Cloudflare Dashboard.` 
-          }), { 
-            status: 500,
-            headers: { "Content-Type": "application/json" }
+          if (!clientEmail || !privateKey || !projectId) {
+            const missing = [];
+            if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
+            if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
+            if (!projectId) missing.push("FIREBASE_PROJECT_ID");
+            
+            console.error("Firebase credentials missing in environment:", missing.join(", "));
+            return new Response(JSON.stringify({ 
+              error: "FIREBASE_CREDENTIALS_MISSING", 
+              details: `Missing environment variables: ${missing.join(", ")}. Please check wrangler.toml or Cloudflare Dashboard.` 
+            }), { 
+              status: 500,
+              headers: { "Content-Type": "application/json" }
+            });
+          }
+
+          const jwtClient = new JWT({
+            email: clientEmail,
+            key: privateKey,
+            scopes: ["https://www.googleapis.com/auth/cloud-platform"]
           });
+
+          const authTokens = await jwtClient.authorize();
+          accessToken = authTokens.access_token || null;
+          if (accessToken) {
+            cachedFcmAccessToken = accessToken;
+            // Token is valid for 1 hour. Cache for 50 minutes (3000000 ms) to be safe.
+            cachedFcmTokenExpiry = now + 50 * 60 * 1000;
+            console.log("New FCM access token fetched and cached.");
+          }
+        } else {
+          console.log("Using cached FCM access token.");
         }
 
-        const jwtClient = new JWT({
-          email: clientEmail,
-          key: privateKey,
-          scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-        });
-
-        const authTokens = await jwtClient.authorize();
-        const accessToken = authTokens.access_token;
+        const projectId = env.FIREBASE_PROJECT_ID;
 
         // 4. Send notification via FCM v1 API
         const results = [];
