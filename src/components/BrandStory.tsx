@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import SafeImage from './SafeImage';
 import { ShieldCheck, Truck, Sparkles, Award, Star, ThumbsUp, Heart } from 'lucide-react';
 
 export default function BrandStory() {
@@ -82,7 +83,7 @@ export default function BrandStory() {
             </div>
           </div>
           <div className="md:w-1/2 w-full aspect-video md:aspect-square lg:aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden relative">
-             <img src="https://images.unsplash.com/photo-1611078598463-22878513b632?auto=format&fit=crop&q=80&w=1000" alt="Natural products" className="w-full h-full object-cover" />
+             <SafeImage src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1000" alt="Natural products" className="w-full h-full object-cover" />
           </div>
         </div>
 
